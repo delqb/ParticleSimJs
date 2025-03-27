@@ -9,8 +9,13 @@
 <body>
     <canvas id="canvas" width="1080" height="768" style="border:1px solid #000000;"></canvas>
     <script src="particlesim.js"></script>
-    <button onclick="startAnimation()">Start</button>
-    <button onclick="stopAnimation()">Pause</button>
+    <script>
+        function onClickAnimationToggle() {
+            toggleAnimation();
+            document.getElementById("toggleAnimationButton").textContent = isAnimating ? "Pause" : "Start";
+        }
+    </script>
+    <button id="toggleAnimationButton" onclick="onClickAnimationToggle()">Start</button>
 </body>
 
 </html>

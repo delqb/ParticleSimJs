@@ -40,8 +40,8 @@ let particle1 = {
     mass: 10,
     x: worldBounds.getCenterX(),
     y: worldBounds.getCenterY(),
-    vX: 700,
-    vY: 550,
+    vX: 750,
+    vY: 150,
 }
 
 function clearCanvas() {
@@ -185,6 +185,13 @@ function startAnimation() {
 
 function stopAnimation() {
     isAnimating = false;
+}
+
+function toggleAnimation() {
+    if (isAnimating)
+        stopAnimation();
+    else
+        startAnimation();
 }
 
 draw();
