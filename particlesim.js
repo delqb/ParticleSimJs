@@ -11,6 +11,9 @@ let fontHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundin
 
 const deltaTime = 1 / 60;
 const frictionCoefficient = 0.006;
+const acceleration = 100 * Math.E;
+const maxSpeed = 800;
+
 
 let lastFrameTime = null;
 let fpsCalculationFrequency = 20;
@@ -40,9 +43,61 @@ let particle1 = {
     mass: 10,
     x: worldBounds.getCenterX(),
     y: worldBounds.getCenterY(),
-    vX: 750,
-    vY: 150,
+    vX: 0,
+    vY: 0,
+    aX: 0,
+    aY: 0,
+    getSpeedSquared: () => {
+        return particle1.vX * particle1.vX + particle1.vY * particle1.vY;
+    },
+    getNormalizedVelocityVector: () => {
+        let ss = Math.sqrt(particle1.getSpeedSquared());
+        return [particle1.vX / ss, particle1.vY / ss];
+    }
 }
+
+let keyStates = {
+};
+
+let bindings = {
+    up: {
+        keys: ["w"],
+        action: () => {
+            // let accelerationSquared = particle1.aX * particle1.aX + particle1.aY * particle1.aY;
+            // if (accelerationSquared >= acceleration)
+            //     return;
+            // acceleration - Math.sqrt()
+            // particle1.aY = Math.min()
+            particle1.aY = -acceleration;
+        }
+    },
+    down: {
+        keys: ["s"],
+        action: () => {
+            particle1.aY = acceleration;
+        }
+    },
+    left: {
+        keys: ["a"],
+        action: () => {
+            particle1.aX = -acceleration;
+        }
+    },
+    right: {
+        keys: ["d"],
+        action: () => {
+            particle1.aX = acceleration;
+        }
+    }
+};
+
+window.addEventListener("keydown", (event) => {
+    keyStates[event.key] = true;
+});
+
+window.addEventListener("keyup", (event) => {
+    keyStates[event.key] = false;
+});
 
 function clearCanvas() {
     ctx.fillStyle = renderBaseColor;
@@ -79,9 +134,13 @@ function updateVelocity(particle) {
 
     if (differenceSquared(particle.y, worldBounds.top) <= particle.size || differenceSquared(particle.y, worldBounds.bottom) <= particle.size)
         particle.vY *= -1;
+
+    particle.vX += particle.aX * deltaTime;
+    particle.vY += particle.aY * deltaTime;
 }
 
-
+function updateAcceleration(particle) {
+}
 
 function updatePosition(particle) {
     particle.x += particle.vX * deltaTime;
@@ -94,15 +153,24 @@ function applyFriction(particle, frictionCoefficient) {
 }
 
 function updateMotion() {
+    updateAcceleration(particle1);
     updateVelocity(particle1);
     updatePosition(particle1);
     applyFriction(particle1, frictionCoefficient);
+}
+
+function activateKeyBindings() {
+    for (const binding of Object.values(bindings)) {
+        if (binding.keys.map(k => keyStates[k]).includes(true))
+            binding.action();
+    }
 }
 
 // Game logic
 function update() {
     updateStats();
     updateMotion();
+    activateKeyBindings();
 }
 
 function drawComplexText(x, y, content = [["Colored ", "red"], ["\n"], ["Text ", "Blue"], ["Test", "Green"]], lineSpacing = 2) {
