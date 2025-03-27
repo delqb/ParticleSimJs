@@ -40,8 +40,8 @@ let particle1 = {
     mass: 10,
     x: worldBounds.getCenterX(),
     y: worldBounds.getCenterY(),
-    vX: 250,
-    vY: 0,
+    vX: 700,
+    vY: 550,
 }
 
 function clearCanvas() {
@@ -69,9 +69,19 @@ function updateStats() {
     updateFPS();
 }
 
-function updateVelocity(particle) {
-
+function differenceSquared(a, b) {
+    return (a - b) * (a - b);
 }
+
+function updateVelocity(particle) {
+    if (differenceSquared(particle.x, worldBounds.left) <= particle.size || differenceSquared(particle.x, worldBounds.right) <= particle.size)
+        particle.vX *= -1;
+
+    if (differenceSquared(particle.y, worldBounds.top) <= particle.size || differenceSquared(particle.y, worldBounds.bottom) <= particle.size)
+        particle.vY *= -1;
+}
+
+
 
 function updatePosition(particle) {
     particle.x += particle.vX * deltaTime;
@@ -100,16 +110,47 @@ function drawFPS() {
     ctx.fillText("FPS: " + stats.fps(), 10, 10);
 }
 
+function drawComplexText(x, y, content = [["Colored ", "red"], ["\n"], ["Text ", "Blue"], ["Test", "Green"]], lineSpacing = 2) {
+    let xOrig = x;
+    for (const piece of content) {
+        let text = piece[0];
+        let color = piece.length > 1 ? piece[1] : ctx.fillStyle;
+        ctx.fillStyle = color;
+        if (text.includes("\n")) {
+            for (const line of text.split("\n")) {
+                ctx.fillText(line, x, y);
+                y += fontHeight + lineSpacing;
+                x = xOrig;
+            }
+        }
+        else {
+            ctx.fillText(text, x, y);
+            x += ctx.measureText(text).width;
+        }
+    }
+    return y;
+}
+
 function drawAnimationStat() {
-    ctx.fillStyle = "white";
-    ctx.fillText(`${animateStatName}: `, 10, 10 + fontHeight + 2);
-    ctx.fillStyle = isAnimating ? "green" : "red";
-    ctx.fillText(isAnimating ? "on" : "off", 10 + animateStatNameMeasure + textMetrics.width, 10 + fontHeight + 2);
+    drawComplexText(10, 10 + fontHeight + 2,
+        [
+            [`${animateStatName}: `, "white"],
+            isAnimating ? ["on", "green"] : ["off", "red"]
+        ]
+    );
 }
 
 function drawStats() {
-    drawFPS();
-    drawAnimationStat();
+    drawComplexText(10, 10,
+        [
+            ["FPS: " + stats.fps(), "white"],
+            ["\n"],
+            ["Animate: ", "white"],
+            isAnimating ? ["on", "green"] : ["off", "red"]
+        ],
+        2)
+    // drawFPS();
+    // drawAnimationStat();
 }
 
 function drawParticle() {
@@ -136,6 +177,8 @@ function animate() {
 }
 
 function startAnimation() {
+    if (isAnimating)
+        return;
     isAnimating = true;
     animate();
 }
