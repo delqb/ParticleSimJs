@@ -105,11 +105,6 @@ function update() {
     updateMotion();
 }
 
-function drawFPS() {
-    ctx.fillStyle = "white";
-    ctx.fillText("FPS: " + stats.fps(), 10, 10);
-}
-
 function drawComplexText(x, y, content = [["Colored ", "red"], ["\n"], ["Text ", "Blue"], ["Test", "Green"]], lineSpacing = 2) {
     let xOrig = x;
     for (const piece of content) {
@@ -131,15 +126,6 @@ function drawComplexText(x, y, content = [["Colored ", "red"], ["\n"], ["Text ",
     return y;
 }
 
-function drawAnimationStat() {
-    drawComplexText(10, 10 + fontHeight + 2,
-        [
-            [`${animateStatName}: `, "white"],
-            isAnimating ? ["on", "green"] : ["off", "red"]
-        ]
-    );
-}
-
 function drawStats() {
     drawComplexText(10, 10,
         [
@@ -149,8 +135,6 @@ function drawStats() {
             isAnimating ? ["on", "green"] : ["off", "red"]
         ],
         2)
-    // drawFPS();
-    // drawAnimationStat();
 }
 
 function drawParticle() {
