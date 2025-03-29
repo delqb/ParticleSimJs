@@ -63,30 +63,25 @@ let bindings = {
     up: {
         keys: ["w"],
         action: () => {
-            // let accelerationSquared = particle1.aX * particle1.aX + particle1.aY * particle1.aY;
-            // if (accelerationSquared >= acceleration)
-            //     return;
-            // acceleration - Math.sqrt()
-            // particle1.aY = Math.min()
-            particle1.aY = -acceleration;
+            particle1.aY = -1 * acceleration ** 2 / Math.sqrt(acceleration ** 2 + particle1.aX ** 2);
         }
     },
     down: {
         keys: ["s"],
         action: () => {
-            particle1.aY = acceleration;
+            particle1.aY = acceleration ** 2 / Math.sqrt(acceleration ** 2 + particle1.aX ** 2);
         }
     },
     left: {
         keys: ["a"],
         action: () => {
-            particle1.aX = -acceleration;
+            particle1.aX = -1 * acceleration ** 2 / Math.sqrt(particle1.aY ** 2 + acceleration ** 2);
         }
     },
     right: {
         keys: ["d"],
         action: () => {
-            particle1.aX = acceleration;
+            particle1.aX = acceleration ** 2 / Math.sqrt(particle1.aY ** 2 + acceleration ** 2);
         }
     }
 };
@@ -200,7 +195,10 @@ function drawStats() {
             ["FPS: " + stats.fps(), "white"],
             ["\n"],
             ["Animate: ", "white"],
-            isAnimating ? ["on", "green"] : ["off", "red"]
+            isAnimating ? ["on", "green"] : ["off", "red"],
+            ["\n"],
+            ["Acceleration: ", "white"],
+            ["" + Math.sqrt(particle1.aX ** 2 + particle1.aY ** 2), "white"]
         ],
         2)
 }
