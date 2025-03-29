@@ -234,7 +234,7 @@ function drawStats() {
             isAnimating ? ["on", "green"] : ["off", "red"],
             ["\n"],
             ...Object.entries(particleStats).map(([key, val]) => [`${key}: ${parseFloat(val + "") ? Math.round(val * 100) / 100 : val}\n`, "white"]),
-            // [`Acceleration: ${particle1.getAccelerationMagnitude()}\n`, "white"],
+            [`Acceleration: ${particle1.getAccelerationMagnitude()}\n`, "white"],
         ],
         2);
 }
