@@ -13,7 +13,7 @@ const deltaTime = 1 / 60;
 const frictionCoefficient = 0.012;
 const acceleration = 1200 * Math.E,
     diagonalAccelerationComponent = acceleration * Math.SQRT1_2;
-const maxSpeed = 12000;
+const maxSpeed = 1000;
 
 
 let lastFrameTime = null;
@@ -30,6 +30,7 @@ let stats = {
 }
 
 let worldBounds = {
+    borderWidth: 10,
     left: 10,
     right: canvasWidth - 10,
     top: 10,
@@ -40,7 +41,14 @@ let worldBounds = {
     getHeight: () => worldBounds.getCenterY() - worldBounds.top
 }
 
-let particle1 = {
+let backgroundProperties = {
+    backgroundColor: "#23262B",
+    gridLineColor: "#424852",
+    gridScale: 35,
+    lineWidth: 1
+}
+
+let mainParticle = {
     color: "red",
     size: 10,
     mass: 10,
@@ -53,11 +61,12 @@ let particle1 = {
     daX: 0,
     daY: 0,
     computedSpeed: 0,
+    computedAcceleration: 0,
     getAccelerationMagnitude: () => {
-        return Math.sqrt(particle1.aX ** 2 + particle1.aY ** 2);
+        return Math.sqrt(mainParticle.aX ** 2 + mainParticle.aY ** 2);
     },
     getSpeedSquared: () => {
-        return particle1.vX * particle1.vX + particle1.vY * particle1.vY;
+        return mainParticle.vX * mainParticle.vX + mainParticle.vY * mainParticle.vY;
     }
 }
 
@@ -69,25 +78,25 @@ let bindings = {
         type: "movement",
         keys: ["w"],
         action: () => {
-            particle1.daY += -1;
+            mainParticle.daY += -1;
         }
     },
     down: {
         keys: ["s"],
         action: () => {
-            particle1.daY += 1;
+            mainParticle.daY += 1;
         }
     },
     left: {
         keys: ["a"],
         action: () => {
-            particle1.daX += -1;
+            mainParticle.daX += -1;
         }
     },
     right: {
         keys: ["d"],
         action: () => {
-            particle1.daX += 1;
+            mainParticle.daX += 1;
         }
     }
 };
@@ -163,11 +172,14 @@ function updateAcceleration(particle) {
     let { daX, daY } = particle;
     let magnitude = Math.sqrt(daX ** 2 + daY ** 2);
     if (magnitude) {
-        particle.aX = acceleration * daX / magnitude;
-        particle.aY = acceleration * daY / magnitude;
+        let factor = acceleration / magnitude;
+        particle.aX = factor * daX;
+        particle.aY = factor * daY;
+        particle.computedAcceleration = acceleration;
     } else {
         particle.aX = 0;
         particle.aY = 0;
+        particle.computedAcceleration = 0;
     }
     particle.daX = 0;
     particle.daY = 0;
@@ -184,10 +196,10 @@ function applyFriction(particle, frictionCoefficient) {
 }
 
 function updateMotion() {
-    updateAcceleration(particle1);
-    updateVelocity(particle1);
-    updatePosition(particle1);
-    applyFriction(particle1, frictionCoefficient);
+    updateAcceleration(mainParticle);
+    updateVelocity(mainParticle);
+    updatePosition(mainParticle);
+    applyFriction(mainParticle, frictionCoefficient);
 }
 
 function activateKeyBindings() {
@@ -226,7 +238,7 @@ function drawComplexText(x, y, content = [["Colored ", "red"], ["\n"], ["Text ",
 }
 
 function drawStats() {
-    const { getAccelerationMagnitude, getSpeedSquared, daX, daY, ...particleStats } = particle1;
+    const { getAccelerationMagnitude, getSpeedSquared, daX, daY, ...particleStats } = mainParticle;
     drawComplexText(10, 10,
         [
             [`FPS: ${stats.fps()}\n`, "white"],
@@ -234,21 +246,46 @@ function drawStats() {
             isAnimating ? ["on", "green"] : ["off", "red"],
             ["\n"],
             ...Object.entries(particleStats).map(([key, val]) => [`${key}: ${parseFloat(val + "") ? Math.round(val * 100) / 100 : val}\n`, "white"]),
-            [`Acceleration: ${particle1.getAccelerationMagnitude()}\n`, "white"],
         ],
         2);
 }
 
 function drawParticle() {
     ctx.beginPath();
-    ctx.arc(particle1.x, particle1.y, particle1.size, 0, 2 * Math.PI);
-    ctx.fillStyle = particle1.color;
+    ctx.arc(mainParticle.x, mainParticle.y, mainParticle.size, 0, 2 * Math.PI);
+    ctx.fillStyle = mainParticle.color;
     ctx.fill();
+}
+
+function drawBackground() {
+    let { backgroundColor, gridLineColor, gridScale, lineWidth } = backgroundProperties;
+
+    let { top, bottom, left, right } = worldBounds;
+
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    ctx.strokeStyle = gridLineColor;
+    ctx.lineWidth = lineWidth;
+
+    for (let lineX = left + gridScale / 2; lineX < right; lineX += gridScale) {
+        ctx.beginPath();
+        ctx.moveTo(lineX, top);
+        ctx.lineTo(lineX, bottom);
+        ctx.stroke();
+    }
+
+    for (let lineY = top + gridScale / 2; lineY < bottom; lineY += gridScale) {
+        ctx.beginPath();
+        ctx.moveTo(left, lineY);
+        ctx.lineTo(right, lineY);
+        ctx.stroke();
+    }
 }
 
 // Rendering
 function draw() {
     clearCanvas();
+    drawBackground();
     drawParticle();
     if (isStatsVisible)
         drawStats();
