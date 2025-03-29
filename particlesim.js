@@ -25,8 +25,9 @@ let animateStatName = "Animation";
 let animateStatNameMeasure = ctx.measureText(animateStatName).width;
 
 let stats = {
-    fps: () => fps,
-
+    isAnimating: () => isAnimating,
+    fps: () => round(fps),
+    position: () => `(${round(mainParticle.x)}, ${round(mainParticle.y)})`,
 }
 
 let worldBounds = {
@@ -108,6 +109,10 @@ window.addEventListener("keydown", (event) => {
 window.addEventListener("keyup", (event) => {
     keyStates[event.key] = false;
 });
+
+function round(num, decimalPlaces = 2) {
+    return Math.round(num * 10 ** decimalPlaces) / 10 ** decimalPlaces;
+}
 
 function clearCanvas() {
     ctx.fillStyle = renderBaseColor;
@@ -237,15 +242,16 @@ function drawComplexText(x, y, content = [["Colored ", "red"], ["\n"], ["Text ",
     return y;
 }
 
+function formatStats(key, value) {
+    return [`${key}: ${typeof value === "number" ? round(value) : value}\n`, "white"];
+}
+
 function drawStats() {
     const { getAccelerationMagnitude, getSpeedSquared, daX, daY, ...particleStats } = mainParticle;
     drawComplexText(10, 10,
         [
-            [`FPS: ${stats.fps()}\n`, "white"],
-            ["Animate: ", "white"],
-            isAnimating ? ["on", "green"] : ["off", "red"],
-            ["\n"],
-            ...Object.entries(particleStats).map(([key, val]) => [`${key}: ${parseFloat(val + "") ? Math.round(val * 100) / 100 : val}\n`, "white"]),
+            ...Object.entries(stats).map(([key, val]) => formatStats(key, val())),
+            ...Object.entries(particleStats).map(([key, val]) => formatStats(key, val)),
         ],
         2);
 }
