@@ -188,8 +188,6 @@ function updateMotion() {
     updateVelocity(particle1);
     updatePosition(particle1);
     applyFriction(particle1, frictionCoefficient);
-    particle1.aX = 0;
-    particle1.aY = 0;
 }
 
 function activateKeyBindings() {
@@ -228,7 +226,7 @@ function drawComplexText(x, y, content = [["Colored ", "red"], ["\n"], ["Text ",
 }
 
 function drawStats() {
-    const { getAccelerationMagnitude, getSpeedSquared, aX, aY, daX, daY, ...particleStats } = particle1;
+    const { getAccelerationMagnitude, getSpeedSquared, daX, daY, ...particleStats } = particle1;
     drawComplexText(10, 10,
         [
             [`FPS: ${stats.fps()}\n`, "white"],
