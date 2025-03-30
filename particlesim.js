@@ -30,8 +30,8 @@ let stats = {
     isAnimating: () => isAnimating,
     fps: () => round(fps),
     position: () => `${round(mainParticle.x)}, ${round(mainParticle.y)}`,
-    velocity: () => `${round(mainParticle.vX)}, ${round(mainParticle.vY)}`,
-    acceleration: () => `${round(mainParticle.aX)}, ${round(mainParticle.aY)}`,
+    velocity: () => `${round(mainParticle.computedSpeed)} (${round(mainParticle.vX)}, ${round(mainParticle.vY)})`,
+    acceleration: () => `${round(mainParticle.computedAcceleration)} (${round(mainParticle.aX)}, ${round(mainParticle.aY)})`,
 }
 
 let worldBounds = {
@@ -296,12 +296,8 @@ function formatStats(key, value) {
 }
 
 function drawStats() {
-    const { getAccelerationMagnitude, getSpeedSquared, daX, daY, x, y, vX, vY, aX, aY, ...particleStats } = mainParticle;
     drawComplexText(10, 10,
-        [
-            ...Object.entries(stats).map(([key, val]) => formatStats(key, val())),
-            ...Object.entries(particleStats).map(([key, val]) => formatStats(key, val)),
-        ],
+        Object.entries(stats).map(([key, val]) => formatStats(key, val())),
         2);
 }
 
