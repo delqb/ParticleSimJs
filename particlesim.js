@@ -49,18 +49,50 @@ let worldBounds = {
 let viewport = {
     x: worldBounds.getCenterX() - canvasWidth / 2,
     y: worldBounds.getCenterY() - canvasHeight / 2,
+    followBoundaryCoefficient: 0.25,
     getWidth() {
         return canvasWidth;
     },
     getHeight() {
         return canvasHeight;
     },
-    followParticle: true,
+    getCenterX() {
+        return (this.x + this.getWidth() / 2);
+    },
+    getCenterY() {
+        return (this.y + this.getHeight() / 2)
+    },
+    followTarget: null,
     update() {
-        if (this.followParticle) {
-            this.x = mainParticle.x - this.getWidth() / 2;
-            this.y = mainParticle.y - this.getHeight() / 2;
+        if (!this.followTarget)
+            return;
+
+        let followBoundaryWidth = this.followBoundaryCoefficient * Math.min(this.getWidth(), this.getHeight());
+        let xFollowDistance = this.getWidth() / 2 - followBoundaryWidth,
+            yFollowDistance = this.getHeight() / 2 - followBoundaryWidth;
+
+        let { x: pX, y: pY } = this.followTarget;
+
+        let distanceX = pX - this.getCenterX(),
+            distanceY = pY - this.getCenterY();
+
+        let absDistanceX = Math.abs(distanceX),
+            absDistanceY = Math.abs(distanceY);
+
+
+        let speedFactor = Math.max(1, absDistanceX / this.getWidth(), absDistanceY / this.getHeight());
+
+
+        if (absDistanceX > xFollowDistance) {
+            this.x = lerp(this.x, this.x + Math.sign(distanceX) * (absDistanceX - xFollowDistance), speedFactor * .1);
         }
+
+        if (absDistanceY > yFollowDistance) {
+            this.y = lerp(this.y, this.y + Math.sign(distanceY) * (absDistanceY - yFollowDistance), speedFactor * .1);
+        }
+
+        this.x = Math.max(worldBounds.left, Math.min(this.x, worldBounds.right - this.getWidth()));
+        this.y = Math.max(worldBounds.top, Math.min(this.y, worldBounds.bottom - this.getHeight()));
     }
 }
 
@@ -160,6 +192,10 @@ window.addEventListener("resize", resizeCanvas);
 
 function round(num, decimalPlaces = 2) {
     return Math.round(num * 10 ** decimalPlaces) / 10 ** decimalPlaces;
+}
+
+function lerp(start, end, t) {
+    return start + (end - start) * t;
 }
 
 function clearCanvas() {
@@ -374,5 +410,6 @@ function toggleAnimation() {
         startAnimation();
 }
 
+viewport.followTarget = mainParticle;
 draw();
 startAnimation();
