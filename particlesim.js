@@ -1,7 +1,9 @@
 const canvasElement = document.getElementById("canvas");
 const ctx = canvasElement.getContext("2d");
-const canvasWidth = canvasElement.width
-const canvasHeight = canvasElement.height;
+let canvasWidth = canvasElement.width,
+    canvasHeight = canvasElement.height;
+
+resizeCanvas();
 
 let renderBaseColor = "black";
 let isAnimating = false;
@@ -27,25 +29,45 @@ let animateStatNameMeasure = ctx.measureText(animateStatName).width;
 let stats = {
     isAnimating: () => isAnimating,
     fps: () => round(fps),
-    position: () => `(${round(mainParticle.x)}, ${round(mainParticle.y)})`,
+    position: () => `${round(mainParticle.x)}, ${round(mainParticle.y)}`,
+    velocity: () => `${round(mainParticle.vX)}, ${round(mainParticle.vY)}`,
+    acceleration: () => `${round(mainParticle.aX)}, ${round(mainParticle.aY)}`,
 }
 
 let worldBounds = {
     borderWidth: 10,
     left: 10,
-    right: canvasWidth - 10,
+    right: 4086,
     top: 10,
-    bottom: canvasHeight - 10,
+    bottom: 4086,
     getCenterX: () => (worldBounds.right - worldBounds.left) / 2,
     getCenterY: () => (worldBounds.bottom - worldBounds.top) / 2,
     getWidth: () => worldBounds.getCenterX() - worldBounds.left,
     getHeight: () => worldBounds.getCenterY() - worldBounds.top
 }
 
+let viewport = {
+    x: worldBounds.getCenterX() - canvasWidth / 2,
+    y: worldBounds.getCenterY() - canvasHeight / 2,
+    getWidth() {
+        return canvasWidth;
+    },
+    getHeight() {
+        return canvasHeight;
+    },
+    followParticle: true,
+    update() {
+        if (this.followParticle) {
+            this.x = mainParticle.x - this.getWidth() / 2;
+            this.y = mainParticle.y - this.getHeight() / 2;
+        }
+    }
+}
+
 let backgroundProperties = {
     backgroundColor: "#23262B",
     gridLineColor: "#424852",
-    gridScale: 35,
+    gridScale: 50,
     lineWidth: 1
 }
 
@@ -74,7 +96,7 @@ let mainParticle = {
 let keyStates = {
 };
 
-let bindings = {
+let controls = {
     up: {
         type: "movement",
         keys: ["w"],
@@ -102,13 +124,39 @@ let bindings = {
     }
 };
 
+let hotkeys = {
+    pause: {
+        keys: ["Escape", " "],
+        action: () => {
+            toggleAnimation();
+        }
+    }
+}
+
+function activateHotkeyBindings() {
+    for (const binding of Object.values(hotkeys)) {
+        if (binding.keys.some(k => keyStates[k]))
+            binding.action();
+    }
+}
+
+
+
 window.addEventListener("keydown", (event) => {
     keyStates[event.key] = true;
+    activateHotkeyBindings();
 });
 
 window.addEventListener("keyup", (event) => {
     keyStates[event.key] = false;
 });
+
+function resizeCanvas() {
+    canvasWidth = canvas.width = window.innerWidth * .98;
+    canvasHeight = canvas.height = window.innerHeight * .98;
+}
+
+window.addEventListener("resize", resizeCanvas);
 
 function round(num, decimalPlaces = 2) {
     return Math.round(num * 10 ** decimalPlaces) / 10 ** decimalPlaces;
@@ -116,7 +164,7 @@ function round(num, decimalPlaces = 2) {
 
 function clearCanvas() {
     ctx.fillStyle = renderBaseColor;
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    ctx.fillRect(0, 0, worldBounds.getWidth(), worldBounds.getHeight());
 }
 
 function updateFPS() {
@@ -207,18 +255,19 @@ function updateMotion() {
     applyFriction(mainParticle, frictionCoefficient);
 }
 
-function activateKeyBindings() {
-    for (const binding of Object.values(bindings)) {
-        if (binding.keys.some(k => keyStates[k]))
-            binding.action();
+function activateControlBindings() {
+    for (const controlBinding of Object.values(controls)) {
+        if (controlBinding.keys.some(k => keyStates[k]))
+            controlBinding.action();
     }
 }
 
 // Game logic
 function update() {
-    activateKeyBindings();
+    activateControlBindings();
     updateStats();
     updateMotion();
+    viewport.update();
 }
 
 function drawComplexText(x, y, content = [["Colored ", "red"], ["\n"], ["Text ", "Blue"], ["Test", "Green"]], lineSpacing = 2) {
@@ -247,7 +296,7 @@ function formatStats(key, value) {
 }
 
 function drawStats() {
-    const { getAccelerationMagnitude, getSpeedSquared, daX, daY, ...particleStats } = mainParticle;
+    const { getAccelerationMagnitude, getSpeedSquared, daX, daY, x, y, vX, vY, aX, aY, ...particleStats } = mainParticle;
     drawComplexText(10, 10,
         [
             ...Object.entries(stats).map(([key, val]) => formatStats(key, val())),
@@ -269,18 +318,18 @@ function drawBackground() {
     let { top, bottom, left, right } = worldBounds;
 
     ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    ctx.fillRect(0, 0, right + worldBounds.borderWidth, bottom + worldBounds.borderWidth);
     ctx.strokeStyle = gridLineColor;
     ctx.lineWidth = lineWidth;
 
-    for (let lineX = left + gridScale / 2; lineX < right; lineX += gridScale) {
+    for (let lineX = left; lineX < right; lineX += (worldBounds.getWidth() - worldBounds.borderWidth) / gridScale) {
         ctx.beginPath();
         ctx.moveTo(lineX, top);
         ctx.lineTo(lineX, bottom);
         ctx.stroke();
     }
 
-    for (let lineY = top + gridScale / 2; lineY < bottom; lineY += gridScale) {
+    for (let lineY = top; lineY < bottom; lineY += worldBounds.getHeight() / gridScale) {
         ctx.beginPath();
         ctx.moveTo(left, lineY);
         ctx.lineTo(right, lineY);
@@ -291,8 +340,14 @@ function drawBackground() {
 // Rendering
 function draw() {
     clearCanvas();
+    ctx.save();
+    ctx.translate(-viewport.x, -viewport.y);
+
     drawBackground();
     drawParticle();
+
+    ctx.restore();
+
     if (isStatsVisible)
         drawStats();
 }
@@ -324,5 +379,4 @@ function toggleAnimation() {
 }
 
 draw();
-
-// startAnimation();
+startAnimation();
