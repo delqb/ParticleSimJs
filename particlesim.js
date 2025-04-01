@@ -37,9 +37,9 @@ let stats = {
 let worldBounds = {
     borderWidth: 10,
     left: 10,
-    right: 4086,
+    right: 2038,
     top: 10,
-    bottom: 4086,
+    bottom: 2048,
     getCenterX: () => (worldBounds.right - worldBounds.left) / 2,
     getCenterY: () => (worldBounds.bottom - worldBounds.top) / 2,
     getWidth: () => worldBounds.getCenterX() - worldBounds.left,
@@ -50,6 +50,9 @@ let viewport = {
     x: worldBounds.getCenterX() - canvasWidth / 2,
     y: worldBounds.getCenterY() - canvasHeight / 2,
     followBoundaryCoefficient: 0.25,
+    getFollowBoundaryWidth() {
+        return this.followBoundaryCoefficient * Math.min(this.getWidth(), this.getHeight());
+    },
     getWidth() {
         return canvasWidth;
     },
@@ -67,7 +70,7 @@ let viewport = {
         if (!this.followTarget)
             return;
 
-        let followBoundaryWidth = this.followBoundaryCoefficient * Math.min(this.getWidth(), this.getHeight());
+        let followBoundaryWidth = this.getFollowBoundaryWidth();
         let xFollowDistance = this.getWidth() / 2 - followBoundaryWidth,
             yFollowDistance = this.getHeight() / 2 - followBoundaryWidth;
 
@@ -93,6 +96,36 @@ let viewport = {
 
         this.x = Math.max(worldBounds.left, Math.min(this.x, worldBounds.right - this.getWidth()));
         this.y = Math.max(worldBounds.top, Math.min(this.y, worldBounds.bottom - this.getHeight()));
+    },
+    borderEffect: {
+        isActive: true,
+        draw() {
+            let borderWidth = viewport.getFollowBoundaryWidth() / 10;
+            let vWidth = viewport.getWidth(),
+                vHeight = viewport.getHeight();
+            let darkShade = "rgba(0,0,0,1)",
+                transparentShade = "rgba(0,0,0,0)";
+
+            let wCS1 = borderWidth / vWidth;
+            let grad = ctx.createLinearGradient(0, 0, vWidth, 0);
+            grad.addColorStop(0, darkShade);
+            grad.addColorStop(wCS1, transparentShade);
+            grad.addColorStop(1 - wCS1, transparentShade);
+            grad.addColorStop(1, darkShade);
+
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, vWidth, vHeight);
+
+            let hCS1 = borderWidth / vHeight;
+            grad = ctx.createLinearGradient(0, 0, 0, vHeight);
+            grad.addColorStop(0, darkShade);
+            grad.addColorStop(hCS1, transparentShade);
+            grad.addColorStop(1 - hCS1, transparentShade);
+            grad.addColorStop(1, darkShade);
+
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, vWidth, vHeight);
+        }
     }
 }
 
@@ -369,19 +402,27 @@ function drawBackground() {
     }
 }
 
+function drawWorld() {
+    drawBackground();
+    drawParticle();
+}
+
+function drawHUD() {
+    if (viewport.borderEffect.isActive)
+        viewport.borderEffect.draw();
+
+    if (isStatsVisible)
+        drawStats();
+}
+
 // Rendering
 function draw() {
     clearCanvas();
     ctx.save();
     ctx.translate(-viewport.x, -viewport.y);
-
-    drawBackground();
-    drawParticle();
-
+    drawWorld();
     ctx.restore();
-
-    if (isStatsVisible)
-        drawStats();
+    drawHUD();
 }
 
 // Game loop
