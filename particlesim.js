@@ -39,7 +39,7 @@ let worldBounds = {
     left: 10,
     right: 2038,
     top: 10,
-    bottom: 2048,
+    bottom: 2038,
     getCenterX: () => (worldBounds.right - worldBounds.left) / 2,
     getCenterY: () => (worldBounds.bottom - worldBounds.top) / 2,
     getWidth: () => worldBounds.getCenterX() - worldBounds.left,
