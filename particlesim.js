@@ -31,15 +31,23 @@ const STATS = {
 }
 
 const WORLD = {
-    borderWidth: 10,
-    left: 10,
-    right: 2038,
-    top: 10,
-    bottom: 2038,
-    getCenterX: () => (WORLD.right - WORLD.left) / 2,
-    getCenterY: () => (WORLD.bottom - WORLD.top) / 2,
-    getWidth: () => WORLD.getCenterX() - WORLD.left,
-    getHeight: () => WORLD.getCenterY() - WORLD.top
+    borderWidth: 100,
+    left: 0,
+    right: 2048,
+    top: 0,
+    bottom: 2048,
+    getCenterX() {
+        return this.left + this.getWidth() / 2;
+    },
+    getCenterY() {
+        return this.top + this.getHeight() / 2;
+    },
+    getWidth() {
+        return this.right - this.left;
+    },
+    getHeight() {
+        return this.bottom - this.top;
+    }
 }
 
 const VIEWPORT = {
@@ -90,8 +98,9 @@ const VIEWPORT = {
             this.y = lerp(this.y, this.y + Math.sign(yDistance) * (absDistanceY - yDistanceMax), speedFactor * .1);
         }
 
-        this.x = Math.max(WORLD.left, Math.min(this.x, WORLD.right - this.getWidth()));
-        this.y = Math.max(WORLD.top, Math.min(this.y, WORLD.bottom - this.getHeight()));
+        const worldBorderWidth = WORLD.borderWidth;
+        this.x = Math.max(WORLD.left - worldBorderWidth, Math.min(this.x, WORLD.right + worldBorderWidth - this.getWidth()));
+        this.y = Math.max(WORLD.top - worldBorderWidth, Math.min(this.y, WORLD.bottom + worldBorderWidth - this.getHeight()));
     },
     borderEffect: {
         isActive: true,
@@ -257,32 +266,42 @@ function differenceSquared(a, b) {
 }
 
 function updateVelocity(particle) {
-    let { x, y, vX, vY, aX, aY, size } = particle;
-    let worldWidth = WORLD.getWidth(),
-        worldHeight = WORLD.getHeight();
-    let distanceToCenterX = Math.abs(WORLD.getCenterX() - x),
-        distanceToCenterY = Math.abs(WORLD.getCenterY() - y);
-
-    if (distanceToCenterX > worldWidth - size) {
-        let direction = Math.sign(WORLD.getCenterX() - x);
-        particle.vX = direction * (Math.abs(vX) + 3 * (distanceToCenterX - worldWidth) * DELTA_TIME);
-    }
-
-    if (distanceToCenterY > worldHeight - size) {
-        let direction = Math.sign(WORLD.getCenterY() - y);
-        particle.vY = direction * (Math.abs(vY) + 3 * (distanceToCenterY - worldHeight) * DELTA_TIME);
-    }
+    // Currently, particle coordinates correspond to the center of the particle
+    const { x, y, aX, aY, radius: particleRadius } = particle,
+        worldWidth = WORLD.getWidth(),
+        worldHeight = WORLD.getHeight(),
+        worldCenterX = WORLD.getCenterX(),
+        worldCenterY = WORLD.getCenterY(),
+        diffX = worldCenterX - x,
+        diffY = worldCenterY - y,
+        distanceX = Math.abs(diffX),
+        distanceY = Math.abs(diffY),
+        distanceXMax = worldWidth / 2 - particleRadius,
+        distanceYMax = worldHeight / 2 - particleRadius,
+        overflowCorrectionThreshold = WORLD.borderWidth,
+        overflowDistanceX = distanceXMax + overflowCorrectionThreshold,
+        overflowDistanceY = distanceYMax + overflowCorrectionThreshold;
 
     particle.vX += aX * DELTA_TIME;
     particle.vY += aY * DELTA_TIME;
 
-    let speed = particle.computedSpeed = Math.sqrt(vX ** 2 + vY ** 2);
+    const particleSpeed = particle.computedSpeed = Math.sqrt(particle.vX ** 2 + particle.vY ** 2);
 
-    if (speed > MAX_SPEED) {
-        const factor = MAX_SPEED / speed;
+    if (particleSpeed > MAX_SPEED) {
+        const factor = MAX_SPEED / particleSpeed;
         particle.vX *= factor;
         particle.vY *= factor;
         particle.computedSpeed = MAX_SPEED;
+    }
+
+    if (distanceX > distanceXMax) {
+        let direction = Math.sign(diffX);
+        particle.vX = direction * (Math.abs(particle.vX) + (distanceX > overflowDistanceX) * DELTA_TIME * ACCELERATION * distanceX / overflowDistanceX);
+    }
+
+    if (distanceY > distanceYMax) {
+        let direction = Math.sign(diffY);
+        particle.vY = direction * (Math.abs(particle.vY) + (distanceY > overflowDistanceY) * DELTA_TIME * ACCELERATION * distanceY / overflowDistanceY);
     }
 }
 
@@ -378,18 +397,18 @@ function drawWorldBackground() {
     const { top, bottom, left, right, borderWidth } = WORLD;
 
     CONTEXT.fillStyle = backgroundColor;
-    CONTEXT.fillRect(left - borderWidth, top - borderWidth, right + borderWidth, bottom + borderWidth);
+    CONTEXT.fillRect(left - borderWidth, top - borderWidth, right + 2 * borderWidth, bottom + 2 * borderWidth);
     CONTEXT.strokeStyle = gridLineColor;
     CONTEXT.lineWidth = lineWidth;
 
-    for (let vLine = left; vLine < right; vLine += gridSize) {
+    for (let vLine = left; vLine <= right; vLine += gridSize) {
         CONTEXT.beginPath();
         CONTEXT.moveTo(vLine, top);
         CONTEXT.lineTo(vLine, bottom);
         CONTEXT.stroke();
     }
 
-    for (let hLine = top; hLine < bottom; hLine += gridSize) {
+    for (let hLine = top; hLine <= bottom; hLine += gridSize) {
         CONTEXT.beginPath();
         CONTEXT.moveTo(left, hLine);
         CONTEXT.lineTo(right, hLine);
