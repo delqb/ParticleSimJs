@@ -128,7 +128,7 @@ const VIEWPORT = {
 const WORLD_BACKGROUND = {
     backgroundColor: "#23262B",
     gridLineColor: "#424852",
-    gridScale: 50,
+    gridSize: 32,
     lineWidth: 1
 }
 
@@ -374,23 +374,24 @@ function drawParticle() {
 }
 
 function drawBackground() {
-    const { backgroundColor, gridLineColor, gridScale, lineWidth } = WORLD_BACKGROUND;
+    const { backgroundColor, gridLineColor, gridSize, lineWidth } = WORLD_BACKGROUND;
 
     const { top, bottom, left, right } = WORLD;
+    const borderWidth = WORLD.borderWidth;
 
     CONTEXT.fillStyle = backgroundColor;
-    CONTEXT.fillRect(0, 0, right + WORLD.borderWidth, bottom + WORLD.borderWidth);
+    CONTEXT.fillRect(left - borderWidth, top - borderWidth, right + borderWidth, bottom + borderWidth);
     CONTEXT.strokeStyle = gridLineColor;
     CONTEXT.lineWidth = lineWidth;
 
-    for (let vLine = left; vLine < right; vLine += (WORLD.getWidth() - WORLD.borderWidth) / gridScale) {
+    for (let vLine = left; vLine < right; vLine += gridSize) {
         CONTEXT.beginPath();
         CONTEXT.moveTo(vLine, top);
         CONTEXT.lineTo(vLine, bottom);
         CONTEXT.stroke();
     }
 
-    for (let hLine = top; hLine < bottom; hLine += WORLD.getHeight() / gridScale) {
+    for (let hLine = top; hLine < bottom; hLine += gridSize) {
         CONTEXT.beginPath();
         CONTEXT.moveTo(left, hLine);
         CONTEXT.lineTo(right, hLine);
