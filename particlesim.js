@@ -373,11 +373,9 @@ function drawParticle() {
     CONTEXT.fill();
 }
 
-function drawBackground() {
+function drawWorldBackground() {
     const { backgroundColor, gridLineColor, gridSize, lineWidth } = WORLD_BACKGROUND;
-
-    const { top, bottom, left, right } = WORLD;
-    const borderWidth = WORLD.borderWidth;
+    const { top, bottom, left, right, borderWidth } = WORLD;
 
     CONTEXT.fillStyle = backgroundColor;
     CONTEXT.fillRect(left - borderWidth, top - borderWidth, right + borderWidth, bottom + borderWidth);
@@ -400,7 +398,7 @@ function drawBackground() {
 }
 
 function drawWorld() {
-    drawBackground();
+    drawWorldBackground();
     drawParticle();
 }
 
