@@ -30,24 +30,24 @@ const STATS = {
     acceleration: () => `${round(MAIN_PARTICLE.computedAcceleration)} (${round(MAIN_PARTICLE.aX)}, ${round(MAIN_PARTICLE.aY)})`,
 }
 
-const WORLD_PROPERTIES = {
+const WORLD = {
     borderWidth: 10,
     left: 10,
     right: 2038,
     top: 10,
     bottom: 2038,
-    getCenterX: () => (WORLD_PROPERTIES.right - WORLD_PROPERTIES.left) / 2,
-    getCenterY: () => (WORLD_PROPERTIES.bottom - WORLD_PROPERTIES.top) / 2,
-    getWidth: () => WORLD_PROPERTIES.getCenterX() - WORLD_PROPERTIES.left,
-    getHeight: () => WORLD_PROPERTIES.getCenterY() - WORLD_PROPERTIES.top
+    getCenterX: () => (WORLD.right - WORLD.left) / 2,
+    getCenterY: () => (WORLD.bottom - WORLD.top) / 2,
+    getWidth: () => WORLD.getCenterX() - WORLD.left,
+    getHeight: () => WORLD.getCenterY() - WORLD.top
 }
 
 const VIEWPORT = {
-    x: WORLD_PROPERTIES.getCenterX() - canvasWidth / 2,
-    y: WORLD_PROPERTIES.getCenterY() - canvasHeight / 2,
-    followBoundaryCoefficient: 0.25,
-    getFollowBoundaryWidth() {
-        return this.followBoundaryCoefficient * Math.min(this.getWidth(), this.getHeight());
+    x: WORLD.getCenterX() - canvasWidth / 2,
+    y: WORLD.getCenterY() - canvasHeight / 2,
+    deadzoneBoundaryCoefficient: 0.25,
+    getDeadzoneBoundaryWidth() {
+        return this.deadzoneBoundaryCoefficient * Math.min(this.getWidth(), this.getHeight());
     },
     getWidth() {
         return canvasWidth;
@@ -61,42 +61,42 @@ const VIEWPORT = {
     getCenterY() {
         return (this.y + this.getHeight() / 2)
     },
-    followTarget: null,
+    target: null,
     update() {
-        if (!this.followTarget)
+        if (!this.target)
             return;
 
-        let followBoundaryWidth = this.getFollowBoundaryWidth();
-        let xFollowDistance = this.getWidth() / 2 - followBoundaryWidth,
-            yFollowDistance = this.getHeight() / 2 - followBoundaryWidth;
+        let deadzoneBoundaryWidth = this.getDeadzoneBoundaryWidth();
+        let xDistanceMax = this.getWidth() / 2 - deadzoneBoundaryWidth,
+            yDistanceMax = this.getHeight() / 2 - deadzoneBoundaryWidth;
 
-        let { x: pX, y: pY } = this.followTarget;
+        let { x: pX, y: pY } = this.target;
 
-        let distanceX = pX - this.getCenterX(),
-            distanceY = pY - this.getCenterY();
+        let xDistance = pX - this.getCenterX(),
+            yDistance = pY - this.getCenterY();
 
-        let absDistanceX = Math.abs(distanceX),
-            absDistanceY = Math.abs(distanceY);
+        let absDistanceX = Math.abs(xDistance),
+            absDistanceY = Math.abs(yDistance);
 
 
         let speedFactor = Math.max(1, absDistanceX / this.getWidth(), absDistanceY / this.getHeight());
 
 
-        if (absDistanceX > xFollowDistance) {
-            this.x = lerp(this.x, this.x + Math.sign(distanceX) * (absDistanceX - xFollowDistance), speedFactor * .1);
+        if (absDistanceX > xDistanceMax) {
+            this.x = lerp(this.x, this.x + Math.sign(xDistance) * (absDistanceX - xDistanceMax), speedFactor * .1);
         }
 
-        if (absDistanceY > yFollowDistance) {
-            this.y = lerp(this.y, this.y + Math.sign(distanceY) * (absDistanceY - yFollowDistance), speedFactor * .1);
+        if (absDistanceY > yDistanceMax) {
+            this.y = lerp(this.y, this.y + Math.sign(yDistance) * (absDistanceY - yDistanceMax), speedFactor * .1);
         }
 
-        this.x = Math.max(WORLD_PROPERTIES.left, Math.min(this.x, WORLD_PROPERTIES.right - this.getWidth()));
-        this.y = Math.max(WORLD_PROPERTIES.top, Math.min(this.y, WORLD_PROPERTIES.bottom - this.getHeight()));
+        this.x = Math.max(WORLD.left, Math.min(this.x, WORLD.right - this.getWidth()));
+        this.y = Math.max(WORLD.top, Math.min(this.y, WORLD.bottom - this.getHeight()));
     },
     borderEffect: {
         isActive: true,
         draw() {
-            let borderWidth = VIEWPORT.getFollowBoundaryWidth() / 10;
+            let borderWidth = VIEWPORT.getDeadzoneBoundaryWidth() / 10;
             let vWidth = VIEWPORT.getWidth(),
                 vHeight = VIEWPORT.getHeight();
             let darkShade = "rgba(0,0,0,1)",
@@ -125,7 +125,7 @@ const VIEWPORT = {
     }
 }
 
-const BACKGROUND_PROPERTIES = {
+const WORLD_BACKGROUND = {
     backgroundColor: "#23262B",
     gridLineColor: "#424852",
     gridScale: 50,
@@ -134,10 +134,10 @@ const BACKGROUND_PROPERTIES = {
 
 const MAIN_PARTICLE = {
     color: "red",
-    size: 10,
+    radius: 10,
     mass: 10,
-    x: WORLD_PROPERTIES.getCenterX(),
-    y: WORLD_PROPERTIES.getCenterY(),
+    x: WORLD.getCenterX(),
+    y: WORLD.getCenterY(),
     vX: 0,
     vY: 0,
     aX: 0,
@@ -229,7 +229,7 @@ function lerp(start, end, t) {
 
 function clearCanvas() {
     CONTEXT.fillStyle = RENDER_BASE_COLOR;
-    CONTEXT.fillRect(0, 0, WORLD_PROPERTIES.getWidth(), WORLD_PROPERTIES.getHeight());
+    CONTEXT.fillRect(0, 0, WORLD.getWidth(), WORLD.getHeight());
 }
 
 function updateFPS() {
@@ -258,18 +258,18 @@ function differenceSquared(a, b) {
 
 function updateVelocity(particle) {
     let { x, y, vX, vY, aX, aY, size } = particle;
-    let worldWidth = WORLD_PROPERTIES.getWidth(),
-        worldHeight = WORLD_PROPERTIES.getHeight();
-    let distanceToCenterX = Math.abs(WORLD_PROPERTIES.getCenterX() - x),
-        distanceToCenterY = Math.abs(WORLD_PROPERTIES.getCenterY() - y);
+    let worldWidth = WORLD.getWidth(),
+        worldHeight = WORLD.getHeight();
+    let distanceToCenterX = Math.abs(WORLD.getCenterX() - x),
+        distanceToCenterY = Math.abs(WORLD.getCenterY() - y);
 
     if (distanceToCenterX > worldWidth - size) {
-        let direction = Math.sign(WORLD_PROPERTIES.getCenterX() - x);
+        let direction = Math.sign(WORLD.getCenterX() - x);
         particle.vX = direction * (Math.abs(vX) + 3 * (distanceToCenterX - worldWidth) * DELTA_TIME);
     }
 
     if (distanceToCenterY > worldHeight - size) {
-        let direction = Math.sign(WORLD_PROPERTIES.getCenterY() - y);
+        let direction = Math.sign(WORLD.getCenterY() - y);
         particle.vY = direction * (Math.abs(vY) + 3 * (distanceToCenterY - worldHeight) * DELTA_TIME);
     }
 
@@ -368,32 +368,32 @@ function drawStats() {
 
 function drawParticle() {
     CONTEXT.beginPath();
-    CONTEXT.arc(MAIN_PARTICLE.x, MAIN_PARTICLE.y, MAIN_PARTICLE.size, 0, 2 * Math.PI);
+    CONTEXT.arc(MAIN_PARTICLE.x, MAIN_PARTICLE.y, MAIN_PARTICLE.radius, 0, 2 * Math.PI);
     CONTEXT.fillStyle = MAIN_PARTICLE.color;
     CONTEXT.fill();
 }
 
 function drawBackground() {
-    const { backgroundColor, gridLineColor, gridScale, lineWidth } = BACKGROUND_PROPERTIES;
+    const { backgroundColor, gridLineColor, gridScale, lineWidth } = WORLD_BACKGROUND;
 
-    const { top, bottom, left, right } = WORLD_PROPERTIES;
+    const { top, bottom, left, right } = WORLD;
 
     CONTEXT.fillStyle = backgroundColor;
-    CONTEXT.fillRect(0, 0, right + WORLD_PROPERTIES.borderWidth, bottom + WORLD_PROPERTIES.borderWidth);
+    CONTEXT.fillRect(0, 0, right + WORLD.borderWidth, bottom + WORLD.borderWidth);
     CONTEXT.strokeStyle = gridLineColor;
     CONTEXT.lineWidth = lineWidth;
 
-    for (let lineX = left; lineX < right; lineX += (WORLD_PROPERTIES.getWidth() - WORLD_PROPERTIES.borderWidth) / gridScale) {
+    for (let vLine = left; vLine < right; vLine += (WORLD.getWidth() - WORLD.borderWidth) / gridScale) {
         CONTEXT.beginPath();
-        CONTEXT.moveTo(lineX, top);
-        CONTEXT.lineTo(lineX, bottom);
+        CONTEXT.moveTo(vLine, top);
+        CONTEXT.lineTo(vLine, bottom);
         CONTEXT.stroke();
     }
 
-    for (let lineY = top; lineY < bottom; lineY += WORLD_PROPERTIES.getHeight() / gridScale) {
+    for (let hLine = top; hLine < bottom; hLine += WORLD.getHeight() / gridScale) {
         CONTEXT.beginPath();
-        CONTEXT.moveTo(left, lineY);
-        CONTEXT.lineTo(right, lineY);
+        CONTEXT.moveTo(left, hLine);
+        CONTEXT.lineTo(right, hLine);
         CONTEXT.stroke();
     }
 }
@@ -447,6 +447,6 @@ function toggleAnimation() {
         startAnimation();
 }
 
-VIEWPORT.followTarget = MAIN_PARTICLE;
+VIEWPORT.target = MAIN_PARTICLE;
 draw();
 startAnimation();
