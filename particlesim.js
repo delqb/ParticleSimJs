@@ -403,14 +403,14 @@ function drawWorldBackground() {
     CONTEXT.strokeStyle = gridLineColor;
     CONTEXT.lineWidth = lineWidth;
 
-    for (let vLine = left; vLine <= right; vLine += gridSize) {
+    for (let vLine = left; vLine <= right + lineWidth; vLine += gridSize) {
         CONTEXT.beginPath();
         CONTEXT.moveTo(vLine, top);
         CONTEXT.lineTo(vLine, bottom);
         CONTEXT.stroke();
     }
 
-    for (let hLine = top; hLine <= bottom; hLine += gridSize) {
+    for (let hLine = top; hLine <= bottom + lineWidth; hLine += gridSize) {
         CONTEXT.beginPath();
         CONTEXT.moveTo(left, hLine);
         CONTEXT.lineTo(right, hLine);
