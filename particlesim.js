@@ -71,6 +71,7 @@ const VIEWPORT = {
         return (this.getHeight() / 2)
     },
     target: null,
+    overflowWorldBoundaries: false,
     update() {
         if (!this.target)
             return;
@@ -99,6 +100,9 @@ const VIEWPORT = {
         if (absDistanceY > yDistanceMax) {
             this.y = lerp(this.y, this.y + Math.sign(yDistance) * (absDistanceY - yDistanceMax) / PIXELS_PER_METER, speedFactor * .1);
         }
+
+        if (this.overflowWorldBoundaries)
+            return;
 
         const worldBorderWidth = WORLD.borderWidth;
         this.x = Math.max(WORLD.left - worldBorderWidth, Math.min(this.x, WORLD.right + worldBorderWidth - this.getWidth() / PIXELS_PER_METER));
