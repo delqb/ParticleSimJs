@@ -12,9 +12,10 @@ const TEXT_METRICS = CONTEXT.measureText("A");
 const FONT_HEIGHT = TEXT_METRICS.actualBoundingBoxAscent + TEXT_METRICS.actualBoundingBoxDescent;
 
 const DELTA_TIME = 1 / 60;
+const PIXELS_PER_METER = 1000;
 const FRICTION_COEFFICIENT = 0.012;
-const ACCELERATION = 1200 * Math.E;
-const MAX_SPEED = 1000;
+const ACCELERATION = 1.2 * Math.E;
+const MAX_SPEED = 1;
 
 
 const FPS_CALCULATION_INTERVAL = 20;
@@ -31,11 +32,11 @@ const STATS = {
 }
 
 const WORLD = {
-    borderWidth: 100,
+    borderWidth: 0.1,
     left: 0,
-    right: 2048,
+    right: 2.048,
     top: 0,
-    bottom: 2048,
+    bottom: 2.048,
     getCenterX() {
         return this.left + this.getWidth() / 2;
     },
@@ -51,8 +52,8 @@ const WORLD = {
 }
 
 const VIEWPORT = {
-    x: WORLD.getCenterX() - canvasWidth / 2,
-    y: WORLD.getCenterY() - canvasHeight / 2,
+    x: WORLD.getCenterX() - canvasWidth / (2 * PIXELS_PER_METER),
+    y: WORLD.getCenterY() - canvasHeight / (2 * PIXELS_PER_METER),
     deadzoneBoundaryCoefficient: 0.25,
     getDeadzoneBoundaryWidth() {
         return this.deadzoneBoundaryCoefficient * Math.min(this.getWidth(), this.getHeight());
@@ -64,10 +65,10 @@ const VIEWPORT = {
         return canvasHeight;
     },
     getCenterX() {
-        return (this.x + this.getWidth() / 2);
+        return (this.getWidth() / 2);
     },
     getCenterY() {
-        return (this.y + this.getHeight() / 2)
+        return (this.getHeight() / 2)
     },
     target: null,
     update() {
@@ -78,10 +79,11 @@ const VIEWPORT = {
         let xDistanceMax = this.getWidth() / 2 - deadzoneBoundaryWidth,
             yDistanceMax = this.getHeight() / 2 - deadzoneBoundaryWidth;
 
-        let { x: pX, y: pY } = this.target;
+        let tX = (this.target.x - this.x) * PIXELS_PER_METER;
+        let tY = (this.target.y - this.y) * PIXELS_PER_METER;
 
-        let xDistance = pX - this.getCenterX(),
-            yDistance = pY - this.getCenterY();
+        let xDistance = tX - this.getCenterX(),
+            yDistance = tY - this.getCenterY();
 
         let absDistanceX = Math.abs(xDistance),
             absDistanceY = Math.abs(yDistance);
@@ -91,16 +93,16 @@ const VIEWPORT = {
 
 
         if (absDistanceX > xDistanceMax) {
-            this.x = lerp(this.x, this.x + Math.sign(xDistance) * (absDistanceX - xDistanceMax), speedFactor * .1);
+            this.x = lerp(this.x, this.x + Math.sign(xDistance) * (absDistanceX - xDistanceMax) / PIXELS_PER_METER, speedFactor * .1);
         }
 
         if (absDistanceY > yDistanceMax) {
-            this.y = lerp(this.y, this.y + Math.sign(yDistance) * (absDistanceY - yDistanceMax), speedFactor * .1);
+            this.y = lerp(this.y, this.y + Math.sign(yDistance) * (absDistanceY - yDistanceMax) / PIXELS_PER_METER, speedFactor * .1);
         }
 
         const worldBorderWidth = WORLD.borderWidth;
-        this.x = Math.max(WORLD.left - worldBorderWidth, Math.min(this.x, WORLD.right + worldBorderWidth - this.getWidth()));
-        this.y = Math.max(WORLD.top - worldBorderWidth, Math.min(this.y, WORLD.bottom + worldBorderWidth - this.getHeight()));
+        this.x = Math.max(WORLD.left - worldBorderWidth, Math.min(this.x, WORLD.right + worldBorderWidth - this.getWidth() / PIXELS_PER_METER));
+        this.y = Math.max(WORLD.top - worldBorderWidth, Math.min(this.y, WORLD.bottom + worldBorderWidth - this.getHeight() / PIXELS_PER_METER));
     },
     borderEffect: {
         isActive: true,
@@ -137,13 +139,13 @@ const VIEWPORT = {
 const WORLD_BACKGROUND = {
     backgroundColor: "#23262B",
     gridLineColor: "#424852",
-    gridSize: 32,
-    lineWidth: 1
+    gridSize: 0.032,
+    lineWidth: 0.001
 }
 
 const MAIN_PARTICLE = {
     color: "red",
-    radius: 10,
+    radius: 0.01,
     mass: 10,
     x: WORLD.getCenterX(),
     y: WORLD.getCenterY(),
@@ -238,7 +240,7 @@ function lerp(start, end, t) {
 
 function clearCanvas() {
     CONTEXT.fillStyle = RENDER_BASE_COLOR;
-    CONTEXT.fillRect(0, 0, WORLD.getWidth(), WORLD.getHeight());
+    CONTEXT.fillRect(0, 0, WORLD.getWidth() * PIXELS_PER_METER, WORLD.getHeight() * PIXELS_PER_METER);
 }
 
 function updateFPS() {
@@ -433,6 +435,7 @@ function drawHUD() {
 function draw() {
     clearCanvas();
     CONTEXT.save();
+    CONTEXT.scale(PIXELS_PER_METER, PIXELS_PER_METER);
     CONTEXT.translate(-VIEWPORT.x, -VIEWPORT.y);
     drawWorld();
     CONTEXT.restore();
