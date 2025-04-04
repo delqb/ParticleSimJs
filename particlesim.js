@@ -240,7 +240,7 @@ function lerp(start, end, t) {
 
 function clearCanvas() {
     CONTEXT.fillStyle = RENDER_BASE_COLOR;
-    CONTEXT.fillRect(0, 0, WORLD.getWidth() * PIXELS_PER_METER, WORLD.getHeight() * PIXELS_PER_METER);
+    CONTEXT.fillRect(0, 0, canvasWidth, canvasHeight);
 }
 
 function updateFPS() {
