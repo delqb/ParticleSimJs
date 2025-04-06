@@ -34,7 +34,7 @@ const STATS = {
 const WORLD = {
     borderWidth: 0.1,
     left: 0,
-    right: 2.048,
+    right: 4.096,
     top: 0,
     bottom: 2.048,
     getCenterX() {
