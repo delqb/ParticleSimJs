@@ -301,7 +301,7 @@ function updateVelocity(particle = MAIN_PARTICLE) {
         particle.vY *= factor;
         particle.computedSpeed = MAX_SPEED;
     }
-    let a = (distanceX > overflowDistanceX)
+
     if (distanceX > distanceXMax) {
         let direction = Math.sign(diffX);
         particle.vX = direction * (Math.abs(particle.vX) + +(distanceX > overflowDistanceX) * DELTA_TIME * ACCELERATION * distanceX / overflowDistanceX);
