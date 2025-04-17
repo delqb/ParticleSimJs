@@ -1,6 +1,10 @@
 {
     "compilerOptions": {
         "target": "ES6",
-        "module": "esnext"
-    }
+        "module": "esnext",
+        "outDir": "js"
+    },
+    "exclude": [
+        "temp"
+    ]
 }
