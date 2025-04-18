@@ -14,9 +14,27 @@ const FONT_HEIGHT = TEXT_METRICS.actualBoundingBoxAscent + TEXT_METRICS.actualBo
 
 const DELTA_TIME = 1 / 60;
 const PIXELS_PER_METER = 1000;
-const FRICTION_COEFFICIENT = 0.012;
-const ACCELERATION = 1.2 * Math.E;
+const FRICTION_MODELS = {
+    CHARGE_AND_SHOOT: {
+        /*
+            The following is a link to a graph of the friction function with these parameters
+            https://www.desmos.com/calculator/qrvumq7k66
+        */
+        minimum: 0.005,
+        initial: 0.001,
+        mod: 0.3,
+        vScale: 3,
+        vShift: 0.987010795852,
+        computeFrictionCoefficient(speed: number) {
+            const t = this.vScale * speed + this.vShift;
+            return this.minimum + (t - 1) * this.mod / (t ** 2);
+        }
+    }
+}
+
+const ACCELERATION = 5 / Math.E;
 const MAX_SPEED = 1;
+const GRAVITY = 9.81;
 
 
 const FPS_CALCULATION_INTERVAL = 20;
@@ -51,8 +69,6 @@ const WORLD = {
         return this.bottom - this.top;
     }
 }
-
-
 
 const WORLD_BACKGROUND = {
     backgroundColor: "#23262B",
@@ -277,7 +293,9 @@ function differenceSquared(a, b) {
 
 function updateVelocity(particle = MAIN_PARTICLE) {
     // Currently, particle coordinates correspond to the center of the particle
-    const { x, y, aX, aY, radius: particleRadius } = particle,
+    let { vX, vY } = particle;
+    const { x, y, aX, aY, radius: particleRadius } = particle;
+    const g = GRAVITY,
         worldWidth = WORLD.getWidth(),
         worldHeight = WORLD.getHeight(),
         worldCenterX = WORLD.getCenterX(),
@@ -288,31 +306,45 @@ function updateVelocity(particle = MAIN_PARTICLE) {
         distanceY = Math.abs(diffY),
         distanceXMax = worldWidth / 2 - particleRadius,
         distanceYMax = worldHeight / 2 - particleRadius,
-        overflowCorrectionThreshold = WORLD.borderWidth,
-        overflowDistanceX = distanceXMax + overflowCorrectionThreshold,
-        overflowDistanceY = distanceYMax + overflowCorrectionThreshold;
+        penetrationCorrectionThreshold = WORLD.borderWidth,
+        penetrationDistanceX = distanceXMax + penetrationCorrectionThreshold,
+        penetrationDistanceY = distanceYMax + penetrationCorrectionThreshold;
 
-    particle.vX += aX * DELTA_TIME;
-    particle.vY += aY * DELTA_TIME;
+    // Apply acceleration
+    vX += aX * DELTA_TIME;
+    vY += aY * DELTA_TIME;
+    let speed = Math.sqrt(vX ** 2 + vY ** 2);
 
-    const particleSpeed = particle.computedSpeed = Math.sqrt(particle.vX ** 2 + particle.vY ** 2);
+    // Apply friction
+    if (speed > 0) {
+        const frictionCoefficient = FRICTION_MODELS.CHARGE_AND_SHOOT.computeFrictionCoefficient(speed),
+            frictionalDeceleration = frictionCoefficient * g,
+            frictionalDecelerationFactor = DELTA_TIME * frictionalDeceleration / speed;
 
-    if (particleSpeed > MAX_SPEED) {
-        const factor = MAX_SPEED / particleSpeed;
-        particle.vX *= factor;
-        particle.vY *= factor;
-        particle.computedSpeed = MAX_SPEED;
+        vX = lerp(vX, 0, frictionalDecelerationFactor);
+        vY = lerp(vY, 0, frictionalDecelerationFactor);
+        speed = Math.sqrt(vX ** 2 + vY ** 2);
+    }
+
+    if (speed > MAX_SPEED) {
+        const maxSpeedFactor = MAX_SPEED / speed;
+        vX *= maxSpeedFactor;
+        vY *= maxSpeedFactor;
     }
 
     if (distanceX > distanceXMax) {
         let direction = Math.sign(diffX);
-        particle.vX = direction * (Math.abs(particle.vX) + +(distanceX > overflowDistanceX) * DELTA_TIME * ACCELERATION * distanceX / overflowDistanceX);
+        vX = direction * (Math.abs(vX) + +(distanceX > penetrationDistanceX) * DELTA_TIME * ACCELERATION * distanceX / penetrationDistanceX);
     }
 
     if (distanceY > distanceYMax) {
         let direction = Math.sign(diffY);
-        particle.vY = direction * (Math.abs(particle.vY) + +(distanceY > overflowDistanceY) * DELTA_TIME * ACCELERATION * distanceY / overflowDistanceY);
+        vY = direction * (Math.abs(vY) + +(distanceY > penetrationDistanceY) * DELTA_TIME * ACCELERATION * distanceY / penetrationDistanceY);
     }
+
+    particle.vX = vX;
+    particle.vY = vY;
+    particle.computedSpeed = Math.sqrt(vX ** 2 + vY ** 2);
 }
 
 function updateAcceleration(particle) {
@@ -337,16 +369,10 @@ function updatePosition(particle) {
     particle.y += particle.vY * DELTA_TIME;
 }
 
-function applyFriction(particle, frictionCoefficient) {
-    particle.vX *= (1 - frictionCoefficient);
-    particle.vY *= (1 - frictionCoefficient);
-}
-
 function updateMotion() {
     updateAcceleration(MAIN_PARTICLE);
     updateVelocity(MAIN_PARTICLE);
     updatePosition(MAIN_PARTICLE);
-    applyFriction(MAIN_PARTICLE, FRICTION_COEFFICIENT);
 }
 
 function activateControlBindings() {
