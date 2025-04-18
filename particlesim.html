@@ -8,14 +8,15 @@
 
 <body>
     <canvas id="canvas" width="1080" height="768" style="border:1px solid #000000;"></canvas>
-    <script src="particlesim.js"></script>
-    <!-- <script>
-        function onClickAnimationToggle() {
-            toggleAnimation();
-            document.getElementById("toggleAnimationButton").textContent = isAnimating ? "Pause" : "Start";
-        }
+    <script src="js/particlesim.js" type="module"></script>
+    <script>
+        let module = null;
+        import("./js/particlesim.js").then(m => {
+            module = m;
+            console.log("Module loaded!");
+            console.log(module);
+        });
     </script>
-    <button id="toggleAnimationButton" onclick="onClickAnimationToggle()">Start</button> -->
 </body>
 
 </html>
