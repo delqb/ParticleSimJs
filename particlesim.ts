@@ -1,3 +1,4 @@
+import { Vector2, createUID, EntityID } from "./engine.js";
 const CANVAS_ELEMENT = document.getElementById("canvas")! as HTMLCanvasElement;
 const CONTEXT = CANVAS_ELEMENT.getContext("2d")!;
 let canvasWidth = CANVAS_ELEMENT.width,
@@ -60,7 +61,8 @@ const WORLD_BACKGROUND = {
     lineWidth: 0.001
 }
 
-const MAIN_PARTICLE = {
+export const MAIN_PARTICLE = {
+    entityID: createUID(),
     color: "red",
     radius: 0.01,
     mass: 10,
@@ -82,7 +84,7 @@ const MAIN_PARTICLE = {
     }
 }
 
-const VIEWPORT = {
+export const VIEWPORT = {
     x: WORLD.getCenterX() - canvasWidth / (2 * PIXELS_PER_METER),
     y: WORLD.getCenterY() - canvasHeight / (2 * PIXELS_PER_METER),
     deadzoneBoundaryCoefficient: 0.25,
@@ -438,7 +440,7 @@ function drawHUD() {
 }
 
 // Rendering
-function draw() {
+export function draw() {
     clearCanvas();
     CONTEXT.save();
     CONTEXT.scale(PIXELS_PER_METER, PIXELS_PER_METER);
