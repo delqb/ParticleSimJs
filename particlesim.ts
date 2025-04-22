@@ -503,5 +503,4 @@ function toggleAnimation() {
 }
 
 VIEWPORT.target = MAIN_PARTICLE;
-draw();
-startAnimation();
+animate();
