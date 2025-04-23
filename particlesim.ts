@@ -42,12 +42,42 @@ let lastFrameTime = 0;
 let fpsFrameCounter = 0;
 let fps = 0;
 
+type KinematicSystemNode = {
+    position: Vector2,
+    velocity: Vector2,
+    acceleration: Vector2
+}
+
+type CollisionSystemNode = {
+    position: Vector2,
+    velocity: Vector2,
+    particleRadius: number
+}
+
+type MovementControlSystemNode = {
+    acceleration: Vector2,
+    controlInput: Vector2
+}
+
+
+type CameraComponent = {
+    deadzoneWidth: number
+}
+
+type ViewportSystemNode = {
+    position: Vector2,
+    dimensions: Vector2,
+    targetPosition: Vector2,
+    cameraComponent: CameraComponent
+}
+
+
 const STATS = {
     isAnimating: () => isAnimating,
     fps: () => round(fps),
-    position: () => `${round(MAIN_PARTICLE.x)}, ${round(MAIN_PARTICLE.y)}`,
-    velocity: () => `${round(MAIN_PARTICLE.computedSpeed)} (${round(MAIN_PARTICLE.vX)}, ${round(MAIN_PARTICLE.vY)})`,
-    acceleration: () => `${round(MAIN_PARTICLE.computedAcceleration)} (${round(MAIN_PARTICLE.aX)}, ${round(MAIN_PARTICLE.aY)})`,
+    position: () => `${round(MAIN_PARTICLE.position.x)}, ${round(MAIN_PARTICLE.position.y)}`,
+    velocity: () => `${round(MAIN_PARTICLE.computedSpeed)} (${round(MAIN_PARTICLE.velocity.x)}, ${round(MAIN_PARTICLE.velocity.y)})`,
+    acceleration: () => `${round(MAIN_PARTICLE.computedAcceleration)} (${round(MAIN_PARTICLE.acceleration.x)}, ${round(MAIN_PARTICLE.acceleration.y)})`,
 }
 
 const WORLD = {
@@ -82,111 +112,98 @@ export const MAIN_PARTICLE = {
     color: "red",
     radius: 0.01,
     mass: 10,
-    x: WORLD.getCenterX(),
-    y: WORLD.getCenterY(),
-    vX: 0,
-    vY: 0,
-    aX: 0,
-    aY: 0,
-    daX: 0,
-    daY: 0,
+    position: {
+        x: WORLD.getCenterX(),
+        y: WORLD.getCenterY()
+    },
+    velocity: {
+        x: 0,
+        y: 0
+    },
+    acceleration: {
+        x: 0,
+        y: 0
+    },
+    movementControlInput: {
+        x: 0,
+        y: 0
+    },
     computedSpeed: 0,
     computedAcceleration: 0,
-    getAccelerationMagnitude: () => {
-        return Math.sqrt(MAIN_PARTICLE.aX ** 2 + MAIN_PARTICLE.aY ** 2);
-    },
-    getSpeedSquared: () => {
-        return MAIN_PARTICLE.vX * MAIN_PARTICLE.vX + MAIN_PARTICLE.vY * MAIN_PARTICLE.vY;
-    }
+}
+
+let kinematicSystemNode: KinematicSystemNode = {
+    position: MAIN_PARTICLE.position,
+    velocity: MAIN_PARTICLE.velocity,
+    acceleration: MAIN_PARTICLE.acceleration
+}
+
+let collisionSystemNode: CollisionSystemNode = {
+    position: MAIN_PARTICLE.position,
+    velocity: MAIN_PARTICLE.velocity,
+    particleRadius: MAIN_PARTICLE.radius
+}
+
+let movementControlSystemNode: MovementControlSystemNode = {
+    acceleration: MAIN_PARTICLE.acceleration,
+    controlInput: MAIN_PARTICLE.movementControlInput
 }
 
 export const VIEWPORT = {
-    x: WORLD.getCenterX() - canvasWidth / (2 * PIXELS_PER_METER),
-    y: WORLD.getCenterY() - canvasHeight / (2 * PIXELS_PER_METER),
-    deadzoneBoundaryCoefficient: 0.25,
-    getDeadzoneBoundaryWidth() {
-        return this.deadzoneBoundaryCoefficient * Math.min(this.getWidth(), this.getHeight());
+    position: {
+        x: WORLD.getCenterX() - canvasWidth / (2 * PIXELS_PER_METER),
+        y: WORLD.getCenterY() - canvasHeight / (2 * PIXELS_PER_METER),
     },
-    getWidth() {
-        return canvasWidth;
+    dimensions: {
+        x: canvasWidth,
+        y: canvasHeight
     },
-    getHeight() {
-        return canvasHeight;
+    cameraComponent: {
+        deadzoneWidth: 0.25 * Math.min(canvasWidth, canvasHeight)
     },
-    getCenterX() {
-        return (this.getWidth() / 2);
-    },
-    getCenterY() {
-        return (this.getHeight() / 2)
-    },
-    target: MAIN_PARTICLE,
-    overflowWorldBoundaries: false,
-    update() {
-        if (!this.target)
-            return;
+    targetPosition: MAIN_PARTICLE.position,
+}
 
-        let deadzoneBoundaryWidth = this.getDeadzoneBoundaryWidth();
-        let xDistanceMax = this.getWidth() / 2 - deadzoneBoundaryWidth,
-            yDistanceMax = this.getHeight() / 2 - deadzoneBoundaryWidth;
+let viewportSystemNode: ViewportSystemNode = VIEWPORT;
 
-        let tX = (this.target.x - this.x) * PIXELS_PER_METER;
-        let tY = (this.target.y - this.y) * PIXELS_PER_METER;
+function updateViewport(node: ViewportSystemNode) {
+    if (!node)
+        return;
 
-        let xDistance = tX - this.getCenterX(),
-            yDistance = tY - this.getCenterY();
+    let { x, y } = node.position;
+    const { x: width, y: height } = node.dimensions;
+    const { x: targetWorldX, y: targetWorldY } = node.targetPosition;
+    const deadzoneWidth = node.cameraComponent.deadzoneWidth;
 
-        let absDistanceX = Math.abs(xDistance),
-            absDistanceY = Math.abs(yDistance);
+    const centerX = width / 2, centerY = height / 2;
+
+    const xDistanceMax = centerX - deadzoneWidth,
+        yDistanceMax = centerY - deadzoneWidth;
+
+    const targetViewportX = (targetWorldX - x) * PIXELS_PER_METER,
+        targetViewportY = (targetWorldY - y) * PIXELS_PER_METER;
+
+    const xDistance = targetViewportX - centerX,
+        yDistance = targetViewportY - centerY;
+
+    const absDistanceX = Math.abs(xDistance),
+        absDistanceY = Math.abs(yDistance);
 
 
-        let speedFactor = Math.max(1, absDistanceX / this.getWidth(), absDistanceY / this.getHeight());
+    const speedFactor = Math.max(1, absDistanceX / width, absDistanceY / height);
 
 
-        if (absDistanceX > xDistanceMax) {
-            this.x = lerp(this.x, this.x + Math.sign(xDistance) * (absDistanceX - xDistanceMax) / PIXELS_PER_METER, speedFactor * .1);
-        }
-
-        if (absDistanceY > yDistanceMax) {
-            this.y = lerp(this.y, this.y + Math.sign(yDistance) * (absDistanceY - yDistanceMax) / PIXELS_PER_METER, speedFactor * .1);
-        }
-
-        if (this.overflowWorldBoundaries)
-            return;
-
-        const worldBorderWidth = WORLD.borderWidth;
-        this.x = Math.max(WORLD.left - worldBorderWidth, Math.min(this.x, WORLD.right + worldBorderWidth - this.getWidth() / PIXELS_PER_METER));
-        this.y = Math.max(WORLD.top - worldBorderWidth, Math.min(this.y, WORLD.bottom + worldBorderWidth - this.getHeight() / PIXELS_PER_METER));
-    },
-    borderEffect: {
-        isActive: true,
-        draw() {
-            let borderWidth = VIEWPORT.getDeadzoneBoundaryWidth() / 10;
-            let vWidth = VIEWPORT.getWidth(),
-                vHeight = VIEWPORT.getHeight();
-            let darkShade = "rgba(0,0,0,1)",
-                transparentShade = "rgba(0,0,0,0)";
-
-            let wCS1 = borderWidth / vWidth;
-            let grad = CONTEXT.createLinearGradient(0, 0, vWidth, 0);
-            grad.addColorStop(0, darkShade);
-            grad.addColorStop(wCS1, transparentShade);
-            grad.addColorStop(1 - wCS1, transparentShade);
-            grad.addColorStop(1, darkShade);
-
-            CONTEXT.fillStyle = grad;
-            CONTEXT.fillRect(0, 0, vWidth, vHeight);
-
-            let hCS1 = borderWidth / vHeight;
-            grad = CONTEXT.createLinearGradient(0, 0, 0, vHeight);
-            grad.addColorStop(0, darkShade);
-            grad.addColorStop(hCS1, transparentShade);
-            grad.addColorStop(1 - hCS1, transparentShade);
-            grad.addColorStop(1, darkShade);
-
-            CONTEXT.fillStyle = grad;
-            CONTEXT.fillRect(0, 0, vWidth, vHeight);
-        }
+    if (absDistanceX > xDistanceMax) {
+        x = lerp(x, x + Math.sign(xDistance) * (absDistanceX - xDistanceMax) / PIXELS_PER_METER, speedFactor * .1);
     }
+
+    if (absDistanceY > yDistanceMax) {
+        y = lerp(y, y + Math.sign(yDistance) * (absDistanceY - yDistanceMax) / PIXELS_PER_METER, speedFactor * .1);
+    }
+
+    const worldBorderWidth = WORLD.borderWidth;
+    node.position.x = Math.max(WORLD.left - worldBorderWidth, Math.min(x, WORLD.right + worldBorderWidth - width / PIXELS_PER_METER));
+    node.position.y = Math.max(WORLD.top - worldBorderWidth, Math.min(y, WORLD.bottom + worldBorderWidth - height / PIXELS_PER_METER));
 }
 
 const KEY_STATES = {
@@ -197,25 +214,25 @@ const CONTROLS = {
         type: "movement",
         keys: ["w"],
         action: () => {
-            MAIN_PARTICLE.daY += -1;
+            MAIN_PARTICLE.movementControlInput.y += -1;
         }
     },
     down: {
         keys: ["s"],
         action: () => {
-            MAIN_PARTICLE.daY += 1;
+            MAIN_PARTICLE.movementControlInput.y += 1;
         }
     },
     left: {
         keys: ["a"],
         action: () => {
-            MAIN_PARTICLE.daX += -1;
+            MAIN_PARTICLE.movementControlInput.x += -1;
         }
     },
     right: {
         keys: ["d"],
         action: () => {
-            MAIN_PARTICLE.daX += 1;
+            MAIN_PARTICLE.movementControlInput.x += 1;
         }
     }
 };
@@ -291,28 +308,14 @@ function differenceSquared(a, b) {
     return (a - b) * (a - b);
 }
 
-function updateVelocity(particle = MAIN_PARTICLE) {
-    // Currently, particle coordinates correspond to the center of the particle
-    let { vX, vY } = particle;
-    const { x, y, aX, aY, radius: particleRadius } = particle;
-    const g = GRAVITY,
-        worldWidth = WORLD.getWidth(),
-        worldHeight = WORLD.getHeight(),
-        worldCenterX = WORLD.getCenterX(),
-        worldCenterY = WORLD.getCenterY(),
-        diffX = worldCenterX - x,
-        diffY = worldCenterY - y,
-        distanceX = Math.abs(diffX),
-        distanceY = Math.abs(diffY),
-        distanceXMax = worldWidth / 2 - particleRadius,
-        distanceYMax = worldHeight / 2 - particleRadius,
-        penetrationCorrectionThreshold = WORLD.borderWidth,
-        penetrationDistanceX = distanceXMax + penetrationCorrectionThreshold,
-        penetrationDistanceY = distanceYMax + penetrationCorrectionThreshold;
+function updateVelocity(node: KinematicSystemNode) {
+    const g = GRAVITY;
+    const { velocity, acceleration } = node;
+    let { x: vX, y: vY } = velocity;
 
     // Apply acceleration
-    vX += aX * DELTA_TIME;
-    vY += aY * DELTA_TIME;
+    vX += acceleration.x * DELTA_TIME;
+    vY += acceleration.y * DELTA_TIME;
     let speed = Math.sqrt(vX ** 2 + vY ** 2);
 
     // Apply friction
@@ -332,47 +335,73 @@ function updateVelocity(particle = MAIN_PARTICLE) {
         vY *= maxSpeedFactor;
     }
 
+    velocity.x = vX;
+    velocity.y = vY;
+}
+
+function updateCollision(node: CollisionSystemNode) {
+    let { position, velocity, particleRadius } = node;
+    let { x, y } = position;
+    let { x: vX, y: vY } = velocity;
+
+    const worldWidth = WORLD.getWidth(),
+        worldHeight = WORLD.getHeight(),
+        worldCenterX = WORLD.getCenterX(),
+        worldCenterY = WORLD.getCenterY(),
+        diffX = worldCenterX - x,
+        diffY = worldCenterY - y,
+        distanceX = Math.abs(diffX),
+        distanceY = Math.abs(diffY),
+        distanceXMax = worldWidth / 2 - particleRadius,
+        distanceYMax = worldHeight / 2 - particleRadius,
+        penetrationCorrectionThreshold = WORLD.borderWidth,
+        penetrationDistanceX = distanceXMax + penetrationCorrectionThreshold,
+        penetrationDistanceY = distanceYMax + penetrationCorrectionThreshold;
+
     if (distanceX > distanceXMax) {
         let direction = Math.sign(diffX);
-        vX = direction * (Math.abs(vX) + +(distanceX > penetrationDistanceX) * DELTA_TIME * ACCELERATION * distanceX / penetrationDistanceX);
+        velocity.x = direction * (Math.abs(vX) + +(distanceX > penetrationDistanceX) * DELTA_TIME * ACCELERATION * distanceX / penetrationDistanceX);
     }
 
     if (distanceY > distanceYMax) {
         let direction = Math.sign(diffY);
-        vY = direction * (Math.abs(vY) + +(distanceY > penetrationDistanceY) * DELTA_TIME * ACCELERATION * distanceY / penetrationDistanceY);
+        velocity.y = direction * (Math.abs(vY) + +(distanceY > penetrationDistanceY) * DELTA_TIME * ACCELERATION * distanceY / penetrationDistanceY);
     }
-
-    particle.vX = vX;
-    particle.vY = vY;
-    particle.computedSpeed = Math.sqrt(vX ** 2 + vY ** 2);
 }
 
-function updateAcceleration(particle) {
-    const { daX, daY } = particle;
-    let magnitude = Math.sqrt(daX ** 2 + daY ** 2);
-    if (magnitude) {
-        const factor = ACCELERATION / magnitude;
-        particle.aX = factor * daX;
-        particle.aY = factor * daY;
-        particle.computedAcceleration = ACCELERATION;
-    } else {
-        particle.aX = 0;
-        particle.aY = 0;
-        particle.computedAcceleration = 0;
+function updateMovementControl(node: MovementControlSystemNode) {
+    const { acceleration, controlInput } = node;
+    const { x: iX, y: iY } = controlInput;
+    let { x: aX, y: aY } = acceleration;
+
+    aX = 0;
+    aY = 0;
+
+    if (iX || iY) {
+        const factor = ACCELERATION / Math.sqrt(iX ** 2 + iY ** 2);
+        aX = factor * iX;
+        aY = factor * iY;
     }
-    particle.daX = 0;
-    particle.daY = 0;
+
+    acceleration.x = aX;
+    acceleration.y = aY;
+    controlInput.x = 0;
+    controlInput.y = 0;
 }
 
-function updatePosition(particle) {
-    particle.x += particle.vX * DELTA_TIME;
-    particle.y += particle.vY * DELTA_TIME;
+function updatePosition(node: KinematicSystemNode) {
+    node.position.x += node.velocity.x * DELTA_TIME;
+    node.position.y += node.velocity.y * DELTA_TIME;
 }
 
 function updateMotion() {
-    updateAcceleration(MAIN_PARTICLE);
-    updateVelocity(MAIN_PARTICLE);
-    updatePosition(MAIN_PARTICLE);
+    updateMovementControl(movementControlSystemNode);
+    updateVelocity(kinematicSystemNode);
+    updateCollision(collisionSystemNode)
+    updatePosition(kinematicSystemNode);
+    MAIN_PARTICLE.computedAcceleration = Math.sqrt(MAIN_PARTICLE.acceleration.x ** 2 + MAIN_PARTICLE.acceleration.y ** 2);
+    MAIN_PARTICLE.computedSpeed = Math.sqrt(MAIN_PARTICLE.velocity.x ** 2 + MAIN_PARTICLE.velocity.y ** 2);
+
 }
 
 function activateControlBindings() {
@@ -387,7 +416,7 @@ function update() {
     activateControlBindings();
     updateStats();
     updateMotion();
-    VIEWPORT.update();
+    updateViewport(viewportSystemNode);
 }
 
 function drawComplexText(x: number, y: number, content = [["Colored ", "red"], ["\n"], ["Text ", "Blue"], ["Test", "Green"]], lineSpacing = 2) {
@@ -423,7 +452,7 @@ function drawStats() {
 
 function drawParticle() {
     CONTEXT.beginPath();
-    CONTEXT.arc(MAIN_PARTICLE.x, MAIN_PARTICLE.y, MAIN_PARTICLE.radius, 0, 2 * Math.PI);
+    CONTEXT.arc(MAIN_PARTICLE.position.x, MAIN_PARTICLE.position.y, MAIN_PARTICLE.radius, 0, 2 * Math.PI);
     CONTEXT.fillStyle = MAIN_PARTICLE.color;
     CONTEXT.fill();
 }
@@ -457,9 +486,40 @@ function drawWorld() {
     drawParticle();
 }
 
+function drawViewport() {
+    const isActive = false;
+    if (!isActive)
+        return;
+
+    let borderWidth = VIEWPORT.cameraComponent.deadzoneWidth / 10;
+    let vWidth = VIEWPORT.dimensions.x,
+        vHeight = VIEWPORT.dimensions.y;
+    let darkShade = "rgba(0,0,0,1)",
+        transparentShade = "rgba(0,0,0,0)";
+
+    let wCS1 = borderWidth / vWidth;
+    let grad = CONTEXT.createLinearGradient(0, 0, vWidth, 0);
+    grad.addColorStop(0, darkShade);
+    grad.addColorStop(wCS1, transparentShade);
+    grad.addColorStop(1 - wCS1, transparentShade);
+    grad.addColorStop(1, darkShade);
+
+    CONTEXT.fillStyle = grad;
+    CONTEXT.fillRect(0, 0, vWidth, vHeight);
+
+    let hCS1 = borderWidth / vHeight;
+    grad = CONTEXT.createLinearGradient(0, 0, 0, vHeight);
+    grad.addColorStop(0, darkShade);
+    grad.addColorStop(hCS1, transparentShade);
+    grad.addColorStop(1 - hCS1, transparentShade);
+    grad.addColorStop(1, darkShade);
+
+    CONTEXT.fillStyle = grad;
+    CONTEXT.fillRect(0, 0, vWidth, vHeight);
+}
+
 function drawHUD() {
-    if (VIEWPORT.borderEffect.isActive)
-        VIEWPORT.borderEffect.draw();
+    drawViewport();
 
     if (isStatsVisible)
         drawStats();
@@ -470,7 +530,7 @@ export function draw() {
     clearCanvas();
     CONTEXT.save();
     CONTEXT.scale(PIXELS_PER_METER, PIXELS_PER_METER);
-    CONTEXT.translate(-VIEWPORT.x, -VIEWPORT.y);
+    CONTEXT.translate(-VIEWPORT.position.x, -VIEWPORT.position.y);
     drawWorld();
     CONTEXT.restore();
     drawHUD();
@@ -502,5 +562,5 @@ function toggleAnimation() {
         startAnimation();
 }
 
-VIEWPORT.target = MAIN_PARTICLE;
+VIEWPORT.targetPosition = MAIN_PARTICLE.position;
 animate();
