@@ -12,10 +12,10 @@ const RENDER_BASE_COLOR = "black";
 const TEXT_METRICS = CONTEXT.measureText("A");
 const FONT_HEIGHT = TEXT_METRICS.actualBoundingBoxAscent + TEXT_METRICS.actualBoundingBoxDescent;
 
-const DELTA_TIME = 1 / 60;
-const PIXELS_PER_METER = 1000;
+export const DELTA_TIME = 1 / 60;
+export const PIXELS_PER_METER = 1000;
 const FRICTION_MODELS = {
-    CHARGE_AND_SHOOT: {
+    CLIMAX_AND_PLATEAU: {
         /*
             The following is a link to a graph of the friction function with these parameters
             https://www.desmos.com/calculator/qrvumq7k66
@@ -32,9 +32,9 @@ const FRICTION_MODELS = {
     }
 }
 
-const ACCELERATION = 5 / Math.E;
-const MAX_SPEED = 1;
-const GRAVITY = 9.81;
+export const ACCELERATION = 5 / Math.E;
+export const MAX_SPEED = 1;
+export const GRAVITY = 9.81;
 
 
 const FPS_CALCULATION_INTERVAL = 20;
@@ -317,7 +317,7 @@ function updateVelocity(particle = MAIN_PARTICLE) {
 
     // Apply friction
     if (speed > 0) {
-        const frictionCoefficient = FRICTION_MODELS.CHARGE_AND_SHOOT.computeFrictionCoefficient(speed),
+        const frictionCoefficient = FRICTION_MODELS.CLIMAX_AND_PLATEAU.computeFrictionCoefficient(speed),
             frictionalDeceleration = frictionCoefficient * g,
             frictionalDecelerationFactor = DELTA_TIME * frictionalDeceleration / speed;
 
