@@ -14,6 +14,8 @@ const FONT_HEIGHT = TEXT_METRICS.actualBoundingBoxAscent + TEXT_METRICS.actualBo
 
 export const DELTA_TIME = 1 / 60;
 export const PIXELS_PER_METER = 1000;
+export let GAME_TIME = 0;
+
 const FRICTION_MODELS = {
     CLIMAX_AND_PLATEAU: {
         /*
@@ -599,6 +601,7 @@ function animate() {
     update();
     if (isAnimating)
         requestAnimationFrame(animate);
+    GAME_TIME += DELTA_TIME;
 }
 
 function startAnimation() {
