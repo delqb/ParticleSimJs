@@ -246,6 +246,17 @@ const HOTKEYS = {
     }
 }
 
+const CURSOR = {
+    worldPosition: {
+        x: 0,
+        y: 0
+    },
+    screenPosition: {
+        x: 0,
+        y: 0
+    }
+}
+
 function activateHotkeyBindings() {
     for (const binding of Object.keys(HOTKEYS).map(k => HOTKEYS[k])) {
         if (binding.keys.some(k => KEY_STATES[k]))
@@ -262,6 +273,12 @@ window.addEventListener("keydown", (event) => {
 
 window.addEventListener("keyup", (event) => {
     KEY_STATES[event.key] = false;
+});
+
+CANVAS_ELEMENT.addEventListener("mousemove", (event) => {
+    let { offsetX: x, offsetY: y } = event;
+    CURSOR.screenPosition = { x, y };
+    CURSOR.worldPosition = { x: VIEWPORT.position.x + x / PIXELS_PER_METER, y: VIEWPORT.position.y + y / PIXELS_PER_METER };
 });
 
 function resizeCanvas() {
@@ -520,6 +537,7 @@ function drawViewport() {
 
 function drawHUD() {
     drawViewport();
+    // drawComplexText(CURSOR.screenPosition.x, CURSOR.screenPosition.y, [CURSOR.screenPosition, CURSOR.worldPosition].map((o: Vec2) => [`${round(o.x)}, ${round(o.y)}\n`, "white"]));
 
     if (isStatsVisible)
         drawStats();
