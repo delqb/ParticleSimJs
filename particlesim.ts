@@ -275,7 +275,7 @@ function round(num, decimalPlaces = 2) {
     return Math.round(num * 10 ** decimalPlaces) / 10 ** decimalPlaces;
 }
 
-function lerp(start, end, t) {
+function lerp(start: number, end: number, t: number) {
     return start + (end - start) * t;
 }
 
