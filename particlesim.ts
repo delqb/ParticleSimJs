@@ -1,4 +1,4 @@
-import { Vector2, createUID, EntityID } from "./engine.js";
+import { Vec2, Vector2, createUID, EntityID } from "./engine.js";
 const CANVAS_ELEMENT = document.getElementById("canvas")! as HTMLCanvasElement;
 const CONTEXT = CANVAS_ELEMENT.getContext("2d")!;
 let canvasWidth = CANVAS_ELEMENT.width,
@@ -43,20 +43,20 @@ let fpsFrameCounter = 0;
 let fps = 0;
 
 type KinematicSystemNode = {
-    position: Vector2,
-    velocity: Vector2,
-    acceleration: Vector2
+    position: Vec2,
+    velocity: Vec2,
+    acceleration: Vec2
 }
 
 type CollisionSystemNode = {
-    position: Vector2,
-    velocity: Vector2,
+    position: Vec2,
+    velocity: Vec2,
     particleRadius: number
 }
 
 type MovementControlSystemNode = {
-    acceleration: Vector2,
-    controlInput: Vector2
+    acceleration: Vec2,
+    controlInput: Vec2
 }
 
 
@@ -65,9 +65,9 @@ type CameraComponent = {
 }
 
 type ViewportSystemNode = {
-    position: Vector2,
-    dimensions: Vector2,
-    targetPosition: Vector2,
+    position: Vec2,
+    dimensions: Vec2,
+    targetPosition: Vec2,
     cameraComponent: CameraComponent
 }
 
