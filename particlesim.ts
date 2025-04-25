@@ -81,6 +81,31 @@ type ViewportSystemNode = {
     cameraComponent: CameraComponent
 }
 
+type ProjectileSystemNode = {
+    deathTime: number
+}
+
+type ProjectileRenderNode = {
+    position: Vec2,
+    radius: number,
+    color: string,
+    deathTime: number
+}
+
+let projectileSystemNodes = new Map<EntityID, ProjectileSystemNode>();
+let projectileRenderNodes = new Map<EntityID, ProjectileRenderNode>();
+
+function addProjectileSystemNode(entityID: EntityID, deathTime: number): ProjectileSystemNode {
+    let node = { deathTime };
+    projectileSystemNodes.set(entityID, node);
+    return node;
+}
+
+function addProjectileRenderNode(entityID: EntityID, position: Vec2, radius: number, color: string, deathTime: number): ProjectileRenderNode {
+    let node = { position, radius, color, deathTime };
+    projectileRenderNodes.set(entityID, node);
+    return node;
+}
 
 const STATS = {
     isAnimating: () => isAnimating,
@@ -119,6 +144,12 @@ const WORLD_BACKGROUND = {
 
 export const PARTICLE_PARAMETERS = {
     radius: 0.01,
+    projectile: {
+        radius: 0.0045,
+        speed: MAX_SPEED,
+        lifetime: 5, //in seconds
+        fireRate: 10 //in shots per second
+    },
     cannon: {
         width: 0.01,
         length: 0.02
@@ -151,6 +182,29 @@ export const MAIN_PARTICLE = {
 }
 
 addKinematicSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.position, MAIN_PARTICLE.velocity, MAIN_PARTICLE.acceleration);
+
+let lastProjectileSpawnTime = GAME_TIME;
+
+function spawnProjectile(): EntityID {
+    if (GAME_TIME - lastProjectileSpawnTime < 1 / PARTICLE_PARAMETERS.projectile.fireRate)
+        return
+    let direction = Vector2.normalize(Vector2.subtract(CURSOR.worldPosition, MAIN_PARTICLE.position));
+    let entityID = createUID(),
+        position = Vector2.add(MAIN_PARTICLE.position, Vector2.scale(direction, PARTICLE_PARAMETERS.cannon.length)),
+        velocity = Vector2.add(Vector2.scale(direction, MAX_SPEED), MAIN_PARTICLE.velocity),
+        deathTime = GAME_TIME + PARTICLE_PARAMETERS.projectile.lifetime;
+    addKinematicSystemNode(entityID, position, velocity, { x: 0, y: 0 });
+    addProjectileSystemNode(entityID, deathTime);
+    addProjectileRenderNode(entityID, position, PARTICLE_PARAMETERS.projectile.radius * MAIN_PARTICLE.size, "red", deathTime);
+    lastProjectileSpawnTime = GAME_TIME;
+    return entityID;
+}
+
+function destroyProjectile(entityID: EntityID) {
+    kinematicSystemNodes.delete(entityID);
+    projectileSystemNodes.delete(entityID);
+    projectileRenderNodes.delete(entityID);
+}
 
 let collisionSystemNode: CollisionSystemNode = {
     position: MAIN_PARTICLE.position,
@@ -256,6 +310,13 @@ const MOUSE_KEY_STATES = {
 }
 
 const MOUSE_CONTROLS = {
+    fire: {
+        type: "action",
+        keys: [0],
+        action: () => {
+            spawnProjectile();
+        }
+    }
 }
 
 const HOTKEYS = {
@@ -446,7 +507,6 @@ function updateMotion() {
     kinematicSystemNodes.forEach((node, entityID) => updatePosition(node, entityID));
     MAIN_PARTICLE.computedAcceleration = Math.sqrt(MAIN_PARTICLE.acceleration.x ** 2 + MAIN_PARTICLE.acceleration.y ** 2);
     MAIN_PARTICLE.computedSpeed = Math.sqrt(MAIN_PARTICLE.velocity.x ** 2 + MAIN_PARTICLE.velocity.y ** 2);
-
 }
 
 function activateControlBindings() {
@@ -460,11 +520,17 @@ function activateControlBindings() {
     }
 }
 
+function updateProjectile(node: ProjectileSystemNode, entityID: EntityID) {
+    if (GAME_TIME >= node.deathTime)
+        destroyProjectile(entityID);
+}
+
 // Game logic
 function update() {
     CURSOR.worldPosition = { x: VIEWPORT.position.x + CURSOR.screenPosition.x / PIXELS_PER_METER, y: VIEWPORT.position.y + CURSOR.screenPosition.y / PIXELS_PER_METER };
     activateControlBindings();
     updateStats();
+    projectileSystemNodes.forEach((node, entityID) => updateProjectile(node, entityID));
     updateMotion();
     updateViewport(viewportSystemNode);
 }
@@ -538,6 +604,18 @@ function drawParticle() {
 
 }
 
+function drawProjectile(node: ProjectileRenderNode, entityID: EntityID) {
+    const { x, y } = node.position;
+    CONTEXT.save();
+
+    CONTEXT.beginPath();
+    CONTEXT.arc(x, y, node.radius, 0, 2 * Math.PI);
+    CONTEXT.fillStyle = node.color;
+    CONTEXT.fill();
+
+    CONTEXT.restore();
+}
+
 function drawWorldBackground() {
     const { backgroundColor, gridLineColor, gridSize, lineWidth } = WORLD_BACKGROUND;
     const { top, bottom, left, right, borderWidth } = WORLD;
@@ -564,6 +642,7 @@ function drawWorldBackground() {
 
 function drawWorld() {
     drawWorldBackground();
+    projectileRenderNodes.forEach((node, entityID) => drawProjectile(node, entityID));
     drawParticle();
 }
 
