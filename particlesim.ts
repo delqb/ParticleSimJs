@@ -50,6 +50,14 @@ type KinematicSystemNode = {
     acceleration: Vec2
 }
 
+let kinematicSystemNodes = new Map<EntityID, KinematicSystemNode>();
+
+function addKinematicSystemNode(entityID: EntityID, position: Vec2, velocity: Vec2, acceleration: Vec2): KinematicSystemNode {
+    let node = { position, velocity, acceleration }
+    kinematicSystemNodes.set(entityID, node);
+    return node;
+}
+
 type CollisionSystemNode = {
     position: Vec2,
     velocity: Vec2,
@@ -142,10 +150,8 @@ export const MAIN_PARTICLE = {
     computedAcceleration: 0,
 }
 
-let kinematicSystemNode: KinematicSystemNode = {
-    position: MAIN_PARTICLE.position,
-    velocity: MAIN_PARTICLE.velocity,
-    acceleration: MAIN_PARTICLE.acceleration
+addKinematicSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.position, MAIN_PARTICLE.velocity, MAIN_PARTICLE.acceleration);
+
 }
 
 let collisionSystemNode: CollisionSystemNode = {
@@ -335,7 +341,7 @@ function differenceSquared(a, b) {
     return (a - b) * (a - b);
 }
 
-function updateVelocity(node: KinematicSystemNode) {
+function updateVelocity(node: KinematicSystemNode, entityID: EntityID) {
     const g = GRAVITY;
     const { velocity, acceleration } = node;
     let { x: vX, y: vY } = velocity;
@@ -416,16 +422,16 @@ function updateMovementControl(node: MovementControlSystemNode) {
     controlInput.y = 0;
 }
 
-function updatePosition(node: KinematicSystemNode) {
+function updatePosition(node: KinematicSystemNode, entityID: EntityID) {
     node.position.x += node.velocity.x * DELTA_TIME;
     node.position.y += node.velocity.y * DELTA_TIME;
 }
 
 function updateMotion() {
     updateMovementControl(movementControlSystemNode);
-    updateVelocity(kinematicSystemNode);
+    kinematicSystemNodes.forEach((node, entityID) => updateVelocity(node, entityID));
     updateCollision(collisionSystemNode)
-    updatePosition(kinematicSystemNode);
+    kinematicSystemNodes.forEach((node, entityID) => updatePosition(node, entityID));
     MAIN_PARTICLE.computedAcceleration = Math.sqrt(MAIN_PARTICLE.acceleration.x ** 2 + MAIN_PARTICLE.acceleration.y ** 2);
     MAIN_PARTICLE.computedSpeed = Math.sqrt(MAIN_PARTICLE.velocity.x ** 2 + MAIN_PARTICLE.velocity.y ** 2);
 
