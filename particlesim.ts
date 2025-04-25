@@ -107,10 +107,18 @@ const WORLD_BACKGROUND = {
     lineWidth: 0.001
 }
 
+export const PARTICLE_PARAMETERS = {
+    radius: 0.01,
+    cannon: {
+        width: 0.01,
+        length: 0.02
+    }
+}
+
 export const MAIN_PARTICLE = {
     entityID: createUID(),
     color: "red",
-    radius: 0.01,
+    size: 2,
     mass: 10,
     position: {
         x: WORLD.getCenterX(),
@@ -141,7 +149,7 @@ let kinematicSystemNode: KinematicSystemNode = {
 let collisionSystemNode: CollisionSystemNode = {
     position: MAIN_PARTICLE.position,
     velocity: MAIN_PARTICLE.velocity,
-    particleRadius: MAIN_PARTICLE.radius
+    particleRadius: MAIN_PARTICLE.size * PARTICLE_PARAMETERS.radius
 }
 
 let movementControlSystemNode: MovementControlSystemNode = {
@@ -468,10 +476,41 @@ function drawStats() {
 }
 
 function drawParticle() {
+    const { x: pX, y: pY } = MAIN_PARTICLE.position;
+    const pSize = MAIN_PARTICLE.size;
+    const pCannonWidth = pSize * PARTICLE_PARAMETERS.cannon.width;
+    const pCannonLength = pSize * PARTICLE_PARAMETERS.cannon.length;
+
+    CONTEXT.save();
+
+    CONTEXT.translate(pX, pY);
+
+    CONTEXT.save();
+    // Begin draw cannon
+
+    CONTEXT.rotate(Vector2.angle(MAIN_PARTICLE.position, CURSOR.worldPosition));
+    CONTEXT.translate(0, -pCannonWidth / 2);
+
     CONTEXT.beginPath();
-    CONTEXT.arc(MAIN_PARTICLE.position.x, MAIN_PARTICLE.position.y, MAIN_PARTICLE.radius, 0, 2 * Math.PI);
+    CONTEXT.moveTo(0, 0);
+    CONTEXT.lineTo(pCannonLength, 0);
+    CONTEXT.lineTo(pCannonLength, pCannonWidth);
+    CONTEXT.lineTo(0, pCannonWidth);
+
+    CONTEXT.fillStyle = "gray";
+    CONTEXT.fill();
+
+    // End draw Cannon
+    CONTEXT.restore();
+
+
+    CONTEXT.beginPath();
+    CONTEXT.arc(0, 0, pSize * PARTICLE_PARAMETERS.radius, 0, 2 * Math.PI);
     CONTEXT.fillStyle = MAIN_PARTICLE.color;
     CONTEXT.fill();
+
+    CONTEXT.restore();
+
 }
 
 function drawWorldBackground() {
