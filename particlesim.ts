@@ -614,6 +614,13 @@ function drawProjectile(node: ProjectileRenderNode, entityID: EntityID) {
     const { x, y } = node.position;
     CONTEXT.save();
 
+    if (node.deathTime - GAME_TIME <= 1) {
+        let X = (node.deathTime - GAME_TIME)
+        CONTEXT.globalAlpha = 0.5 * (1 + Math.sin(1 / (0.01 + X / 10))); //flicker function: https://www.desmos.com/calculator/ywq8hxzrgr
+
+        node.radius *= 1.025;
+    }
+
     CONTEXT.beginPath();
     CONTEXT.arc(x, y, node.radius, 0, 2 * Math.PI);
     CONTEXT.fillStyle = node.color;
