@@ -64,6 +64,15 @@ type CollisionSystemNode = {
     particleRadius: number
 }
 
+let collisionSystemNodes = new Map<EntityID, CollisionSystemNode>();
+
+function addCollisionSystemNode(entityID: EntityID, position: Vec2, velocity: Vec2, particleRadius: number): CollisionSystemNode {
+    let node = { position, velocity, particleRadius }
+    collisionSystemNodes.set(entityID, node);
+    return node;
+}
+
+
 type MovementControlSystemNode = {
     acceleration: Vec2,
     controlInput: Vec2
@@ -182,6 +191,7 @@ export const MAIN_PARTICLE = {
 }
 
 addKinematicSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.position, MAIN_PARTICLE.velocity, MAIN_PARTICLE.acceleration);
+addCollisionSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.position, MAIN_PARTICLE.velocity, PARTICLE_PARAMETERS.radius * MAIN_PARTICLE.size);
 
 let lastProjectileSpawnTime = GAME_TIME;
 
@@ -196,6 +206,7 @@ function spawnProjectile(): EntityID {
     addKinematicSystemNode(entityID, position, velocity, { x: 0, y: 0 });
     addProjectileSystemNode(entityID, deathTime);
     addProjectileRenderNode(entityID, position, PARTICLE_PARAMETERS.projectile.radius * MAIN_PARTICLE.size, "red", deathTime);
+    addCollisionSystemNode(entityID, position, velocity, PARTICLE_PARAMETERS.projectile.radius * MAIN_PARTICLE.size);
     lastProjectileSpawnTime = GAME_TIME;
     return entityID;
 }
@@ -204,12 +215,7 @@ function destroyProjectile(entityID: EntityID) {
     kinematicSystemNodes.delete(entityID);
     projectileSystemNodes.delete(entityID);
     projectileRenderNodes.delete(entityID);
-}
-
-let collisionSystemNode: CollisionSystemNode = {
-    position: MAIN_PARTICLE.position,
-    velocity: MAIN_PARTICLE.velocity,
-    particleRadius: MAIN_PARTICLE.size * PARTICLE_PARAMETERS.radius
+    collisionSystemNodes.delete(entityID);
 }
 
 let movementControlSystemNode: MovementControlSystemNode = {
@@ -445,7 +451,7 @@ function updateVelocity(node: KinematicSystemNode, entityID: EntityID) {
     velocity.y = vY;
 }
 
-function updateCollision(node: CollisionSystemNode) {
+function updateCollision(node: CollisionSystemNode, entityID: EntityID) {
     let { position, velocity, particleRadius } = node;
     let { x, y } = position;
     let { x: vX, y: vY } = velocity;
@@ -503,7 +509,7 @@ function updatePosition(node: KinematicSystemNode, entityID: EntityID) {
 function updateMotion() {
     updateMovementControl(movementControlSystemNode);
     kinematicSystemNodes.forEach((node, entityID) => updateVelocity(node, entityID));
-    updateCollision(collisionSystemNode)
+    collisionSystemNodes.forEach((node, entityID) => updateCollision(node, entityID));
     kinematicSystemNodes.forEach((node, entityID) => updatePosition(node, entityID));
     MAIN_PARTICLE.computedAcceleration = Math.sqrt(MAIN_PARTICLE.acceleration.x ** 2 + MAIN_PARTICLE.acceleration.y ** 2);
     MAIN_PARTICLE.computedSpeed = Math.sqrt(MAIN_PARTICLE.velocity.x ** 2 + MAIN_PARTICLE.velocity.y ** 2);
