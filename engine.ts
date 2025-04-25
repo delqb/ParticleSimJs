@@ -22,7 +22,6 @@ export const Vector2 = {
         const mag = Vector2.magnitude(v)
         return mag === 0 ? { x: 0, y: 0 } : { x: v.x / mag, y: v.y / mag }
     },
-
     distance: (a: Vec2, b: Vec2): number =>
         Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2),
 
@@ -30,5 +29,8 @@ export const Vector2 = {
     angle: (a: Vec2, b: Vec2): number => {
         let diff = Vector2.subtract(b, a);
         return Math.atan2(diff.y, diff.x);
+    },
+    copy: (v: Vec2): Vec2 => {
+        return { x: v.x, y: v.y };
     }
 }
