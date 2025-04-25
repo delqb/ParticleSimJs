@@ -288,7 +288,7 @@ function resizeCanvas() {
 
 window.addEventListener("resize", resizeCanvas);
 
-function round(num, decimalPlaces = 2) {
+function round(num, decimalPlaces = 3) {
     return Math.round(num * 10 ** decimalPlaces) / 10 ** decimalPlaces;
 }
 
