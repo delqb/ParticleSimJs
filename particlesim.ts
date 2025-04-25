@@ -152,8 +152,6 @@ export const MAIN_PARTICLE = {
 
 addKinematicSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.position, MAIN_PARTICLE.velocity, MAIN_PARTICLE.acceleration);
 
-}
-
 let collisionSystemNode: CollisionSystemNode = {
     position: MAIN_PARTICLE.position,
     velocity: MAIN_PARTICLE.velocity,
@@ -225,7 +223,7 @@ function updateViewport(node: ViewportSystemNode) {
 const KEY_STATES = {
 };
 
-const CONTROLS = {
+const KEYBOARD_CONTROLS = {
     up: {
         type: "movement",
         keys: ["w"],
@@ -252,6 +250,13 @@ const CONTROLS = {
         }
     }
 };
+
+const MOUSE_KEY_STATES = {
+
+}
+
+const MOUSE_CONTROLS = {
+}
 
 const HOTKEYS = {
     pause: {
@@ -291,10 +296,17 @@ window.addEventListener("keyup", (event) => {
     KEY_STATES[event.key] = false;
 });
 
+window.addEventListener("mousedown", (event: MouseEvent) => {
+    MOUSE_KEY_STATES[event.button] = true;
+});
+
+CANVAS_ELEMENT.addEventListener("mouseup", (event: MouseEvent) => {
+    MOUSE_KEY_STATES[event.button] = false;
+});
+
 CANVAS_ELEMENT.addEventListener("mousemove", (event) => {
     let { offsetX: x, offsetY: y } = event;
     CURSOR.screenPosition = { x, y };
-    CURSOR.worldPosition = { x: VIEWPORT.position.x + x / PIXELS_PER_METER, y: VIEWPORT.position.y + y / PIXELS_PER_METER };
 });
 
 function resizeCanvas() {
@@ -438,14 +450,19 @@ function updateMotion() {
 }
 
 function activateControlBindings() {
-    for (const controlBinding of Object.keys(CONTROLS).map(k => CONTROLS[k])) {
+    for (const controlBinding of Object.keys(KEYBOARD_CONTROLS).map(k => KEYBOARD_CONTROLS[k])) {
         if (controlBinding.keys.some(k => KEY_STATES[k]))
+            controlBinding.action();
+    }
+    for (const controlBinding of Object.keys(MOUSE_CONTROLS).map(k => MOUSE_CONTROLS[k])) {
+        if (controlBinding.keys.some(k => MOUSE_KEY_STATES[k]))
             controlBinding.action();
     }
 }
 
 // Game logic
 function update() {
+    CURSOR.worldPosition = { x: VIEWPORT.position.x + CURSOR.screenPosition.x / PIXELS_PER_METER, y: VIEWPORT.position.y + CURSOR.screenPosition.y / PIXELS_PER_METER };
     activateControlBindings();
     updateStats();
     updateMotion();
