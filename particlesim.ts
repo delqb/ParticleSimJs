@@ -75,9 +75,15 @@ function addCollisionSystemNode(entityID: EntityID, position: Vec2, velocity: Ve
 
 type MovementControlSystemNode = {
     acceleration: Vec2,
-    controlInput: Vec2
 }
 
+let movementControlSystemNode = new Map<EntityID, MovementControlSystemNode>();
+
+function addMovementControlSystemNode(entityID: EntityID, acceleration: Vec2): MovementControlSystemNode {
+    let node = { acceleration };
+    movementControlSystemNode.set(entityID, node);
+    return node;
+}
 
 type CameraComponent = {
     deadzoneWidth: number
@@ -182,16 +188,13 @@ export const MAIN_PARTICLE = {
         x: 0,
         y: 0
     },
-    movementControlInput: {
-        x: 0,
-        y: 0
-    },
     computedSpeed: 0,
     computedAcceleration: 0,
 }
 
 addKinematicSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.position, MAIN_PARTICLE.velocity, MAIN_PARTICLE.acceleration);
 addCollisionSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.position, MAIN_PARTICLE.velocity, PARTICLE_PARAMETERS.radius * MAIN_PARTICLE.size);
+addMovementControlSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.acceleration);
 
 let lastProjectileSpawnTime = GAME_TIME;
 
@@ -202,8 +205,9 @@ function spawnProjectile(): EntityID {
     let entityID = createUID(),
         position = Vector2.add(MAIN_PARTICLE.position, Vector2.scale(direction, PARTICLE_PARAMETERS.cannon.length)),
         velocity = Vector2.add(Vector2.scale(direction, MAX_SPEED), MAIN_PARTICLE.velocity),
+        acceleration = { x: 0, y: 0 },
         deathTime = GAME_TIME + PARTICLE_PARAMETERS.projectile.lifetime;
-    addKinematicSystemNode(entityID, position, velocity, { x: 0, y: 0 });
+    addKinematicSystemNode(entityID, position, velocity, acceleration);
     addProjectileSystemNode(entityID, deathTime);
     addProjectileRenderNode(entityID, position, PARTICLE_PARAMETERS.projectile.radius * MAIN_PARTICLE.size, "red", deathTime);
     addCollisionSystemNode(entityID, position, velocity, PARTICLE_PARAMETERS.projectile.radius * MAIN_PARTICLE.size);
@@ -212,15 +216,12 @@ function spawnProjectile(): EntityID {
 }
 
 function destroyProjectile(entityID: EntityID) {
+    movementControlSystemNode.delete(entityID);
     kinematicSystemNodes.delete(entityID);
     projectileSystemNodes.delete(entityID);
     projectileRenderNodes.delete(entityID);
     collisionSystemNodes.delete(entityID);
-}
 
-let movementControlSystemNode: MovementControlSystemNode = {
-    acceleration: MAIN_PARTICLE.acceleration,
-    controlInput: MAIN_PARTICLE.movementControlInput
 }
 
 export const VIEWPORT = {
@@ -283,30 +284,35 @@ function updateViewport(node: ViewportSystemNode) {
 const KEY_STATES = {
 };
 
+const MOVEMENT_CONTROL_INPUT = {
+    x: 0,
+    y: 0
+}
+
 const KEYBOARD_CONTROLS = {
     up: {
         type: "movement",
         keys: ["w"],
         action: () => {
-            MAIN_PARTICLE.movementControlInput.y += -1;
+            MOVEMENT_CONTROL_INPUT.y += -1;
         }
     },
     down: {
         keys: ["s"],
         action: () => {
-            MAIN_PARTICLE.movementControlInput.y += 1;
+            MOVEMENT_CONTROL_INPUT.y += 1;
         }
     },
     left: {
         keys: ["a"],
         action: () => {
-            MAIN_PARTICLE.movementControlInput.x += -1;
+            MOVEMENT_CONTROL_INPUT.x += -1;
         }
     },
     right: {
         keys: ["d"],
         action: () => {
-            MAIN_PARTICLE.movementControlInput.x += 1;
+            MOVEMENT_CONTROL_INPUT.x += 1;
         }
     }
 };
@@ -481,9 +487,9 @@ function updateCollision(node: CollisionSystemNode, entityID: EntityID) {
     }
 }
 
-function updateMovementControl(node: MovementControlSystemNode) {
-    const { acceleration, controlInput } = node;
-    const { x: iX, y: iY } = controlInput;
+function updateMovementControl(node: MovementControlSystemNode, entityID: EntityID) {
+    const { acceleration } = node;
+    const { x: iX, y: iY } = MOVEMENT_CONTROL_INPUT;
     let { x: aX, y: aY } = acceleration;
 
     aX = 0;
@@ -497,8 +503,9 @@ function updateMovementControl(node: MovementControlSystemNode) {
 
     acceleration.x = aX;
     acceleration.y = aY;
-    controlInput.x = 0;
-    controlInput.y = 0;
+    MOVEMENT_CONTROL_INPUT.x = 0;
+    // Movement control inputs are being reset after being applied to the first node. Fix by modifying the movement control system.
+    MOVEMENT_CONTROL_INPUT.y = 0;
 }
 
 function updatePosition(node: KinematicSystemNode, entityID: EntityID) {
@@ -507,7 +514,7 @@ function updatePosition(node: KinematicSystemNode, entityID: EntityID) {
 }
 
 function updateMotion() {
-    updateMovementControl(movementControlSystemNode);
+    movementControlSystemNode.forEach((node, entityID) => updateMovementControl(node, entityID));
     kinematicSystemNodes.forEach((node, entityID) => updateVelocity(node, entityID));
     collisionSystemNodes.forEach((node, entityID) => updateCollision(node, entityID));
     kinematicSystemNodes.forEach((node, entityID) => updatePosition(node, entityID));
