@@ -698,12 +698,29 @@ function drawViewport() {
     CONTEXT.fillRect(0, 0, vWidth, vHeight);
 }
 
+function drawPauseScreen() {
+    CONTEXT.save();
+
+    CONTEXT.globalAlpha = 0.5;
+    CONTEXT.fillStyle = RENDER_BASE_COLOR;
+    CONTEXT.fillRect(0, 0, canvasWidth, canvasHeight);
+    CONTEXT.globalAlpha = 0.5;
+    CONTEXT.font = "bold 256px calibri"
+    CONTEXT.fillStyle = "white";
+    CONTEXT.fillText("⏸", (canvasWidth - 256) / 2, canvasHeight / 2);
+
+    CONTEXT.restore();
+}
+
 function drawHUD() {
     drawViewport();
     // drawComplexText(CURSOR.screenPosition.x, CURSOR.screenPosition.y, [CURSOR.screenPosition, CURSOR.worldPosition].map((o: Vec2) => [`${round(o.x)}, ${round(o.y)}\n`, "white"]));
 
     if (isStatsVisible)
         drawStats();
+
+    if (!isAnimating)
+        drawPauseScreen();
 }
 
 // Rendering
