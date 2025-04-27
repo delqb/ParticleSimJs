@@ -660,7 +660,7 @@ function drawWorld() {
 }
 
 function drawViewport() {
-    const isActive = false;
+    const isActive = true;
     if (!isActive)
         return;
 
