@@ -633,7 +633,7 @@ function drawProjectile(node: ProjectileRenderNode, entityID: EntityID) {
 
     if (node.deathTime - GAME_TIME <= 1) {
         let X = (node.deathTime - GAME_TIME)
-        CONTEXT.globalAlpha = 0.5 * (1 + Math.sin(1 / (0.01 + X / 10))); //flicker function: https://www.desmos.com/calculator/ywq8hxzrgr
+        CONTEXT.globalAlpha = lerp(0, Math.sin(1 / (0.01 + X / 10)), 1 - X);
         node.radius *= 1.025;
     }
 
