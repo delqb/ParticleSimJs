@@ -97,7 +97,9 @@ type ViewportSystemNode = {
 }
 
 type ProjectileSystemNode = {
-    deathTime: number
+    deathTime: number,
+    position: Vec2,
+    size: number
 }
 
 type ProjectileRenderNode = {
@@ -110,8 +112,8 @@ type ProjectileRenderNode = {
 let projectileSystemNodes = new Map<EntityID, ProjectileSystemNode>();
 let projectileRenderNodes = new Map<EntityID, ProjectileRenderNode>();
 
-function addProjectileSystemNode(entityID: EntityID, deathTime: number): ProjectileSystemNode {
-    let node = { deathTime };
+function addProjectileSystemNode(entityID: EntityID, deathTime: number, position: Vec2, size: number): ProjectileSystemNode {
+    let node = { deathTime, position, size };
     projectileSystemNodes.set(entityID, node);
     return node;
 }
@@ -196,22 +198,14 @@ addKinematicSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.position, MAIN_PART
 addCollisionSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.position, MAIN_PARTICLE.velocity, PARTICLE_PARAMETERS.radius * MAIN_PARTICLE.size);
 addMovementControlSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.acceleration);
 
-let lastProjectileSpawnTime = GAME_TIME;
-
-function spawnProjectile(): EntityID {
-    if (GAME_TIME - lastProjectileSpawnTime < 1 / PARTICLE_PARAMETERS.projectile.fireRate)
-        return
-    let direction = Vector2.normalize(Vector2.subtract(CURSOR.worldPosition, MAIN_PARTICLE.position));
+function spawnProjectile(position: Vec2, velocity: Vec2, size: number): EntityID {
     let entityID = createUID(),
-        position = Vector2.add(MAIN_PARTICLE.position, Vector2.scale(direction, PARTICLE_PARAMETERS.cannon.length)),
-        velocity = Vector2.add(Vector2.scale(direction, MAX_SPEED), MAIN_PARTICLE.velocity),
         acceleration = { x: 0, y: 0 },
         deathTime = GAME_TIME + PARTICLE_PARAMETERS.projectile.lifetime;
     addKinematicSystemNode(entityID, position, velocity, acceleration);
-    addProjectileSystemNode(entityID, deathTime);
-    addProjectileRenderNode(entityID, position, PARTICLE_PARAMETERS.projectile.radius * MAIN_PARTICLE.size, "red", deathTime);
-    addCollisionSystemNode(entityID, position, velocity, PARTICLE_PARAMETERS.projectile.radius * MAIN_PARTICLE.size);
-    lastProjectileSpawnTime = GAME_TIME;
+    addProjectileSystemNode(entityID, deathTime, position, size);
+    addProjectileRenderNode(entityID, position, PARTICLE_PARAMETERS.projectile.radius * size, "red", deathTime);
+    addCollisionSystemNode(entityID, position, velocity, PARTICLE_PARAMETERS.projectile.radius * size);
     return entityID;
 }
 
@@ -321,12 +315,20 @@ const MOUSE_KEY_STATES = {
 
 }
 
+
+let lastFireTime = GAME_TIME;
 const MOUSE_CONTROLS = {
     fire: {
         type: "action",
         keys: [0],
         action: () => {
-            spawnProjectile();
+            if (GAME_TIME - lastFireTime < 1 / PARTICLE_PARAMETERS.projectile.fireRate)
+                return
+            let direction = Vector2.normalize(Vector2.subtract(CURSOR.worldPosition, MAIN_PARTICLE.position)),
+                position = Vector2.add(MAIN_PARTICLE.position, Vector2.scale(direction, PARTICLE_PARAMETERS.cannon.length)),
+                velocity = Vector2.add(Vector2.scale(direction, MAX_SPEED), MAIN_PARTICLE.velocity);
+            spawnProjectile(position, velocity, MAIN_PARTICLE.size);
+            lastFireTime = GAME_TIME;
         }
     }
 }
@@ -534,8 +536,16 @@ function activateControlBindings() {
 }
 
 function updateProjectile(node: ProjectileSystemNode, entityID: EntityID) {
-    if (GAME_TIME >= node.deathTime)
+    if (GAME_TIME >= node.deathTime) {
         destroyProjectile(entityID);
+        if (node.size <= 0.5)
+            return;
+        for (let i = 0; i < 2 * Math.PI; i += (2 * Math.PI / 9)) {
+            let vX = Math.cos(i) * 0.65 + Math.random() * 0.35;
+            let vY = Math.sin(i) * 0.65 + Math.random() * 0.35;
+            spawnProjectile(Vector2.copy(node.position), Vector2.scale({ x: vX, y: vY }, MAX_SPEED), node.size / 2);
+        }
+    }
 }
 
 // Game logic
@@ -624,7 +634,6 @@ function drawProjectile(node: ProjectileRenderNode, entityID: EntityID) {
     if (node.deathTime - GAME_TIME <= 1) {
         let X = (node.deathTime - GAME_TIME)
         CONTEXT.globalAlpha = 0.5 * (1 + Math.sin(1 / (0.01 + X / 10))); //flicker function: https://www.desmos.com/calculator/ywq8hxzrgr
-
         node.radius *= 1.025;
     }
 
