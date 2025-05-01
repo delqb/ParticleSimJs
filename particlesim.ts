@@ -541,8 +541,8 @@ function updateProjectile(node: ProjectileSystemNode, entityID: EntityID) {
         if (node.size <= 0.5)
             return;
         for (let i = 0; i < 2 * Math.PI; i += (2 * Math.PI / 9)) {
-            let vX = Math.cos(i) * 0.65 + Math.random() * 0.35;
-            let vY = Math.sin(i) * 0.65 + Math.random() * 0.35;
+            let vX = Math.cos(i) * (0.5 + 0.65 * Math.random());
+            let vY = Math.sin(i) * (0.5 + 0.65 * Math.random());
             spawnProjectile(Vector2.copy(node.position), Vector2.scale({ x: vX, y: vY }, MAX_SPEED), node.size / 2);
         }
     }
