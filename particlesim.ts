@@ -99,7 +99,8 @@ type ViewportSystemNode = {
 type ProjectileSystemNode = {
     deathTime: number,
     position: Vec2,
-    size: number
+    size: number,
+    generation: number
 }
 
 type ProjectileRenderNode = {
@@ -112,8 +113,8 @@ type ProjectileRenderNode = {
 let projectileSystemNodes = new Map<EntityID, ProjectileSystemNode>();
 let projectileRenderNodes = new Map<EntityID, ProjectileRenderNode>();
 
-function addProjectileSystemNode(entityID: EntityID, deathTime: number, position: Vec2, size: number): ProjectileSystemNode {
-    let node = { deathTime, position, size };
+function addProjectileSystemNode(entityID: EntityID, deathTime: number, position: Vec2, size: number, generation: number): ProjectileSystemNode {
+    let node = { deathTime, position, size, generation };
     projectileSystemNodes.set(entityID, node);
     return node;
 }
@@ -198,12 +199,12 @@ addKinematicSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.position, MAIN_PART
 addCollisionSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.position, MAIN_PARTICLE.velocity, PARTICLE_PARAMETERS.radius * MAIN_PARTICLE.size);
 addMovementControlSystemNode(MAIN_PARTICLE.entityID, MAIN_PARTICLE.acceleration);
 
-function spawnProjectile(position: Vec2, velocity: Vec2, size: number): EntityID {
+function spawnProjectile(position: Vec2, velocity: Vec2, size: number, generation: number = 1): EntityID {
     let entityID = createUID(),
         acceleration = { x: 0, y: 0 },
         deathTime = GAME_TIME + PARTICLE_PARAMETERS.projectile.lifetime;
     addKinematicSystemNode(entityID, position, velocity, acceleration);
-    addProjectileSystemNode(entityID, deathTime, position, size);
+    addProjectileSystemNode(entityID, deathTime, position, size, generation);
     addProjectileRenderNode(entityID, position, PARTICLE_PARAMETERS.projectile.radius * size, "red", deathTime);
     addCollisionSystemNode(entityID, position, velocity, PARTICLE_PARAMETERS.projectile.radius * size);
     return entityID;
@@ -538,12 +539,12 @@ function activateControlBindings() {
 function updateProjectile(node: ProjectileSystemNode, entityID: EntityID) {
     if (GAME_TIME >= node.deathTime) {
         destroyProjectile(entityID);
-        if (node.size <= 0.5)
+        if (node.generation == 2)
             return;
         for (let i = 0; i < 2 * Math.PI; i += (2 * Math.PI / 9)) {
             let vX = Math.cos(i) * (0.5 + 0.65 * Math.random());
             let vY = Math.sin(i) * (0.5 + 0.65 * Math.random());
-            spawnProjectile(Vector2.copy(node.position), Vector2.scale({ x: vX, y: vY }, MAX_SPEED), node.size / 2);
+            spawnProjectile(Vector2.copy(node.position), Vector2.scale({ x: vX, y: vY }, MAX_SPEED), node.size / 2, node.generation + 1);
         }
     }
 }
