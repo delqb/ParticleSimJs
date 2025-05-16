@@ -146,6 +146,7 @@ type ProjectileSystemNode = {
     position: Vec2;
     size: number;
     color: string;
+    generation: number;
 }
 
 type FiringSystemNode = {
@@ -337,12 +338,12 @@ class ProjectileSystem extends System<ProjectileSystemNode> {
     public updateNode(node: ProjectileSystemNode, entityID: EntityID) {
         if (GAME_TIME >= node.deathTime) {
             destroyProjectile(entityID);
-            if (node.size <= 0.5)
+            if (node.generation == 2)
                 return;
             for (let i = 0; i < 2 * Math.PI; i += (2 * Math.PI / 9)) {
                 let vX = Math.cos(i) * (0.5 + 0.65 * Math.random());
                 let vY = Math.sin(i) * (0.5 + 0.65 * Math.random());
-                spawnProjectile(node.world, Vector2.copy(node.position), Vector2.scale({ x: vX, y: vY }, MAX_SPEED), node.size / 2, node.color);
+                spawnProjectile(node.world, Vector2.copy(node.position), Vector2.scale({ x: vX, y: vY }, MAX_SPEED), node.size / 2, node.color, node.generation + 1);
             }
         }
     }
@@ -537,13 +538,13 @@ function createParticle(worldComponent: WorldComponent, targetPositionComponent:
     return entityID;
 }
 
-function spawnProjectile(world: WorldComponent, position: Vec2, velocity: Vec2, size: number, color: string): EntityID {
+function spawnProjectile(world: WorldComponent, position: Vec2, velocity: Vec2, size: number, color: string, generation: number = 1): EntityID {
     let entityID = createUID(),
         acceleration = { x: 0, y: 0 },
         deathTime = GAME_TIME + PARTICLE_PARAMETERS.projectile.lifetime;
     kinematicSystem.addNode(entityID, { position, velocity, acceleration });
     positionSystem.addNode(entityID, { position, velocity });
-    projectileSystem.addNode(entityID, { world, deathTime, position, size, color });
+    projectileSystem.addNode(entityID, { world, deathTime, position, size, color, generation });
     projectileRenderSystem.addNode(entityID, { position, radius: PARTICLE_PARAMETERS.projectile.radius * size, color, deathTime });
     collisionSystem.addNode(entityID, { world, position, velocity, particleRadius: PARTICLE_PARAMETERS.projectile.radius * size });
     return entityID;
