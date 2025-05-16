@@ -81,10 +81,6 @@ type MovementControlInputComponent = {
     movementControlInput: Vec2
 }
 
-type DimensionsComponent = {
-
-}
-
 type WorldComponent = {
     dimensions: Vec2;
     borderWidth: number;
