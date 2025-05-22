@@ -44,6 +44,12 @@ let lastFrameTime = 0;
 let fpsFrameCounter = 0;
 let fps = 0;
 
+
+type Component = {
+    key: string;
+};
+
+
 abstract class System<Node> {
     nodeMap: Map<EntityID, Node> = new Map<EntityID, Node>();
     constructor() { }
@@ -69,32 +75,32 @@ class SystemManager {
     }
 }
 
-type PositionComponent = {
+type PositionComponent = Component & {
     position: Vec2;
 }
 
-type ScreenPointComponent = {
+type ScreenPointComponent = Component & {
     point: Vec2;
 }
 
-type MovementControlInputComponent = {
+type MovementControlInputComponent = Component & {
     movementControlInput: Vec2
 }
 
-type WorldComponent = {
+type WorldComponent = Component & {
     dimensions: Vec2;
     borderWidth: number;
 }
 
-type CameraComponent = {
+type CameraComponent = Component & {
     deadzoneWidth: number;
 }
 
-type ComputedSpeedComponent = {
+type ComputedSpeedComponent = Component & {
     computedSpeed: number;
 }
 
-type ComputedAccelerationComponent = {
+type ComputedAccelerationComponent = Component & {
     computedAcceleration: number;
 }
 
