@@ -1,4 +1,4 @@
-import { Vec2, Vector2, EntityID, Entity, Component, System, Engine } from "./FluidECS.js";
+import { Vec2, Vector2, EntityID, Entity, Component, System, Engine } from "./engine/FluidECS.js";
 const CANVAS_ELEMENT = document.getElementById("canvas")! as HTMLCanvasElement;
 const CONTEXT = CANVAS_ELEMENT.getContext("2d")!;
 let canvasWidth = CANVAS_ELEMENT.width,
