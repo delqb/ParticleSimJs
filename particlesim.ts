@@ -436,7 +436,11 @@ class ProjectileRenderSystem extends System<ProjectileRenderNode> {
         if (node.projectile.deathTime - GAME_TIME <= 1) {
             let X = (node.projectile.deathTime - GAME_TIME)
             CONTEXT.globalAlpha = lerp(0, Math.sin(1 / (0.01 + X / 10)), 1 - X);
-            scale = 1.025 ** ((1 - X) / DELTA_TIME);
+
+            if (node.projectile.generation < 2)
+                scale = lerp(1, 1.5, 1 - X);
+            else
+                scale = lerp(1, 0, 1 - X);
         }
 
         CONTEXT.beginPath();
@@ -920,7 +924,7 @@ function init() {
     (() => {
         let particleComponent1: ParticleComponent = {
             key: "particle",
-            radius: PARTICLE_PARAMETERS.radius,
+            radius: PARTICLE_PARAMETERS.radius * 3,
             color: "red"
         }
         let velocityComponent1: VelocityComponent = {
