@@ -508,8 +508,8 @@ class ProjectileSystem extends System<ProjectileSystemNode> {
                     Vector2.copy(node.position.position),
                     Vector2.scale({ x: vX, y: vY }, MAX_SPEED),
                     node.particle.color,
-                    node.particle.radius / 2,
-                    node.projectile.deathTime,
+                    node.particle.radius * PARTICLE_PARAMETERS.projectile.radius / PARTICLE_PARAMETERS.radius,
+                    GAME_TIME + PARTICLE_PARAMETERS.projectile.lifetime,
                     node.projectile.generation + 1
                 );
             }
@@ -537,7 +537,7 @@ class FiringSystem extends System<FiringSystemNode> {
             position,
             velocity,
             node.particle.color,
-            node.particle.radius / 2,
+            node.particle.radius * PARTICLE_PARAMETERS.projectile.radius / PARTICLE_PARAMETERS.radius,
             GAME_TIME + PARTICLE_PARAMETERS.projectile.lifetime,
             1
         );
@@ -561,15 +561,16 @@ class ProjectileRenderSystem extends System<ProjectileRenderNode> {
     public updateNode(node: ProjectileRenderNode, entityID: EntityID) {
         const { x, y } = node.position.position;
         CONTEXT.save();
+        let scale = 1;
 
         if (node.projectile.deathTime - GAME_TIME <= 1) {
             let X = (node.projectile.deathTime - GAME_TIME)
             CONTEXT.globalAlpha = lerp(0, Math.sin(1 / (0.01 + X / 10)), 1 - X);
-            node.particle.radius *= 1.025;
+            scale = 1.025 ** ((1 - X) / DELTA_TIME);
         }
 
         CONTEXT.beginPath();
-        CONTEXT.arc(x, y, node.particle.radius, 0, 2 * Math.PI);
+        CONTEXT.arc(x, y, scale * node.particle.radius, 0, 2 * Math.PI);
         CONTEXT.fillStyle = node.particle.color;
         CONTEXT.fill();
 
@@ -671,7 +672,7 @@ class ParticleRenderSystem extends System<ParticleRenderNode> {
         CONTEXT.restore();
 
         CONTEXT.beginPath();
-        CONTEXT.arc(0, 0, pSize * PARTICLE_PARAMETERS.radius, 0, 2 * Math.PI);
+        CONTEXT.arc(0, 0, node.particle.radius, 0, 2 * Math.PI);
         CONTEXT.fillStyle = node.particle.color;
         CONTEXT.fill();
 
