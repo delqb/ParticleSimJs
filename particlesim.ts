@@ -230,14 +230,17 @@ type ParticleComponent = Component & {
     color: string;
 }
 
-type ProjectileComponent = ParticleComponent & {
+type ProjectileComponent = Component & {
     generation: number;
     deathTime: number;
 }
 
-type ProjectileSourceComponent = ParticleComponent & {
-    muzzleVelocity: Vec2;
-    sourceLocation: Vec2;
+type FireControlComponent = Component & {
+    fireIntent: boolean;
+}
+
+type ProjectileSourceComponent = Component & {
+    muzzleSpeed: number;
     lastFireTime: number;
 }
 
@@ -290,6 +293,7 @@ type ParticleStatSystemNode = {
 
 type ProjectileSystemNode = {
     projectile: ProjectileComponent;
+    particle: ParticleComponent;
     world: WorldComponent;
     position: PositionComponent;
 }
@@ -298,7 +302,10 @@ type FiringSystemNode = {
     world: WorldComponent;
     particle: ParticleComponent;
     projectileSource: ProjectileSourceComponent;
+    fireControl: FireControlComponent;
     targetPosition: TargetPositionComponent;
+    velocity: VelocityComponent;
+    position: PositionComponent;
 }
 
 type CursorSystemNode = {
@@ -309,6 +316,7 @@ type CursorSystemNode = {
 
 type ProjectileRenderNode = {
     projectile: ProjectileComponent;
+    particle: ParticleComponent;
     position: PositionComponent;
 }
 
@@ -472,13 +480,21 @@ class ViewportSystem extends System<ViewportSystemNode> {
         }
 
         const worldBorderWidth = node.world.borderWidth;
-        node.position.position.x = Math.max(- worldBorderWidth, Math.min(x, node.world.resolution.x + worldBorderWidth - width / PIXELS_PER_METER));
-        node.position.position.y = Math.max(- worldBorderWidth, Math.min(y, node.world.resolution.y + worldBorderWidth - height / PIXELS_PER_METER));
+
+        let clamp = true;
+        // Clamp viewport to world boundaries
+        if (clamp) {
+            node.position.position.x = Math.max(-worldBorderWidth, Math.min(x, node.world.resolution.x + worldBorderWidth - width / PIXELS_PER_METER));
+            node.position.position.y = Math.max(-worldBorderWidth, Math.min(y, node.world.resolution.y + worldBorderWidth - height / PIXELS_PER_METER));
+        } else {
+            node.position.position.x = x;
+            node.position.position.y = y;
+        }
     }
 }
 
 class ProjectileSystem extends System<ProjectileSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ProjectileSystemNode> = new Set(['projectile', 'world', 'position']);
+    NODE_COMPONENT_KEYS: Set<keyof ProjectileSystemNode> = new Set(['projectile', 'particle', 'world', 'position']);
     public updateNode(node: ProjectileSystemNode, entityID: EntityID) {
         if (GAME_TIME >= node.projectile.deathTime) {
             destroyProjectile(entityID);
@@ -487,21 +503,44 @@ class ProjectileSystem extends System<ProjectileSystemNode> {
             for (let i = 0; i < 2 * Math.PI; i += (2 * Math.PI / 9)) {
                 let vX = Math.cos(i) * (0.5 + 0.65 * Math.random());
                 let vY = Math.sin(i) * (0.5 + 0.65 * Math.random());
-                spawnProjectile(node.world, Vector2.copy(node.position.position), Vector2.scale({ x: vX, y: vY }, MAX_SPEED), node.projectile.radius / 2, node.projectile.color, node.projectile.generation + 1);
+                spawnProjectile(
+                    node.world,
+                    Vector2.copy(node.position.position),
+                    Vector2.scale({ x: vX, y: vY }, MAX_SPEED),
+                    node.particle.color,
+                    node.particle.radius / 2,
+                    node.projectile.deathTime,
+                    node.projectile.generation + 1
+                );
             }
         }
     }
 }
 
 class FiringSystem extends System<FiringSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof FiringSystemNode> = new Set(['world', 'particle', 'projectileSource', 'targetPosition']);
+    NODE_COMPONENT_KEYS: Set<keyof FiringSystemNode> = new Set(['world', 'particle', 'projectileSource', 'fireControl', 'targetPosition', 'velocity', 'position']);
     public updateNode(node: FiringSystemNode, entityID: EntityID) {
+        if (!node.fireControl.fireIntent)
+            return;
+
+        node.fireControl.fireIntent = false;
+
         if (GAME_TIME - node.projectileSource.lastFireTime < 1 / PARTICLE_PARAMETERS.projectile.fireRate)
             return
-        let direction = Vector2.normalize(Vector2.subtract(node.targetPosition.targetPosition, node.projectileSource.sourceLocation)),
-            position = Vector2.add(node.projectileSource.sourceLocation, Vector2.scale(direction, PARTICLE_PARAMETERS.cannon.length)),
-            velocity = Vector2.add(Vector2.scale(direction, MAX_SPEED), node.projectileSource.muzzleVelocity);
-        spawnProjectile(node.world, position, velocity, node.particle.radius, node.particle.color);
+
+        let direction = Vector2.normalize(Vector2.subtract(node.targetPosition.targetPosition, node.position.position)),
+            position = Vector2.add(node.position.position, Vector2.scale(direction, PARTICLE_PARAMETERS.cannon.length)),
+            velocity = Vector2.add(Vector2.scale(direction, node.projectileSource.muzzleSpeed), node.velocity.velocity);
+
+        spawnProjectile(
+            node.world,
+            position,
+            velocity,
+            node.particle.color,
+            node.particle.radius / 2,
+            GAME_TIME + PARTICLE_PARAMETERS.projectile.lifetime,
+            1
+        );
         node.projectileSource.lastFireTime = GAME_TIME;
     }
 }
@@ -514,12 +553,11 @@ class CursorSystem extends System<CursorSystemNode> {
                 node.cursorTranslate.cursorTranslate,
                 Vector2.scale(node.screenPoint.point, 1 / PIXELS_PER_METER)
             );
-        console.log(node.screenPoint.point, node.position.position);
     }
 }
 
 class ProjectileRenderSystem extends System<ProjectileRenderNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ProjectileRenderNode> = new Set(['projectile', 'position']);
+    NODE_COMPONENT_KEYS: Set<keyof ProjectileRenderNode> = new Set(['projectile', 'position', 'particle']);
     public updateNode(node: ProjectileRenderNode, entityID: EntityID) {
         const { x, y } = node.position.position;
         CONTEXT.save();
@@ -527,12 +565,12 @@ class ProjectileRenderSystem extends System<ProjectileRenderNode> {
         if (node.projectile.deathTime - GAME_TIME <= 1) {
             let X = (node.projectile.deathTime - GAME_TIME)
             CONTEXT.globalAlpha = lerp(0, Math.sin(1 / (0.01 + X / 10)), 1 - X);
-            node.projectile.radius *= 1.025;
+            node.particle.radius *= 1.025;
         }
 
         CONTEXT.beginPath();
-        CONTEXT.arc(x, y, node.projectile.radius, 0, 2 * Math.PI);
-        CONTEXT.fillStyle = node.projectile.color;
+        CONTEXT.arc(x, y, node.particle.radius, 0, 2 * Math.PI);
+        CONTEXT.fillStyle = node.particle.color;
         CONTEXT.fill();
 
         CONTEXT.restore();
@@ -606,7 +644,7 @@ class ParticleRenderSystem extends System<ParticleRenderNode> {
     NODE_COMPONENT_KEYS: Set<keyof ParticleRenderNode> = new Set(['particle', 'position', 'targetPosition']);
     public updateNode(node: ParticleRenderNode, entityID: EntityID) {
         const { x: pX, y: pY } = node.position.position;
-        const pSize = node.particle.radius;
+        const pSize = node.particle.radius / PARTICLE_PARAMETERS.radius;
         const pCannonWidth = pSize * PARTICLE_PARAMETERS.cannon.width;
         const pCannonLength = pSize * PARTICLE_PARAMETERS.cannon.length;
 
@@ -679,16 +717,49 @@ export const PARTICLE_PARAMETERS = {
 function createParticle(worldComponent: WorldComponent, particleComponent: ParticleComponent, positionComponent: PositionComponent, velocityComponent: VelocityComponent, accelerationComponent: AccelerationComponent, movementControlInputComponent: MovementControlInputComponent, targetPositionComponent: TargetPositionComponent): Entity {
     let computedSpeedComponent = { key: "computedSpeed", computedSpeed: 0 },
         computedAccelerationComponent = { key: "computedAcceleration", computedAcceleration: 0 };
-    return engine.createEntity(particleComponent, positionComponent, velocityComponent, accelerationComponent, movementControlInputComponent, targetPositionComponent, worldComponent, computedSpeedComponent, computedAccelerationComponent);
+    return engine.createEntity(
+        particleComponent,
+        positionComponent,
+        velocityComponent,
+        accelerationComponent,
+        movementControlInputComponent,
+        targetPositionComponent,
+        worldComponent,
+        computedSpeedComponent,
+        computedAccelerationComponent,
+        {
+            key: "projectileSource",
+            lastFireTime: 0,
+            muzzleSpeed: MAX_SPEED,
+        } as ProjectileSourceComponent
+    );
 }
 
-function spawnProjectile(worldComponent: WorldComponent, position: Vec2, velocity: Vec2, radius: number, color: string, generation: number = 1): Entity {
-    let particleComponent = { key: "particle", value: { radius, color } },
-        accelerationComponent = { key: "acceleration", value: { x: 0, y: 0 } },
-        velocityComponent = { key: "velocity", value: velocity },
-        positionComponent = { key: "position", value: position },
-        projectileComponent = { key: "projectile", value: { radius, color, generation, deathTime: GAME_TIME + PARTICLE_PARAMETERS.projectile.lifetime } };
-    return engine.createEntity(particleComponent, accelerationComponent, velocityComponent, positionComponent, projectileComponent, worldComponent);
+function spawnProjectile(worldComponent: WorldComponent, position: Vec2, velocity: Vec2, color: string, radius: number, deathTime: number, generation: number): Entity {
+    return engine.createEntity(
+        worldComponent,
+        {
+            key: 'position',
+            position: position
+        } as PositionComponent,
+        {
+            key: 'velocity',
+            velocity: velocity
+        } as VelocityComponent,
+        {
+            key: 'particle',
+            color: color,
+            radius: radius
+        } as ParticleComponent,
+        {
+            key: 'projectile',
+            deathTime: deathTime,
+            generation: generation
+        } as ProjectileComponent,
+        {
+            key: 'acceleration',
+            acceleration: { x: 0, y: 0 }
+        } as AccelerationComponent);
 }
 
 function destroyProjectile(entityID: EntityID) {
@@ -739,13 +810,6 @@ const MOUSE_KEY_STATES = {
 }
 
 const MOUSE_CONTROLS = {
-    fire: {
-        type: "action",
-        keys: [0],
-        action: () => {
-            firingSystem.update();
-        }
-    }
 }
 
 const HOTKEYS = {
@@ -822,6 +886,7 @@ function update() {
     cursorSystem.update();
     activateControlBindings();
     updateStats();
+    firingSystem.update();
     projectileSystem.update();
     movementControlSystem.update();
     kinematicSystem.update();
@@ -955,14 +1020,15 @@ engine.addSystem(
 );
 
 let VIEWPORT_POSITION: PositionComponent;
+let FIRE_CONTROL: FireControlComponent;
 
 function init() {
     // WORLD
     let worldComponent: WorldComponent = {
         key: "world",
         resolution: {
-            x: 4096,
-            y: 2048
+            x: 4.096,
+            y: 4.096
         },
         borderWidth: 0.1,
         backgroundColor: "#23262B",
@@ -977,13 +1043,13 @@ function init() {
 
     let particle1PositionComponent: PositionComponent = {
         key: "position",
-        position: { x: 0, y: 0 }
+        position: Vector2.scale(worldComponent.resolution, 1 / 2)
     };
 
     (() => {
         let particleComponent1: ParticleComponent = {
             key: "particle",
-            radius: 1,
+            radius: PARTICLE_PARAMETERS.radius,
             color: "red"
         }
         let velocityComponent1: VelocityComponent = {
@@ -994,6 +1060,10 @@ function init() {
             key: "acceleration",
             acceleration: { x: 0, y: 0 }
         }
+        let FIRE_CONTROL = {
+            key: 'fireControl',
+            fireIntent: false
+        } as FireControlComponent;
 
         let cursorPositionAsTarget = {
             key: "targetPosition",
@@ -1026,20 +1096,30 @@ function init() {
                 },
                 computedSpeed: Vector2.magnitude(velocityComponent1.velocity),
                 computedAcceleration: Vector2.magnitude(accelerationComponent1.acceleration)
-            } as ParticleStatsComponent)
+            } as ParticleStatsComponent,
+            FIRE_CONTROL
+        );
+
+        MOUSE_CONTROLS["fire"] = {
+            type: "action",
+            keys: [0],
+            action: () => {
+                FIRE_CONTROL.fireIntent = true;
+            }
+        }
 
         let particleComponent2: ParticleComponent = {
             key: "particle",
-            radius: 2,
+            radius: 2 * PARTICLE_PARAMETERS.radius,
             color: "blue"
-        }
+        };
 
         createParticle(
             worldComponent,
             particleComponent2,
             {
                 key: "position",
-                position: { x: 0, y: 0 }
+                position: Vector2.add(particle1PositionComponent.position, { x: 0.08, y: 0 })
             },
             {
                 key: "velocity",
