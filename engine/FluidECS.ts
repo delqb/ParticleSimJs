@@ -123,7 +123,7 @@ Prioritized list
 plus phases: (preupdate, update, postupdate, prerender, render (world is rendered here), postrender (hud is rendered here))
 */
 
-export class Engine {
+export class FluidCore {
     private entityMap: Map<EntityID, Entity> = new Map();
     private systemList: System<any>[] = [];
     public addSystem(...system: System<any>[]): void {
@@ -165,16 +165,16 @@ export class Engine {
 }
 
 
-let instance: Engine = null;
+let instance: FluidCore = null;
 
-export function getInstance(): Engine {
+export function getInstance(): FluidCore {
     if (!instance)
         throw new Error("An Engine instance has not been created!");
 
     return instance;
 }
 
-export function setInstance(newInstance: Engine) {
+export function setInstance(newInstance: FluidCore) {
     if (instance)
         throw new Error("An Engine instance has already been created!");
     instance = newInstance;
