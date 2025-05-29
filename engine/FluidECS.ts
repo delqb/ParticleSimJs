@@ -169,13 +169,13 @@ let instance: FluidCore = null;
 
 export function getInstance(): FluidCore {
     if (!instance)
-        throw new Error("An Engine instance has not been created!");
+        throw new Error("An instance has not been created!");
 
     return instance;
 }
 
 export function setInstance(newInstance: FluidCore) {
     if (instance)
-        throw new Error("An Engine instance has already been created!");
+        throw new Error("An instance has already been created!");
     instance = newInstance;
 }
