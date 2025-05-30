@@ -39,9 +39,7 @@ export type Component = {
     key: string;
 };
 
-export type Node = {
-    [key: string]: Component
-};
+export type Node<T extends Record<string, Component>> = T;
 
 
 export class Entity {
@@ -82,22 +80,22 @@ export class Entity {
     }
 }
 
-export type Node<T extends Record<string, Component>> = T;
 
-export abstract class System<T extends Node> {
+export abstract class System<T extends Node<any>> {
     abstract readonly NODE_COMPONENT_KEYS: Set<Extract<keyof T, string>>;
+
     private nodeMap: Map<EntityID, T> = new Map();
 
     public createNode(entity: Entity): T | null {
-        const node: Node = {};
+        const node = {} as T;
         for (const key of this.NODE_COMPONENT_KEYS) {
-            if (!entity.getComponentMap().has(key))
+            const component = entity.getComponent(key);
+            if (!component)
                 return null;
-            node[key] = entity.getComponent(key)!;
+            node[key] = component as T[typeof key];
         }
-        if (node)
-            this.addNode(entity.getID(), node as T);
-        return node as T;
+        this.addNode(entity.getID(), node);
+        return node;
     }
 
     public validateEntity(entity: Entity): boolean {
@@ -109,7 +107,7 @@ export abstract class System<T extends Node> {
     public hasNode(entityID: EntityID): boolean {
         return this.nodeMap.has(entityID);
     }
-    public getNode(entityID: EntityID): Node | undefined {
+    public getNode(entityID: EntityID): T | undefined {
         return this.nodeMap.get(entityID);
     }
     public addNode(entityID: EntityID, node: T) {
@@ -122,7 +120,7 @@ export abstract class System<T extends Node> {
         return this.nodeMap;
     }
     public update(): void {
-        this.nodeMap.forEach(this.updateNode);
+        this.nodeMap.forEach(this.updateNode.bind(this));
     }
     public abstract updateNode(node: T, entityID: EntityID): void;
 }
