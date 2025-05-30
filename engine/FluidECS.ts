@@ -185,19 +185,74 @@ class OrderedList<T> {
     }
 }
 
-/* 
-
-Later: System management
-Prioritized list
-plus phases: (preupdate, update, postupdate, prerender, render (world is rendered here), postrender (hud is rendered here))
-*/
+export interface SystemPhase {
+    key: string;
+    order: number;
+    preUpdate?(): void;
+    postUpdate?(): void;
+}
 
 export class FluidCore {
     private entityMap: Map<EntityID, Entity> = new Map();
-    private systemList: System<any>[] = [];
-    public addSystem(...system: System<any>[]): void {
-        this.systemList.push(...system);
+    private phaseList: OrderedList<SystemPhase> = new OrderedList();
+    private systemPhaseMap: Map<SystemPhase, OrderedList<System<any>>> = new Map();
+
+    public hasPhase(phase: SystemPhase) {
+        return this.systemPhaseMap.has(phase);
     }
+
+    public addPhase(...phases: SystemPhase[]) {
+        for (let phase of phases) {
+            if (this.hasPhase(phase))
+                throw new Error(`Phase '${phase.key}' already exists!`);
+
+            this.phaseList.add(phase, phase.order);
+            this.systemPhaseMap.set(phase, new OrderedList());
+        }
+    }
+
+    public removePhase(phase: SystemPhase) {
+        if (!this.hasPhase(phase))
+            throw new Error(`Phase '${phase.key}' does not exist!`);
+
+        this.phaseList.remove(phase);
+        this.systemPhaseMap.delete(phase);
+    }
+
+    public addSystem(phase: SystemPhase, system: System<any>, order: number): void {
+        if (!this.hasPhase(phase))
+            throw new Error(`Phase '${phase.key}' has not been added!`);
+
+        let l = this.systemPhaseMap.get(phase);
+        if (!l.includes(system))
+            l.add(system, order);
+    }
+
+    public appendSystems(phase: SystemPhase, ...systems: System<any>[]): void {
+        if (!this.hasPhase(phase))
+            throw new Error(`Phase '${phase.key}' has not been added!`);
+
+        let l = this.systemPhaseMap.get(phase);
+        let o = l.size();
+        for (let i = 0; i < systems.length; i++) {
+            let system = systems[i];
+            if (!l.includes(system))
+                l.add(system, o + i);
+        }
+    }
+
+    public removeSystem(phase: SystemPhase, system: System<any>) {
+        this.systemPhaseMap.get(phase)?.remove(system);
+    }
+
+    public getSystemList(phase: SystemPhase): OrderedList<System<any>> | undefined {
+        return this.systemPhaseMap.get(phase);
+    }
+
+    public getAllSystems(): System<any>[] {
+        return Array.from(this.systemPhaseMap.values()).map(oL => oL.getAll()).flat();
+    }
+
     public addEntityComponents(entity: Entity, ...components: Component[]): void {
         components.forEach(component => entity.addComponent(component)); // Add all of the components to the entity
         let componentKeySet = new Set<string>(components.map(c => c.key)); // Create a set of the keys of the components that have been added
@@ -220,7 +275,7 @@ export class FluidCore {
     }
     public removeEntity(entityID: EntityID): void {
         this.entityMap.delete(entityID);
-        this.systemList.forEach(system => system.removeNode(entityID));
+        this.getAllSystems().forEach(system => system.removeNode(entityID));
     }
     public createEntity(...components: Component[]): Entity {
         let entity = new Entity();
@@ -228,23 +283,24 @@ export class FluidCore {
         this.addEntity(entity);
         return entity;
     }
-    public update() { }
-    public start() { }
-    public stop() { }
-}
-
-
-let instance: FluidCore = null;
-
-export function getInstance(): FluidCore {
-    if (!instance)
-        throw new Error("An instance has not been created!");
-
-    return instance;
-}
-
-export function setInstance(newInstance: FluidCore) {
-    if (instance)
-        throw new Error("An instance has already been created!");
-    instance = newInstance;
+    public update() {
+        for (let phase of this.phaseList.getAll()) {
+            try {
+                phase.preUpdate?.();
+                this.systemPhaseMap.get(phase).getAll().forEach(system => {
+                    try {
+                        system.update();
+                    } catch (error) {
+                        console.error("An error has occurred while updating system: " + system);
+                        console.log(error);
+                    }
+                });
+                phase.postUpdate?.();
+            } catch (error) {
+                console.error("An error has occurred during a phase update: " + phase.key);
+                console.log(error);
+            }
+        }
+        this.entityMap.values().filter(e => e.isRemoved()).forEach(e => this.removeEntity(e.getID()));
+    }
 }

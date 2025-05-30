@@ -1,4 +1,8 @@
-import { Vec2, Vector2, EntityID, Entity, Component, System, FluidCore } from "./engine/FluidECS.js";
+import { Vec2, Vector2, EntityID, Entity, Component, System, SystemPhase } from "./engine/FluidECS.js";
+import { FluidEngine } from "./engine/FluidEngine.js";
+
+var engine = new FluidEngine();
+
 const CANVAS_ELEMENT = document.getElementById("canvas")! as HTMLCanvasElement;
 const CONTEXT = CANVAS_ELEMENT.getContext("2d")!;
 let canvasWidth = CANVAS_ELEMENT.width,
@@ -6,15 +10,12 @@ let canvasWidth = CANVAS_ELEMENT.width,
 
 resizeCanvas();
 
-let isAnimating = false;
 let isStatsVisible = true;
 const RENDER_BASE_COLOR = "black";
 const TEXT_METRICS = CONTEXT.measureText("A");
 const FONT_HEIGHT = TEXT_METRICS.actualBoundingBoxAscent + TEXT_METRICS.actualBoundingBoxDescent;
 
-export const DELTA_TIME = 1 / 60;
 export const PIXELS_PER_METER = 1000;
-export let GAME_TIME = 0;
 
 const FRICTION_MODELS = {
     CLIMAX_AND_PLATEAU: {
@@ -213,6 +214,7 @@ class KinematicSystem extends System<KinematicSystemNode> {
     NODE_COMPONENT_KEYS: Set<keyof KinematicSystemNode> = new Set(['position', 'acceleration', 'velocity']);
     public updateNode(node: KinematicSystemNode, entityID: EntityID) {
         const g = GRAVITY;
+        const DELTA_TIME = engine.getDeltaTime();
         const { velocity, acceleration } = node;
         let { x: vX, y: vY } = velocity.velocity;
 
@@ -245,6 +247,7 @@ class KinematicSystem extends System<KinematicSystemNode> {
 class PositionSystem extends System<PositionSystemNode> {
     NODE_COMPONENT_KEYS: Set<keyof PositionSystemNode> = new Set(['position', 'velocity']);
     public updateNode(node: PositionSystemNode, entityID: EntityID) {
+        const DELTA_TIME = engine.getDeltaTime();
         node.position.position.x += node.velocity.velocity.x * DELTA_TIME;
         node.position.position.y += node.velocity.velocity.y * DELTA_TIME;
     }
@@ -253,6 +256,7 @@ class PositionSystem extends System<PositionSystemNode> {
 class CollisionSystem extends System<CollisionSystemNode> {
     NODE_COMPONENT_KEYS: Set<keyof CollisionSystemNode> = new Set(['particle', 'position', 'velocity', 'world']);
     public updateNode(node: CollisionSystemNode, entityID: EntityID) {
+        const DELTA_TIME = engine.getDeltaTime();
         let { position, velocity, particle, world } = node;
         let particleRadius = particle.radius;
         let { x, y } = position.position;
@@ -318,6 +322,7 @@ class ParticleStatSystem extends System<ParticleStatSystemNode> {
 class ViewportSystem extends System<ViewportSystemNode> {
     NODE_COMPONENT_KEYS: Set<keyof ViewportSystemNode> = new Set(['position', 'resolution', 'targetPosition', 'deadzone', 'world']);
     public updateNode(node: ViewportSystemNode, entityID: EntityID) {
+        const DELTA_TIME = engine.getDeltaTime();
         let { x, y } = node.position.position;
         const { x: width, y: height } = node.resolution.resolution;
         const { x: targetWorldX, y: targetWorldY } = node.targetPosition.targetPosition;
@@ -366,6 +371,8 @@ class ViewportSystem extends System<ViewportSystemNode> {
 class ProjectileSystem extends System<ProjectileSystemNode> {
     NODE_COMPONENT_KEYS: Set<keyof ProjectileSystemNode> = new Set(['projectile', 'particle', 'world', 'position']);
     public updateNode(node: ProjectileSystemNode, entityID: EntityID) {
+        const GAME_TIME = engine.getGameTime();
+
         if (GAME_TIME >= node.projectile.deathTime) {
             destroyProjectile(entityID);
             if (node.projectile.generation == 2)
@@ -390,6 +397,7 @@ class ProjectileSystem extends System<ProjectileSystemNode> {
 class FiringSystem extends System<FiringSystemNode> {
     NODE_COMPONENT_KEYS: Set<keyof FiringSystemNode> = new Set(['world', 'particle', 'projectileSource', 'fireControl', 'targetPosition', 'velocity', 'position']);
     public updateNode(node: FiringSystemNode, entityID: EntityID) {
+        const GAME_TIME = engine.getGameTime();
         if (!node.fireControl.fireIntent)
             return;
 
@@ -429,6 +437,7 @@ class CursorSystem extends System<CursorSystemNode> {
 class ProjectileRenderSystem extends System<ProjectileRenderNode> {
     NODE_COMPONENT_KEYS: Set<keyof ProjectileRenderNode> = new Set(['projectile', 'position', 'particle']);
     public updateNode(node: ProjectileRenderNode, entityID: EntityID) {
+        const GAME_TIME = engine.getGameTime();
         const { x, y } = node.position.position;
         CONTEXT.save();
         let scale = 1;
@@ -557,7 +566,7 @@ class ParticleRenderSystem extends System<ParticleRenderNode> {
 class StatRenderSystem extends System<StatRenderNode> {
     NODE_COMPONENT_KEYS: Set<keyof StatRenderNode> = new Set(['particleStats']);
     static STATS = {
-        isAnimating: (node: StatRenderNode) => isAnimating,
+        isAnimating: (node: StatRenderNode) => engine.getAnimationState(),
         fps: (node: StatRenderNode) => round(fps),
         position: (node: StatRenderNode) => `${round(node.particleStats.position.x)}, ${round(node.particleStats.position.y)}`,
         velocity: (node: StatRenderNode) => `${round(node.particleStats.computedSpeed)} (${round(node.particleStats.velocity.x)}, ${round(node.particleStats.velocity.y)})`,
@@ -569,6 +578,8 @@ class StatRenderSystem extends System<StatRenderNode> {
     }
 
     public updateNode(node: StatRenderNode, entityID: EntityID) {
+        if (!isStatsVisible)
+            return;
         drawComplexText(10, 10,
             Object.keys(StatRenderSystem.STATS).map((key) => StatRenderSystem.formatStats(key, StatRenderSystem.STATS[key](node))),
             2);
@@ -691,7 +702,7 @@ const HOTKEYS = {
     pause: {
         keys: ["Escape", " "],
         action: () => {
-            toggleAnimation();
+            engine.toggleAnimation();
         }
     }
 }
@@ -756,21 +767,6 @@ function activateControlBindings() {
     }
 }
 
-// Game logic
-function update() {
-    cursorSystem.update();
-    activateControlBindings();
-    updateStats();
-    firingSystem.update();
-    projectileSystem.update();
-    movementControlSystem.update();
-    kinematicSystem.update();
-    collisionSystem.update();
-    positionSystem.update();
-    particleStatSystem.update();
-    viewportSystem.update();
-}
-
 function drawComplexText(x: number, y: number, content = [["Colored ", "red"], ["\n"], ["Text ", "Blue"], ["Test", "Green"]], lineSpacing = 2) {
     let xOrig = x;
     for (const piece of content) {
@@ -792,12 +788,6 @@ function drawComplexText(x: number, y: number, content = [["Colored ", "red"], [
     return y;
 }
 
-function drawWorld() {
-    worldRenderSystem.update();
-    projectileRenderSystem.update();
-    particleRenderSystem.update();
-}
-
 function drawPauseScreen() {
     CONTEXT.save();
 
@@ -812,55 +802,39 @@ function drawPauseScreen() {
     CONTEXT.restore();
 }
 
-function drawHUD() {
-    viewportRenderSystem.update();
+let logicPhase = {
+    key: 'logic',
+    order: 0,
+    preUpdate() {
+        activateControlBindings();
+        updateStats();
+    }
+} as SystemPhase
 
-    if (isStatsVisible)
-        statRenderSystem.update();
+let worldRender = {
+    key: 'worldrender',
+    order: 1,
+    preUpdate() {
+        clearCanvas();
+        CONTEXT.save();
+        CONTEXT.scale(PIXELS_PER_METER, PIXELS_PER_METER);
+        CONTEXT.translate(-VIEWPORT_POSITION.position.x, -VIEWPORT_POSITION.position.y);
+    },
+    postUpdate() {
+        CONTEXT.restore();
+    }
+} as SystemPhase
 
-    if (!isAnimating)
-        drawPauseScreen();
-}
+let hudRender = {
+    key: 'hudrender',
+    order: 2,
+    postUpdate() {
+        if (!engine.getAnimationState())
+            drawPauseScreen();
+    }
+} as SystemPhase
 
-// Rendering
-function draw() {
-    clearCanvas();
-    CONTEXT.save();
-    CONTEXT.scale(PIXELS_PER_METER, PIXELS_PER_METER);
-    CONTEXT.translate(-VIEWPORT_POSITION.position.x, -VIEWPORT_POSITION.position.y);
-    drawWorld();
-    CONTEXT.restore();
-    drawHUD();
-}
-
-// Game loop
-function animate() {
-    update();
-    draw();
-    if (isAnimating)
-        requestAnimationFrame(animate);
-    GAME_TIME += DELTA_TIME;
-}
-
-function startAnimation() {
-    if (isAnimating)
-        return;
-    isAnimating = true;
-    animate();
-}
-
-function stopAnimation() {
-    isAnimating = false;
-}
-
-function toggleAnimation() {
-    if (isAnimating)
-        stopAnimation();
-    else
-        startAnimation();
-}
-
-var engine = new FluidCore();
+engine.addPhase(logicPhase, worldRender, hudRender);
 
 let kinematicSystem = new KinematicSystem(),
     positionSystem = new PositionSystem(),
@@ -877,22 +851,30 @@ let kinematicSystem = new KinematicSystem(),
     viewportRenderSystem = new ViewportRenderSystem(),
     statRenderSystem = new StatRenderSystem();
 
-engine.addSystem(
-    kinematicSystem,
-    positionSystem,
-    collisionSystem,
-    movementControlSystem,
-    viewportSystem,
-    projectileSystem,
-    particleStatSystem,
-    firingSystem,
+engine.appendSystems(logicPhase,
     cursorSystem,
+    firingSystem,
+    projectileSystem,
+    movementControlSystem,
+    kinematicSystem,
+    collisionSystem,
+    positionSystem,
+    particleStatSystem,
+    viewportSystem
+);
+
+engine.appendSystems(worldRender,
     worldRenderSystem,
     projectileRenderSystem,
-    particleRenderSystem,
+    particleRenderSystem
+);
+
+engine.appendSystems(hudRender,
     viewportRenderSystem,
     statRenderSystem
 );
+
+
 
 let VIEWPORT_POSITION: PositionComponent;
 let FIRE_CONTROL: FireControlComponent;
@@ -1086,7 +1068,7 @@ function init() {
         MOUSE_KEY_STATES[event.button] = false;
     });
 
-    animate();
+    engine.animate();
 }
 
 init();
