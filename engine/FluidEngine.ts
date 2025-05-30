@@ -3,7 +3,9 @@ import { FluidCore } from "./FluidECS.js";
 export class FluidEngine extends FluidCore {
     private isAnimating = false;
     private gameTime = 0;
-    private deltaTime = 1 / 60;
+    constructor(public readonly PIXELS_PER_METER: number = 1000, public readonly deltaTime: number = 1 / 60) {
+        super();
+    }
     getGameTime() {
         return this.gameTime;
     }
