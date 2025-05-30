@@ -12,9 +12,13 @@ export const Vector2 = {
 
     subtract: (a: Vec2, b: Vec2): Vec2 => ({ x: a.x - b.x, y: a.y - b.y }),
 
+    multiply: (a: Vec2, b: Vec2): Vec2 => ({ x: a.x * b.x, y: a.y * b.y }),
+
     scale: (v: Vec2, scalar: number): Vec2 => ({ x: v.x * scalar, y: v.y * scalar }),
 
     dot: (a: Vec2, b: Vec2): number => a.x * b.x + a.y * b.y,
+
+    abs: (v: Vec2): Vec2 => ({ x: Math.abs(v.x), y: Math.abs(v.y) }),
 
     magnitude: (v: Vec2): number => Math.sqrt(v.x * v.x + v.y * v.y),
 
@@ -30,6 +34,9 @@ export const Vector2 = {
         let diff = Vector2.subtract(b, a);
         return Math.atan2(diff.y, diff.x);
     },
+
+    fromAngle: (t: number): Vec2 => ({ x: Math.cos(t), y: Math.sin(t) }),
+
     copy: (v: Vec2): Vec2 => {
         return { x: v.x, y: v.y };
     }
