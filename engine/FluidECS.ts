@@ -142,12 +142,12 @@ export abstract class System<T extends Node<any>> {
     public abstract updateNode(node: T, entityID: EntityID): void;
 }
 
-type OrderedListItem<T> = {
+export type OrderedListItem<T> = {
     item: T;
     order: number;
 }
 
-class OrderedList<T> {
+export class OrderedList<T> {
     private items: OrderedListItem<T>[] = [];
 
     constructor(initialItems: OrderedListItem<T>[] = []) {
