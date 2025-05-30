@@ -47,6 +47,7 @@ export type Node = {
 export class Entity {
     private id: EntityID = createUID();
     private components = new Map<string, Component>();
+    private removed: boolean = false;
 
     getID(): EntityID {
         return this.id;
@@ -71,7 +72,17 @@ export class Entity {
     getComponentMap(): Map<string, Component> {
         return this.components;
     }
+
+    isRemoved() {
+        return this.removed;
+    }
+
+    setRemoved(removed: boolean) {
+        this.removed = removed;
+    }
 }
+
+export type Node<T extends Record<string, Component>> = T;
 
 export abstract class System<T extends Node> {
     abstract readonly NODE_COMPONENT_KEYS: Set<Extract<keyof T, string>>;
@@ -115,6 +126,7 @@ export abstract class System<T extends Node> {
     }
     public abstract updateNode(node: T, entityID: EntityID): void;
 }
+
 
 /* 
 
