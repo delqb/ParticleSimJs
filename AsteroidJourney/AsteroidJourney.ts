@@ -1,5 +1,5 @@
-import { Vec2, Vector2, EntityID, Entity, Component, System, SystemPhase } from "./engine/FluidECS.js";
-import { FluidEngine } from "./engine/FluidEngine.js";
+import { Vec2, Vector2, EntityID, Entity, Component, System, SystemPhase } from "../engine/FluidECS.js";
+import { FluidEngine } from "../engine/FluidEngine.js";
 
 var engine = new FluidEngine();
 
