@@ -90,3 +90,12 @@ export type ParticleStatsComponent = Component & {
     computedAcceleration: number;
     computedSpeed: number;
 }
+
+export type ScaleComponent = Component & {
+    scale: Vec2;
+};
+
+export type SpriteComponent = Component & {
+    texture: HTMLImageElement;
+    zIndex: number;
+};
