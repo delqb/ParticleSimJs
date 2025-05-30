@@ -255,20 +255,25 @@ export class FluidCore {
 
     public addEntityComponents(entity: Entity, ...components: Component[]): void {
         components.forEach(component => entity.addComponent(component)); // Add all of the components to the entity
-        let componentKeySet = new Set<string>(components.map(c => c.key)); // Create a set of the keys of the components that have been added
-        for (let system of this.systemList) {
-            // If any of the system's node component keys are present (same component type), then the system is relevant.
-            if (!Array.from(system.NODE_COMPONENT_KEYS).some(componentKey => componentKeySet.has(componentKey)))
+        for (let system of this.getAllSystems()) {
+            let id = entity.getID();
+            if (system.hasNode(id)) {
+                if (!system.validateEntity(entity))
+                    system.removeNode(id);
                 continue;
-            // If the system already has a node for this entity, remove it. A new node will be created to include the newly added component. This keeps the node up to date
-            if (system.hasNode(entity.getID()))
-                system.removeNode(entity.getID());
-            // Create the node if all the components are present.
-            system.createNode(entity);
+            }
+            if (system.validateEntity(entity))
+                system.createNode(entity);
         }
     }
     public removeEntityComponents(entity: Entity, ...componentKeys: string[]): void {
-        // call system validate after removing components
+        componentKeys.forEach(c => entity.removeComponent(c));
+        for (let system of this.getAllSystems()) {
+            if (!system.hasNode(entity.getID()))
+                continue;
+            if (!system.validateEntity(entity))
+                system.removeNode(entity.getID());
+        }
     }
     public addEntity(entity: Entity): void {
         this.entityMap.set(entity.getID(), entity);
