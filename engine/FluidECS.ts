@@ -42,6 +42,16 @@ export const Vector2 = {
     }
 }
 
+export const MathUtils = {
+    round: (num: number, decimalPlaces = 3): number => {
+        return Math.round(num * 10 ** decimalPlaces) / 10 ** decimalPlaces;
+    },
+
+    lerp: (start: number, end: number, t: number): number => {
+        return start + (end - start) * t;
+    }
+}
+
 export type Component = {
     key: string;
 };
