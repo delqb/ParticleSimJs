@@ -252,6 +252,8 @@ let logicPhase = {
     }
 } as SystemPhase
 
+let scaledCanvasRes = Vector2.scale({ x: canvasWidth, y: canvasHeight }, 1 / engine.PIXELS_PER_METER);
+let scaledCanvasCenter = Vector2.scale(scaledCanvasRes, 1 / 2);
 let worldRender = {
     key: 'worldrender',
     order: 1,
@@ -259,7 +261,14 @@ let worldRender = {
         clearCanvas();
         CONTEXT.save();
         CONTEXT.scale(engine.PIXELS_PER_METER, engine.PIXELS_PER_METER);
-        CONTEXT.translate(-VIEWPORT_POSITION.position.x, -VIEWPORT_POSITION.position.y);
+
+        //Move canvas origin to center of screen (camera pivot point)
+        CONTEXT.translate(scaledCanvasCenter.x, scaledCanvasCenter.y);
+        //Rotate in the opposite direction of the player
+        CONTEXT.rotate(-particle1PositionComponent.rotation - Math.PI / 2);
+        let vpCenterPos = Vector2.add(VIEWPORT_POSITION.position, scaledCanvasCenter);
+        //Move world so that player is at the center of the screen
+        CONTEXT.translate(-vpCenterPos.x, -vpCenterPos.y);
     },
     postUpdate() {
         CONTEXT.restore();
@@ -320,206 +329,207 @@ engine.appendSystems(hudRender,
 let VIEWPORT_POSITION: Component.PositionComponent;
 let FIRE_CONTROL: Component.FireControlComponent;
 
-function init() {
-    // WORLD
-    let worldComponent: Component.WorldComponent = {
-        key: "world",
-        resolution: {
-            x: 4.096,
-            y: 4.096
-        },
-        borderWidth: 0.1,
-        backgroundColor: "#23262B",
-    }
-    let backgroundGridComponent: Component.BackgroundGridComponent = {
-        key: "backgroundGrid",
-        gridSize: 0.032,
-        gridLineColor: "#424852",
-        gridLineWidth: 0.001
-    }
+// WORLD
+let worldComponent: Component.WorldComponent = {
+    key: "world",
+    resolution: {
+        x: 4.096,
+        y: 4.096
+    },
+    borderWidth: 0.1,
+    backgroundColor: "#23262B",
+}
+let backgroundGridComponent: Component.BackgroundGridComponent = {
+    key: "backgroundGrid",
+    gridSize: 0.064,
+    gridLineColor: "#424852",
+    gridLineWidth: 0.001
+}
 
 
-    let particle1PositionComponent: Component.PositionComponent = {
-        key: "position",
-        position: Vector2.scale(worldComponent.resolution, 1 / 2),
-        rotation: 0
+let particle1PositionComponent: Component.PositionComponent = {
+    key: "position",
+    position: Vector2.scale(worldComponent.resolution, 1 / 2),
+    rotation: 0
+};
+
+
+// Create red and blue particle
+(() => {
+    let particleComponent1: Component.ParticleComponent = {
+        key: "particle",
+        radius: PARTICLE_PARAMETERS.radius,
+        color: "red"
+    }
+    let velocityComponent1: Component.VelocityComponent = {
+        key: "velocity",
+        velocity: { x: 0, y: 0 },
+        angular: 0
+    }
+    let accelerationComponent1: Component.AccelerationComponent = {
+        key: "acceleration",
+        acceleration: { x: 0, y: 0 },
+        angular: 0
+    }
+    let FIRE_CONTROL = {
+        key: 'fireControl',
+        fireIntent: false
+    } as Component.FireControlComponent;
+
+    let cursorPositionAsTarget = {
+        key: "targetPosition",
+        get targetPosition() {
+            return cursorPositionComponent.position;
+        }
     };
 
-    (() => {
-        let particleComponent1: Component.ParticleComponent = {
-            key: "particle",
-            radius: PARTICLE_PARAMETERS.radius * 3,
-            color: "red"
+    let mainParticle = createParticle(
+        worldComponent,
+        particleComponent1,
+        particle1PositionComponent,
+        velocityComponent1,
+        accelerationComponent1,
+        0.0003,
+        {
+            movementControlComponent: MOVEMENT_CONTROL_COMPONENT,
+            targetPositionComponent: cursorPositionAsTarget
         }
-        let velocityComponent1: Component.VelocityComponent = {
+    );
+
+    engine.addEntityComponents(mainParticle,
+        {
+            key: 'particleStats',
+            get position() {
+                return particle1PositionComponent.position;
+            },
+            get velocity() {
+                return velocityComponent1.velocity;
+            },
+            get acceleration() {
+                return accelerationComponent1.acceleration;
+            },
+            computedSpeed: Vector2.magnitude(velocityComponent1.velocity),
+            computedAcceleration: Vector2.magnitude(accelerationComponent1.acceleration)
+        } as Component.ParticleStatsComponent,
+        FIRE_CONTROL
+    );
+
+    MOUSE_CONTROLS["fire"] = {
+        keys: [0],
+        action: () => {
+            FIRE_CONTROL.fireIntent = true;
+        },
+    }
+    let particleComponent2: Component.ParticleComponent = {
+        key: "particle",
+        radius: 2 * PARTICLE_PARAMETERS.radius,
+        color: "blue"
+    };
+
+    createParticle(
+        worldComponent,
+        particleComponent2,
+        {
+            key: "position",
+            position: Vector2.add(particle1PositionComponent.position, { x: 0.08, y: 0 }),
+            rotation: 0
+        },
+        {
             key: "velocity",
             velocity: { x: 0, y: 0 },
             angular: 0
-        }
-        let accelerationComponent1: Component.AccelerationComponent = {
+        },
+        {
             key: "acceleration",
             acceleration: { x: 0, y: 0 },
             angular: 0
-        }
-        let FIRE_CONTROL = {
-            key: 'fireControl',
-            fireIntent: false
-        } as Component.FireControlComponent;
-
-        let cursorPositionAsTarget = {
-            key: "targetPosition",
-            get targetPosition() {
-                return cursorPositionComponent.position;
-            }
-        };
-
-        let mainParticle = createParticle(
-            worldComponent,
-            particleComponent1,
-            particle1PositionComponent,
-            velocityComponent1,
-            accelerationComponent1,
+        },
         0.0003,
-            {
-                movementControlComponent: MOVEMENT_CONTROL_COMPONENT,
-                targetPositionComponent: cursorPositionAsTarget
-            }
-        );
-
-        engine.addEntityComponents(mainParticle,
-            {
-                key: 'particleStats',
-                get position() {
+        {
+            targetPositionComponent: {
+                key: "targetPosition",
+                get targetPosition() {
                     return particle1PositionComponent.position;
-                },
-                get velocity() {
-                    return velocityComponent1.velocity;
-                },
-                get acceleration() {
-                    return accelerationComponent1.acceleration;
-                },
-                computedSpeed: Vector2.magnitude(velocityComponent1.velocity),
-                computedAcceleration: Vector2.magnitude(accelerationComponent1.acceleration)
-            } as Component.ParticleStatsComponent,
-            FIRE_CONTROL
-        );
-
-        MOUSE_CONTROLS["fire"] = {
-            keys: [0],
-            action: () => {
-                FIRE_CONTROL.fireIntent = true;
-            },
-        }
-        let particleComponent2: Component.ParticleComponent = {
-            key: "particle",
-            radius: 2 * PARTICLE_PARAMETERS.radius,
-            color: "blue"
-        };
-
-        createParticle(
-            worldComponent,
-            particleComponent2,
-            {
-                key: "position",
-                position: Vector2.add(particle1PositionComponent.position, { x: 0.08, y: 0 }),
-                rotation: 0
-            },
-            {
-                key: "velocity",
-                velocity: { x: 0, y: 0 },
-                angular: 0
-            },
-            {
-                key: "acceleration",
-                acceleration: { x: 0, y: 0 },
-                angular: 0
-            },
-        0.0003,
-            {
-                targetPositionComponent: {
-                    key: "targetPosition",
-                    get targetPosition() {
-                        return particle1PositionComponent.position;
-                    }
                 }
             }
-        );
-    })();
-
-    VIEWPORT_POSITION = {
-        key: "position",
-        position: {
-            x: (worldComponent.resolution.x - canvasWidth) / (2 * engine.PIXELS_PER_METER),
-            y: (worldComponent.resolution.y - canvasHeight) / (2 * engine.PIXELS_PER_METER),
         }
-    } as Component.PositionComponent
-
-    let viewport = engine.createEntity(
-        VIEWPORT_POSITION,
-        {
-            key: "resolution",
-            resolution: {
-                x: canvasWidth,
-                y: canvasHeight
-            }
-        } as Component.ResolutionComponent,
-        {
-            key: "targetPosition",
-            targetPosition: particle1PositionComponent.position
-        } as Component.TargetPositionComponent,
-        {
-            key: "borderWidth",
-            borderWidth: 0.05 * Math.min(canvasWidth, canvasHeight)
-        } as Component.ViewportBorderWidthComponent,
-        {
-            key: "speedFactor",
-            speedFactor: 22
-        } as Component.CameraSpeedFactorComponent,
-        worldComponent
     );
+})();
 
-    // CURSOR
-    const cursorPositionComponent: Component.PositionComponent = {
-        key: "position",
-        position: { x: 0, y: 0 },
-        rotation: 0
+VIEWPORT_POSITION = {
+    key: "position",
+    position: {
+        x: (worldComponent.resolution.x - canvasWidth) / (2 * engine.PIXELS_PER_METER),
+        y: (worldComponent.resolution.y - canvasHeight) / (2 * engine.PIXELS_PER_METER),
     }
-    const cursorScreenPointComponent: Component.ScreenPointComponent = {
-        key: "screenPoint",
-        point: { x: 0, y: 0 }
-    };
-    CANVAS_ELEMENT.addEventListener("mousemove", (event) => {
-        cursorScreenPointComponent.point = { x: event.offsetX, y: event.offsetY };
-    });
+} as Component.PositionComponent
 
-    let cursor = engine.createEntity(
-        cursorScreenPointComponent,
-        cursorPositionComponent,
-        {
-            key: 'cursorTranslate',
-            get cursorTranslate() {
-                return VIEWPORT_POSITION.position;
-            }
-        } as Component.CursorTranslateComponent);
+let viewport = engine.createEntity(
+    VIEWPORT_POSITION,
+    {
+        key: "resolution",
+        resolution: {
+            x: canvasWidth,
+            y: canvasHeight
+        }
+    } as Component.ResolutionComponent,
+    {
+        key: "targetPosition",
+        targetPosition: particle1PositionComponent.position
+    } as Component.TargetPositionComponent,
+    {
+        key: "borderWidth",
+        borderWidth: 0.05 * Math.min(canvasWidth, canvasHeight)
+    } as Component.ViewportBorderWidthComponent,
+    {
+        key: "speedFactor",
+        speedFactor: 22
+    } as Component.CameraSpeedFactorComponent,
+    worldComponent
+);
 
-    let world = engine.createEntity(worldComponent, backgroundGridComponent);
+// CURSOR
+const cursorPositionComponent: Component.PositionComponent = {
+    key: "position",
+    position: { x: 0, y: 0 },
+    rotation: 0
+}
+const cursorScreenPointComponent: Component.ScreenPointComponent = {
+    key: "screenPoint",
+    point: { x: 0, y: 0 }
+};
+CANVAS_ELEMENT.addEventListener("mousemove", (event) => {
+    cursorScreenPointComponent.point = { x: event.offsetX, y: event.offsetY };
+});
 
-    window.addEventListener("keydown", (event) => {
-        KEY_STATES[event.key] = true;
-        activateHotkeyBindings();
-    });
+let cursor = engine.createEntity(
+    cursorScreenPointComponent,
+    cursorPositionComponent,
+    {
+        key: 'cursorTranslate',
+        get cursorTranslate() {
+            return VIEWPORT_POSITION.position;
+        }
+    } as Component.CursorTranslateComponent);
 
-    window.addEventListener("keyup", (event) => {
-        KEY_STATES[event.key] = false;
-    });
+let world = engine.createEntity(worldComponent, backgroundGridComponent);
 
-    window.addEventListener("mousedown", (event: MouseEvent) => {
-        MOUSE_KEY_STATES[event.button] = true;
-    });
+window.addEventListener("keydown", (event) => {
+    KEY_STATES[event.key] = true;
+    activateHotkeyBindings();
+});
 
-    CANVAS_ELEMENT.addEventListener("mouseup", (event: MouseEvent) => {
-        MOUSE_KEY_STATES[event.button] = false;
-    });
+window.addEventListener("keyup", (event) => {
+    KEY_STATES[event.key] = false;
+});
+
+window.addEventListener("mousedown", (event: MouseEvent) => {
+    MOUSE_KEY_STATES[event.button] = true;
+});
+
+CANVAS_ELEMENT.addEventListener("mouseup", (event: MouseEvent) => {
+    MOUSE_KEY_STATES[event.button] = false;
+});
 
 function createGlowingStar(spikes, outerRadius, innerRadius, glowRadius) {
     const size = glowRadius * 2;
@@ -555,7 +565,7 @@ function createGlowingStar(spikes, outerRadius, innerRadius, glowRadius) {
         y = cy + Math.sin(rotation) * innerRadius;
         offCtx.lineTo(x, y);
         rotation += step;
-}
+    }
     offCtx.closePath();
 
     offCtx.fillStyle = "#FFD700";
