@@ -36,8 +36,8 @@ export type ViewportBorderWidthComponent = Component & {
 }
 
 export type MovementControlComponent = Component & {
-    acceleration: Vec2;
-    yawControl: boolean;
+    accelerationInput: Vec2;
+    yawInput: number;
 }
 
 export type WorldComponent = Component & {

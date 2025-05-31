@@ -102,11 +102,11 @@ const KEY_STATES = {
 
 const MOVEMENT_CONTROL_COMPONENT: Component.MovementControlComponent = {
     key: 'movementControl',
-    acceleration: {
+    accelerationInput: {
         x: 0,
         y: 0
     },
-    yawControl: false
+    yawInput: 0
 }
 
 const KEYBOARD_CONTROLS = {
@@ -114,25 +114,37 @@ const KEYBOARD_CONTROLS = {
         type: "movement",
         keys: ["w"],
         action: () => {
-            MOVEMENT_CONTROL_COMPONENT.acceleration.y += -1;
+            MOVEMENT_CONTROL_COMPONENT.accelerationInput.y += -1;
         }
     },
     down: {
         keys: ["s"],
         action: () => {
-            MOVEMENT_CONTROL_COMPONENT.acceleration.y += 1;
+            MOVEMENT_CONTROL_COMPONENT.accelerationInput.y += 1;
         }
     },
     left: {
         keys: ["a"],
         action: () => {
-            MOVEMENT_CONTROL_COMPONENT.acceleration.x += -1;
+            MOVEMENT_CONTROL_COMPONENT.accelerationInput.x += -1;
         }
     },
     right: {
         keys: ["d"],
         action: () => {
-            MOVEMENT_CONTROL_COMPONENT.acceleration.x += 1;
+            MOVEMENT_CONTROL_COMPONENT.accelerationInput.x += 1;
+        }
+    },
+    yawLeft: {
+        keys: ["q"],
+        action: () => {
+            MOVEMENT_CONTROL_COMPONENT.yawInput -= 1;
+        }
+    },
+    yawRight: {
+        keys: ["e"],
+        action: () => {
+            MOVEMENT_CONTROL_COMPONENT.yawInput += 1;
         }
     }
 };
@@ -193,8 +205,6 @@ function updateStats() {
 }
 
 function activateControlBindings() {
-    MOVEMENT_CONTROL_COMPONENT.acceleration.x = 0;
-    MOVEMENT_CONTROL_COMPONENT.acceleration.y = 0;
     for (const controlBinding of Object.keys(KEYBOARD_CONTROLS).map(k => KEYBOARD_CONTROLS[k])) {
         if (controlBinding.keys.some(k => KEY_STATES[k]))
             controlBinding.action();
@@ -227,7 +237,9 @@ let logicPhase = {
         updateStats();
     },
     postUpdate() {
-        MOVEMENT_CONTROL_COMPONENT.yawControl = false;
+        MOVEMENT_CONTROL_COMPONENT.yawInput = 0;
+        MOVEMENT_CONTROL_COMPONENT.accelerationInput.x = 0;
+        MOVEMENT_CONTROL_COMPONENT.accelerationInput.y = 0;
     }
 } as SystemPhase
 
