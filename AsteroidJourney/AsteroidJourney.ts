@@ -28,7 +28,7 @@ export const PARTICLE_PARAMETERS = {
     projectile: {
         radius: 0.0045,
         lifetime: 5, //in seconds
-        fireRate: 5 //in shots per second
+        fireRate: 10 //in shots per second
     },
     cannon: {
         width: 0.01,
@@ -41,7 +41,7 @@ export const SHIP_PARAMETERS = {
     width: 0.035
 }
 
-export function createParticle(worldComponent: Component.WorldComponent, particleComponent: Component.ParticleComponent, positionComponent: Component.PositionComponent, velocityComponent: Component.VelocityComponent, accelerationComponent: Component.AccelerationComponent, options?: { movementControlComponent?: Component.MovementControlComponent, targetPositionComponent?: Component.TargetPositionComponent }): Entity {
+export function createParticle(worldComponent: Component.WorldComponent, particleComponent: Component.ParticleComponent, positionComponent: Component.PositionComponent, velocityComponent: Component.VelocityComponent, accelerationComponent: Component.AccelerationComponent, projectileScale: number = 0.0003, optionalComponents?: { movementControlComponent?: Component.MovementControlComponent, targetPositionComponent?: Component.TargetPositionComponent }): Entity {
     let computedSpeedComponent = { key: "computedSpeed", computedSpeed: 0 },
         computedAccelerationComponent = { key: "computedAcceleration", computedAcceleration: 0 };
     let entity = engine.createEntity(
@@ -56,41 +56,50 @@ export function createParticle(worldComponent: Component.WorldComponent, particl
             key: "projectileSource",
             lastFireTime: 0,
             muzzleSpeed: 2,
+            projectileScale: projectileScale
         } as Component.ProjectileSourceComponent
     );
-    if (options) {
-        for (let component of Object.values(options))
+    if (optionalComponents) {
+        for (let component of Object.values(optionalComponents))
             if (component)
                 entity.addComponent(component);
     }
     return entity;
 }
 
-export function spawnProjectile(worldComponent: Component.WorldComponent, position: Vec2, velocity: Vec2, color: string, radius: number, deathTime: number, generation: number): Entity {
+export function spawnProjectile(worldComponent: Component.WorldComponent, position: Vec2, rotation: number, velocity: Vec2, deathTime: number, generation: number, scale: number = 0.001): Entity {
     return engine.createEntity(
         worldComponent,
         {
             key: 'position',
-            position: position
+            position: position,
+            rotation: rotation
         } as Component.PositionComponent,
         {
             key: 'velocity',
-            velocity: velocity
+            velocity: velocity,
+            angular: 0
         } as Component.VelocityComponent,
-        {
-            key: 'particle',
-            color: color,
-            radius: radius
-        } as Component.ParticleComponent,
         {
             key: 'projectile',
             deathTime: deathTime,
             generation: generation
         } as Component.ProjectileComponent,
         {
+            key: "spriteTexture",
+            texture: laserShotTexture,
+            zIndex: 0
+        } as Component.SpriteComponent,
+        {
+            key: "scale",
+            scale: { x: scale, y: scale }
+        } as Component.ScaleComponent,
+        {
             key: 'acceleration',
-            acceleration: { x: 0, y: 0 }
+            acceleration: { x: 0, y: 0 },
+            angular: 0
         } as Component.AccelerationComponent);
+
 }
 
 export function destroyProjectile(entityID: EntityID) {
@@ -281,7 +290,8 @@ let kinematicSystem = new Systems.KinematicSystem(),
     projectileRenderSystem = new Systems.ProjectileRenderSystem(),
     particleRenderSystem = new Systems.ParticleRenderSystem(),
     viewportRenderSystem = new Systems.ViewportRenderSystem(),
-    statRenderSystem = new Systems.StatRenderSystem();
+    statRenderSystem = new Systems.StatRenderSystem(),
+    spriteRenderSystem = new Systems.SpriteRenderSystem(CONTEXT);
 
 engine.appendSystems(logicPhase,
     cursorSystem,
@@ -297,6 +307,7 @@ engine.appendSystems(logicPhase,
 
 engine.appendSystems(worldRender,
     worldRenderSystem,
+    spriteRenderSystem,
     projectileRenderSystem,
     particleRenderSystem
 );
@@ -368,6 +379,7 @@ function init() {
             particle1PositionComponent,
             velocityComponent1,
             accelerationComponent1,
+        0.0003,
             {
                 movementControlComponent: MOVEMENT_CONTROL_COMPONENT,
                 targetPositionComponent: cursorPositionAsTarget
@@ -398,14 +410,6 @@ function init() {
                 FIRE_CONTROL.fireIntent = true;
             },
         }
-
-        MOUSE_CONTROLS["yaw"] = {
-            keys: [2],
-            action: () => {
-                MOVEMENT_CONTROL_COMPONENT.yawControl = true;
-            }
-        }
-
         let particleComponent2: Component.ParticleComponent = {
             key: "particle",
             radius: 2 * PARTICLE_PARAMETERS.radius,
@@ -430,6 +434,7 @@ function init() {
                 acceleration: { x: 0, y: 0 },
                 angular: 0
             },
+        0.0003,
             {
                 targetPositionComponent: {
                     key: "targetPosition",
@@ -510,14 +515,131 @@ function init() {
 
     window.addEventListener("mousedown", (event: MouseEvent) => {
         MOUSE_KEY_STATES[event.button] = true;
-        console.log(event.button);
     });
 
     CANVAS_ELEMENT.addEventListener("mouseup", (event: MouseEvent) => {
         MOUSE_KEY_STATES[event.button] = false;
     });
 
-    engine.animate();
+function createGlowingStar(spikes, outerRadius, innerRadius, glowRadius) {
+    const size = glowRadius * 2;
+    const offCanvas = document.createElement("canvas");
+    offCanvas.width = offCanvas.height = size;
+    const offCtx = offCanvas.getContext("2d");
+    const cx = size / 2;
+    const cy = size / 2;
+
+    // Glow
+    const glow = offCtx.createRadialGradient(cx, cy, innerRadius, cx, cy, glowRadius);
+    glow.addColorStop(0, "rgba(255, 255, 150, 0.5)");
+    glow.addColorStop(1, "rgba(255, 255, 150, 0)");
+
+    offCtx.fillStyle = glow;
+    offCtx.beginPath();
+    offCtx.arc(cx, cy, glowRadius, 0, 2 * Math.PI);
+    offCtx.fill();
+
+    // Star path
+    offCtx.beginPath();
+    const step = Math.PI / spikes;
+    let rotation = Math.PI / 2 * 3;
+
+    offCtx.moveTo(cx, cy - outerRadius);
+    for (let i = 0; i < spikes; i++) {
+        let x = cx + Math.cos(rotation) * outerRadius;
+        let y = cy + Math.sin(rotation) * outerRadius;
+        offCtx.lineTo(x, y);
+        rotation += step;
+
+        x = cx + Math.cos(rotation) * innerRadius;
+        y = cy + Math.sin(rotation) * innerRadius;
+        offCtx.lineTo(x, y);
+        rotation += step;
+}
+    offCtx.closePath();
+
+    offCtx.fillStyle = "#FFD700";
+    offCtx.fill();
+    offCtx.strokeStyle = "#FFF";
+    offCtx.lineWidth = 1.2;
+    offCtx.stroke();
+
+    return offCanvas;
 }
 
-init();
+function canvasToImage(canvas: HTMLCanvasElement) {
+    const imageDataUrl = canvas.toDataURL();
+    const image = new Image();
+    image.src = imageDataUrl;
+    return image;
+}
+
+const starImage = canvasToImage(createGlowingStar(3, 3, 5, 40));
+
+engine.createEntity(
+    {
+        key: "position",
+        position: Vector2.copy(particle1PositionComponent.position),
+        rotation: Math.PI / 3
+    } as Component.PositionComponent,
+    {
+        key: "spriteTexture",
+        texture: starImage,
+        zIndex: 1
+    } as Component.SpriteComponent,
+    {
+        key: "scale",
+        scale: { x: 0.001, y: 0.001 }
+    } as Component.ScaleComponent,
+    {
+        key: "velocity",
+        velocity: ({ x: 0.008, y: 0.01 }),
+        angular: 0
+    } as Component.VelocityComponent
+);
+
+
+function renderSingleNeonLaserSprite({
+    width = 256,
+    height = 128,
+    laserLength = 64,
+    laserWidth = 16,
+    color = 'cyan'
+} = {}) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // Fill background with transparency for sprite use
+    ctx.clearRect(0, 0, width, height);
+
+    ctx.save();
+    ctx.translate(centerX, centerY);
+
+    // Create glowing linear gradient for the laser core
+    const gradient = ctx.createLinearGradient(-laserLength / 2, 0, laserLength / 2, 0);
+    gradient.addColorStop(0, 'transparent');
+    gradient.addColorStop(0.3, color);
+    gradient.addColorStop(0.7, color);
+    gradient.addColorStop(1, 'transparent');
+
+    ctx.shadowBlur = 24;
+    ctx.shadowColor = color;
+
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, laserLength / 2, laserWidth / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    return canvas;
+}
+
+const laserShotCanvas = renderSingleNeonLaserSprite();
+const laserShotTexture = canvasToImage(laserShotCanvas);
+
+engine.animate();

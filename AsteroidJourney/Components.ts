@@ -77,6 +77,7 @@ export type FireControlComponent = Component & {
 export type ProjectileSourceComponent = Component & {
     muzzleSpeed: number;
     lastFireTime: number;
+    projectileScale: number;
 }
 
 export type CursorTranslateComponent = Component & {

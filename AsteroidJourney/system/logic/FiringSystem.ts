@@ -1,11 +1,10 @@
 import { engine } from "../../AsteroidJourney.js";
 import { EntityID, System, Vector2 } from "../../../engine/FluidECS.js";
-import { PositionComponent, VelocityComponent, ParticleComponent, WorldComponent, ProjectileSourceComponent, FireControlComponent, TargetPositionComponent } from "../../Components.js";
+import { PositionComponent, VelocityComponent, WorldComponent, ProjectileSourceComponent, FireControlComponent, TargetPositionComponent } from "../../Components.js";
 import { PARTICLE_PARAMETERS, SHIP_PARAMETERS, spawnProjectile } from "../../AsteroidJourney.js";
 
 type FiringSystemNode = {
     world: WorldComponent;
-    particle: ParticleComponent;
     projectileSource: ProjectileSourceComponent;
     fireControl: FireControlComponent;
     targetPosition: TargetPositionComponent;
@@ -14,7 +13,7 @@ type FiringSystemNode = {
 }
 
 export class FiringSystem extends System<FiringSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof FiringSystemNode> = new Set(['world', 'particle', 'projectileSource', 'fireControl', 'targetPosition', 'velocity', 'position']);
+    NODE_COMPONENT_KEYS: Set<keyof FiringSystemNode> = new Set(['world', 'projectileSource', 'fireControl', 'targetPosition', 'velocity', 'position']);
     public updateNode(node: FiringSystemNode, entityID: EntityID) {
         const GAME_TIME = engine.getGameTime();
         if (!node.fireControl.fireIntent)
@@ -32,11 +31,11 @@ export class FiringSystem extends System<FiringSystemNode> {
         spawnProjectile(
             node.world,
             position,
+            -node.position.rotation,
             velocity,
-            node.particle.color,
-            node.particle.radius * PARTICLE_PARAMETERS.projectile.radius / PARTICLE_PARAMETERS.radius,
             GAME_TIME + PARTICLE_PARAMETERS.projectile.lifetime,
-            1
+            1,
+            node.projectileSource.projectileScale
         );
         node.projectileSource.lastFireTime = GAME_TIME;
     }
