@@ -12,3 +12,4 @@ export * from "./render/WorldRenderSystem.js";
 export * from "./render/ViewportRenderSystem.js";
 export * from "./render/StatRenderSystem.js";
 export * from "./render/ProjectileRenderSystem.js";
+export * from "./render/SpriteRenderSystem.js";

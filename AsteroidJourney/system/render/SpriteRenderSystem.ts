@@ -1,5 +1,5 @@
-import { System, EntityID, OrderedList } from "../../../engine/FluidECS";
-import { PositionComponent, ScaleComponent, SpriteComponent } from "../../Components";
+import { System, EntityID, OrderedList } from "../../../engine/FluidECS.js";
+import { PositionComponent, ScaleComponent, SpriteComponent } from "../../Components.js";
 
 type SpriteSystemNode = {
     position: PositionComponent;
@@ -40,7 +40,7 @@ export class SpriteRenderSystem extends System<SpriteSystemNode> {
 
         this.ctx.save();
         this.ctx.translate(x, y);
-        this.ctx.rotate(position.rotation);
+        this.ctx.rotate(-position.rotation);
         this.ctx.scale(scaleX, scaleY);
         this.ctx.drawImage(texture, -texture.width / 2, -texture.height / 2);
         this.ctx.restore();
