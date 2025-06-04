@@ -100,3 +100,7 @@ export type SpriteComponent = Component & {
     texture: HTMLImageElement;
     zIndex: number;
 };
+
+export type RenderCenterComponent = Component & {
+    renderDistance: number;
+}

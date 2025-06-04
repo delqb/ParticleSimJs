@@ -2,6 +2,7 @@ import { Vec2, Vector2, EntityID, Entity, SystemPhase } from "../engine/FluidECS
 import { FluidEngine } from "../engine/FluidEngine.js";
 import * as Systems from "./system/SystemIndex.js";
 import * as Component from "./Components.js";
+import { ChunkMeta } from "./world/Chunk.js";
 
 export var engine = new FluidEngine();
 
@@ -261,7 +262,6 @@ let worldRender = {
         clearCanvas();
         CONTEXT.save();
         CONTEXT.scale(engine.PIXELS_PER_METER, engine.PIXELS_PER_METER);
-
         //Move canvas origin to center of screen (camera pivot point)
         CONTEXT.translate(scaledCanvasCenter.x, scaledCanvasCenter.y);
         //Rotate in the opposite direction of the player
@@ -286,9 +286,17 @@ let hudRender = {
 
 engine.addPhase(simulationPhase, worldRender, hudRender);
 
+let renderDistance: number = 6;
+let chunkMap: Map<string, ChunkMeta> = new Map();
+let chunkSize = 0.96;
+
+function getChunkKey(coordinates: Vec2): string {
+    return `${coordinates.x},${coordinates.y}`;
+}
+
 let kinematicSystem = new Systems.KinematicSystem(),
     positionSystem = new Systems.PositionSystem(),
-    collisionSystem = new Systems.CollisionSystem(),
+    // collisionSystem = new Systems.CollisionSystem(),
     movementControlSystem = new Systems.MovementControlSystem(),
     viewportSystem = new Systems.ViewportSystem(),
     projectileSystem = new Systems.ProjectileSystem(),
@@ -300,20 +308,40 @@ let kinematicSystem = new Systems.KinematicSystem(),
     particleRenderSystem = new Systems.ParticleRenderSystem(),
     viewportRenderSystem = new Systems.ViewportRenderSystem(),
     statRenderSystem = new Systems.StatRenderSystem(),
+    spriteRenderSystem = new Systems.SpriteRenderSystem(CONTEXT),
+    chunkLoadingSystem = new Systems.ChunkLoadingSystem(chunkSize, {
+        exists(coordinates: Vec2) {
+            return chunkMap.has(getChunkKey(coordinates));
+        },
+        get(coordinates: Vec2) {
+            return chunkMap.get(getChunkKey(coordinates));
+        },
+        set(coordinates: Vec2, chunkMeta: ChunkMeta) {
+            chunkMap.set(getChunkKey(coordinates), chunkMeta);
+        },
+        load(coordinates: Vec2): Promise<ChunkMeta> {
+            return new Promise<ChunkMeta>((resolve, reject) => { });
+        },
+        unload(coordinates: Vec2): Promise<boolean> {
+            return new Promise<boolean>((resolve, reject) => { });
+        }
+    });
+
 engine.appendSystems(simulationPhase,
+    chunkLoadingSystem,
     cursorSystem,
     firingSystem,
     projectileSystem,
     movementControlSystem,
     kinematicSystem,
-    collisionSystem,
+    // collisionSystem,
     positionSystem,
     particleStatSystem,
     viewportSystem
 );
 
 engine.appendSystems(worldRender,
-    worldRenderSystem,
+    // worldRenderSystem,
     spriteRenderSystem,
     projectileRenderSystem,
     particleRenderSystem
@@ -347,7 +375,7 @@ let backgroundGridComponent: Component.BackgroundGridComponent = {
 
 let particle1PositionComponent: Component.PositionComponent = {
     key: "position",
-    position: Vector2.scale(worldComponent.resolution, 1 / 2),
+    position: { x: 0, y: 0 },
     rotation: 0
 };
 
@@ -409,7 +437,11 @@ let particle1PositionComponent: Component.PositionComponent = {
             computedSpeed: Vector2.magnitude(velocityComponent1.velocity),
             computedAcceleration: Vector2.magnitude(accelerationComponent1.acceleration)
         } as Component.ParticleStatsComponent,
-        FIRE_CONTROL
+        FIRE_CONTROL,
+        {
+            key: "renderCenter",
+            renderDistance: renderDistance
+        } as Component.RenderCenterComponent
     );
 
     MOUSE_CONTROLS["fire"] = {
@@ -422,7 +454,7 @@ let particle1PositionComponent: Component.PositionComponent = {
         keys: [" "],
         action: () => {
             FIRE_CONTROL.fireIntent = true;
-    }
+        }
     };
     let particleComponent2: Component.ParticleComponent = {
         key: "particle",
@@ -603,7 +635,7 @@ engine.createEntity(
     } as Component.SpriteComponent,
     {
         key: "scale",
-        scale: { x: 0.001, y: 0.001 }
+        scale: { x: 0.0005, y: 0.002 }
     } as Component.ScaleComponent,
     {
         key: "velocity",

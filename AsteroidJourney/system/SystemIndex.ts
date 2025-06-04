@@ -7,6 +7,8 @@ export * from "./simulation/PositionSystem.js";
 export * from "./simulation/CollisionSystem.js";
 export * from "./simulation/ViewportSystem.js";
 export * from "./simulation/ProjectileSystem.js";
+export * from "./simulation/ChunkLoadingSystem.js"
+
 export * from "./render/ParticleRenderSystem.js";
 export * from "./render/WorldRenderSystem.js";
 export * from "./render/ViewportRenderSystem.js";
