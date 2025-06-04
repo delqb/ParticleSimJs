@@ -55,7 +55,7 @@ export function createParticle(worldComponent: Component.WorldComponent, particl
         {
             key: "projectileSource",
             lastFireTime: 0,
-            muzzleSpeed: 2,
+            muzzleSpeed: 2.99792458,
             projectileScale: projectileScale
         } as Component.ProjectileSourceComponent
     );
@@ -167,7 +167,7 @@ const MOUSE_CONTROLS = {
 
 const HOTKEYS = {
     pause: {
-        keys: ["Escape", " "],
+        keys: ["Escape"],
         action: () => {
             engine.toggleAnimation();
         }
@@ -417,7 +417,13 @@ let particle1PositionComponent: Component.PositionComponent = {
         action: () => {
             FIRE_CONTROL.fireIntent = true;
         },
+    };
+    KEYBOARD_CONTROLS["fire"] = {
+        keys: [" "],
+        action: () => {
+            FIRE_CONTROL.fireIntent = true;
     }
+    };
     let particleComponent2: Component.ParticleComponent = {
         key: "particle",
         radius: 2 * PARTICLE_PARAMETERS.radius,
