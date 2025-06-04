@@ -14,6 +14,8 @@ export const Vector2 = {
 
     multiply: (a: Vec2, b: Vec2): Vec2 => ({ x: a.x * b.x, y: a.y * b.y }),
 
+    divide: (a: Vec2, b: Vec2): Vec2 => ({ x: a.x / b.x, y: a.y / b.y }),
+
     scale: (v: Vec2, scalar: number): Vec2 => ({ x: v.x * scalar, y: v.y * scalar }),
 
     dot: (a: Vec2, b: Vec2): number => a.x * b.x + a.y * b.y,
