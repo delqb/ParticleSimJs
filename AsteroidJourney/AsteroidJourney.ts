@@ -238,8 +238,8 @@ function drawPauseScreen() {
     CONTEXT.restore();
 }
 
-let logicPhase = {
-    key: 'logic',
+let simulationPhase = {
+    key: 'simulation',
     order: 0,
     preUpdate() {
         activateControlBindings();
@@ -284,7 +284,7 @@ let hudRender = {
     }
 } as SystemPhase
 
-engine.addPhase(logicPhase, worldRender, hudRender);
+engine.addPhase(simulationPhase, worldRender, hudRender);
 
 let kinematicSystem = new Systems.KinematicSystem(),
     positionSystem = new Systems.PositionSystem(),
@@ -300,9 +300,7 @@ let kinematicSystem = new Systems.KinematicSystem(),
     particleRenderSystem = new Systems.ParticleRenderSystem(),
     viewportRenderSystem = new Systems.ViewportRenderSystem(),
     statRenderSystem = new Systems.StatRenderSystem(),
-    spriteRenderSystem = new Systems.SpriteRenderSystem(CONTEXT);
-
-engine.appendSystems(logicPhase,
+engine.appendSystems(simulationPhase,
     cursorSystem,
     firingSystem,
     projectileSystem,

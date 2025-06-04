@@ -4,13 +4,12 @@ import { ProjectileComponent, ParticleComponent, WorldComponent, PositionCompone
 
 type ProjectileSystemNode = {
     projectile: ProjectileComponent;
-    particle: ParticleComponent;
     world: WorldComponent;
     position: PositionComponent;
 }
 
 export class ProjectileSystem extends System<ProjectileSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ProjectileSystemNode> = new Set(['projectile', 'particle', 'world', 'position']);
+    NODE_COMPONENT_KEYS: Set<keyof ProjectileSystemNode> = new Set(['projectile', 'world', 'position']);
     public updateNode(node: ProjectileSystemNode, entityID: EntityID) {
         const GAME_TIME = engine.getGameTime();
 
