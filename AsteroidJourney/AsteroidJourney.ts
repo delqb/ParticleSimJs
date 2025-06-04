@@ -656,4 +656,44 @@ function renderSingleNeonLaserSprite({
 const laserShotCanvas = renderSingleNeonLaserSprite();
 const laserShotTexture = canvasToImage(laserShotCanvas);
 
+function loadImage(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = (err) => reject(err);
+        img.src = src;
+    });
+}
+
+export const backgroundTileImage = await loadImage("assets/background/space_background_tile.png");
+
+export function createSpriteEntity(position: Vec2, rotation: number, spriteTexture: HTMLImageElement, zIndex: number, options: { scale?: Vec2, resolution?: Vec2 } = {}): Entity {
+    let iRes = { x: spriteTexture.width, y: spriteTexture.height };
+    let scale: Vec2;
+    if (options.scale)
+        scale = options.scale;
+    else
+        if (options.resolution)
+            scale = Vector2.divide(options.resolution, iRes);
+        else
+            scale = { x: 1, y: 1 };
+    return engine.createEntity(
+        {
+            key: "position",
+            position: position,
+            rotation: rotation
+        } as Component.PositionComponent,
+        {
+            key: "scale",
+            scale: scale
+        } as Component.ScaleComponent,
+        {
+            key: "spriteTexture",
+            texture: spriteTexture,
+            zIndex: zIndex
+        } as Component.SpriteComponent
+    );
+
+}
+
 engine.animate();
