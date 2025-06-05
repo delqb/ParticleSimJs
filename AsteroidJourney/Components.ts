@@ -104,3 +104,7 @@ export type SpriteComponent = Component & {
 export type RenderCenterComponent = Component & {
     renderDistance: number;
 }
+
+export type ChunkMembershipComponent = Component & {
+    chunkKey: string;
+}

@@ -305,26 +305,13 @@ let kinematicSystem = new Systems.KinematicSystem(),
     viewportRenderSystem = new Systems.ViewportRenderSystem(),
     statRenderSystem = new Systems.StatRenderSystem(),
     spriteRenderSystem = new Systems.SpriteRenderSystem(CONTEXT),
-    chunkLoadingSystem = new Systems.ChunkLoadingSystem(chunkSize, {
-        exists(coordinates: Vec2) {
-            return chunkMap.has(getChunkKey(coordinates));
-        },
-        get(coordinates: Vec2) {
-            return chunkMap.get(getChunkKey(coordinates));
-        },
-        set(coordinates: Vec2, chunkMeta: ChunkMeta) {
-            chunkMap.set(getChunkKey(coordinates), chunkMeta);
-        },
-        load(coordinates: Vec2): Promise<ChunkMeta> {
-            return new Promise<ChunkMeta>((resolve, reject) => { });
-        },
-        unload(coordinates: Vec2): Promise<boolean> {
-            return new Promise<boolean>((resolve, reject) => { });
-        }
-    });
+    chunkLoadingSystem = new Systems.ChunkLoadingSystem(engine, worldContext),
+    ChunkTrackingSystem = new Systems.ChunkTrackingSystem(engine, worldContext)
+    ;
 
 engine.appendSystems(simulationPhase,
     chunkLoadingSystem,
+    ChunkTrackingSystem,
     cursorSystem,
     firingSystem,
     projectileSystem,
