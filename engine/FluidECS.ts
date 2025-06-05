@@ -230,6 +230,18 @@ export class FluidCore {
     private phaseList: OrderedList<SystemPhase> = new OrderedList();
     private systemPhaseMap: Map<SystemPhase, OrderedList<System<any>>> = new Map();
 
+    public getEntityMap(): Map<EntityID, Entity> {
+        return this.entityMap;
+    }
+
+    public getAllEntities(): Entity[] {
+        return Array.from(this.entityMap.values());
+    }
+
+    public getEntityByID(entityID: EntityID): Entity | undefined {
+        return this.entityMap.get(entityID);
+    }
+
     public hasPhase(phase: SystemPhase) {
         return this.systemPhaseMap.has(phase);
     }
@@ -286,41 +298,43 @@ export class FluidCore {
         return Array.from(this.systemPhaseMap.values()).map(oL => oL.getAll()).flat();
     }
 
-    public addEntityComponents(entity: Entity, ...components: Component[]): void {
-        components.forEach(component => entity.addComponent(component)); // Add all of the components to the entity
-        for (let system of this.getAllSystems()) {
-            let id = entity.getID();
-            if (system.hasNode(id)) {
-                if (!system.validateEntity(entity))
-                    system.removeNode(id);
-                continue;
-            }
-            if (system.validateEntity(entity))
-                system.createNode(entity);
-        }
+    public updateSystemEntityMemberships(entity: Entity) {
+        this.getAllSystems().forEach(system => system.updateEntityMembership(entity))
     }
+
+    public addEntityComponents(entity: Entity, ...components: Component[]): void {
+        entity.addComponents(...components); // Add all of the components to the entity
+        this.updateSystemEntityMemberships(entity);
+    }
+
     public removeEntityComponents(entity: Entity, ...componentKeys: string[]): void {
         componentKeys.forEach(c => entity.removeComponent(c));
-        for (let system of this.getAllSystems()) {
-            if (!system.hasNode(entity.getID()))
-                continue;
-            if (!system.validateEntity(entity))
-                system.removeNode(entity.getID());
-        }
+        this.updateSystemEntityMemberships(entity);
     }
+
     public addEntity(entity: Entity): void {
-        this.entityMap.set(entity.getID(), entity);
+        let id = entity.getID();
+        if (this.entityMap.has(id))
+            throw new Error("Entity already exists: " + id);
+        this.entityMap.set(id, entity);
+        this.updateSystemEntityMemberships(entity);
     }
-    public removeEntity(entityID: EntityID): void {
+
+    public removeEntity(entityID: EntityID): boolean {
+        if (!this.entityMap.has(entityID))
+            return false;
         this.entityMap.delete(entityID);
         this.getAllSystems().forEach(system => system.removeNode(entityID));
+        return true;
     }
-    public createEntity(...components: Component[]): Entity {
-        let entity = new Entity();
-        this.addEntityComponents(entity, ...components);
+
+    public createNewEntityFromComponents(...components: Component[]): Entity {
+        let entity = new Entity(createUID(), new Map());
+        entity.addComponents(...components);
         this.addEntity(entity);
         return entity;
     }
+
     public update() {
         for (let phase of this.phaseList.getAll()) {
             try {
@@ -339,6 +353,8 @@ export class FluidCore {
                 console.log(error);
             }
         }
-        this.entityMap.values().filter(e => e.isRemoved()).forEach(e => this.removeEntity(e.getID()));
+        // THIS IS BUGGED
+        // const toRemove = Array.from(this.entityMap.values()).filter(e => e.isRemoved()).map(e => e.getID());
+        // toRemove.forEach(id => this.removeEntity(id));
     }
 }
