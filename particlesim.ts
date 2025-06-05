@@ -603,7 +603,7 @@ export const PARTICLE_PARAMETERS = {
 function createParticle(worldComponent: WorldComponent, particleComponent: ParticleComponent, positionComponent: PositionComponent, velocityComponent: VelocityComponent, accelerationComponent: AccelerationComponent, movementControlInputComponent: MovementControlInputComponent, targetPositionComponent: TargetPositionComponent): Entity {
     let computedSpeedComponent = { key: "computedSpeed", computedSpeed: 0 },
         computedAccelerationComponent = { key: "computedAcceleration", computedAcceleration: 0 };
-    return engine.createEntity(
+    return engine.createNewEntityFromComponents(
         particleComponent,
         positionComponent,
         velocityComponent,
@@ -622,7 +622,7 @@ function createParticle(worldComponent: WorldComponent, particleComponent: Parti
 }
 
 function spawnProjectile(worldComponent: WorldComponent, position: Vec2, velocity: Vec2, color: string, radius: number, deathTime: number, generation: number): Entity {
-    return engine.createEntity(
+    return engine.createNewEntityFromComponents(
         worldComponent,
         {
             key: 'position',
@@ -1006,7 +1006,7 @@ function init() {
         }
     } as PositionComponent
 
-    let viewport = engine.createEntity(
+    let viewport = engine.createNewEntityFromComponents(
         VIEWPORT_POSITION,
         {
             key: "resolution",
@@ -1039,7 +1039,7 @@ function init() {
         cursorScreenPointComponent.point = { x: event.offsetX, y: event.offsetY };
     });
 
-    let cursor = engine.createEntity(
+    let cursor = engine.createNewEntityFromComponents(
         cursorScreenPointComponent,
         cursorPositionComponent,
         {
@@ -1049,7 +1049,7 @@ function init() {
             }
         } as CursorTranslateComponent);
 
-    let world = engine.createEntity(worldComponent, backgroundGridComponent);
+    let world = engine.createNewEntityFromComponents(worldComponent, backgroundGridComponent);
 
     window.addEventListener("keydown", (event) => {
         KEY_STATES[event.key] = true;
