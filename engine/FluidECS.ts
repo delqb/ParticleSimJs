@@ -166,6 +166,10 @@ export class OrderedList<T> {
         this.items = initialItems.slice().sort((a, b) => a.order - b.order);
     }
 
+    getItemList() {
+        return this.items;
+    }
+
     // Insert with binary search to maintain order
     insert(item: OrderedListItem<T>) {
         const index = this.findInsertIndex(item.order);
