@@ -118,12 +118,21 @@ export abstract class System<T extends Node<any>> {
         return node;
     }
 
-    public validateEntity(entity: Entity): boolean {
-        if (entity.hasComponents(Array.from(this.NODE_COMPONENT_KEYS)))
-            return true;
-        this.removeNode(entity.getID());
-        return false;
+    public isValidEntity(entity: Entity): boolean {
+        return entity.hasComponents(Array.from(this.NODE_COMPONENT_KEYS));
     }
+
+    public updateEntityMembership(entity: Entity): boolean {
+        let id = entity.getID();
+        let isValid = this.isValidEntity(entity);
+        if (this.hasNode(id) && !isValid) {
+            this.removeNode(id);
+        } else if (!this.hasNode(id) && isValid) {
+            this.createNode(entity);
+        }
+        return isValid;
+    }
+
     public hasNode(entityID: EntityID): boolean {
         return this.nodeMap.has(entityID);
     }
