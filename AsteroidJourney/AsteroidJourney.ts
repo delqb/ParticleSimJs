@@ -46,7 +46,7 @@ export const SHIP_PARAMETERS = {
 export function createParticle(worldComponent: Component.WorldComponent, particleComponent: Component.ParticleComponent, positionComponent: Component.PositionComponent, velocityComponent: Component.VelocityComponent, accelerationComponent: Component.AccelerationComponent, projectileScale: number = 0.0003, optionalComponents?: { movementControlComponent?: Component.MovementControlComponent, targetPositionComponent?: Component.TargetPositionComponent }): Entity {
     let computedSpeedComponent = { key: "computedSpeed", computedSpeed: 0 },
         computedAccelerationComponent = { key: "computedAcceleration", computedAcceleration: 0 };
-    let entity = engine.createEntity(
+    let entity = engine.createNewEntityFromComponents(
         particleComponent,
         positionComponent,
         velocityComponent,
@@ -64,13 +64,13 @@ export function createParticle(worldComponent: Component.WorldComponent, particl
     if (optionalComponents) {
         for (let component of Object.values(optionalComponents))
             if (component)
-                entity.addComponent(component);
+                entity.addComponents(component);
     }
     return entity;
 }
 
 export function spawnProjectile(worldComponent: Component.WorldComponent, position: Vec2, rotation: number, velocity: Vec2, deathTime: number, generation: number, scale: number = 0.001): Entity {
-    return engine.createEntity(
+    return engine.createNewEntityFromComponents(
         worldComponent,
         {
             key: 'position',
@@ -483,7 +483,7 @@ VIEWPORT_POSITION = {
     }
 } as Component.PositionComponent
 
-let viewport = engine.createEntity(
+let viewport = engine.createNewEntityFromComponents(
     VIEWPORT_POSITION,
     {
         key: "resolution",
@@ -521,7 +521,7 @@ CANVAS_ELEMENT.addEventListener("mousemove", (event) => {
     cursorScreenPointComponent.point = { x: event.offsetX, y: event.offsetY };
 });
 
-let cursor = engine.createEntity(
+let cursor = engine.createNewEntityFromComponents(
     cursorScreenPointComponent,
     cursorPositionComponent,
     {
@@ -531,7 +531,7 @@ let cursor = engine.createEntity(
         }
     } as Component.CursorTranslateComponent);
 
-let world = engine.createEntity(worldComponent, backgroundGridComponent);
+let world = engine.createNewEntityFromComponents(worldComponent, backgroundGridComponent);
 
 window.addEventListener("keydown", (event) => {
     KEY_STATES[event.key] = true;
@@ -605,7 +605,7 @@ function canvasToImage(canvas: HTMLCanvasElement) {
 
 const starImage = canvasToImage(createGlowingStar(3, 3, 5, 40));
 
-engine.createEntity(
+let starEntity1 = engine.createNewEntityFromComponents(
     {
         key: "position",
         position: Vector2.copy(particle1PositionComponent.position),
@@ -692,7 +692,7 @@ export function createSpriteEntity(position: Vec2, rotation: number, spriteTextu
             scale = Vector2.divide(options.resolution, iRes);
         else
             scale = { x: 1, y: 1 };
-    return engine.createEntity(
+    return engine.createNewEntityFromComponents(
         {
             key: "position",
             position: position,
@@ -708,7 +708,6 @@ export function createSpriteEntity(position: Vec2, rotation: number, spriteTextu
             zIndex: zIndex
         } as Component.SpriteComponent
     );
-
 }
 
 engine.animate();
