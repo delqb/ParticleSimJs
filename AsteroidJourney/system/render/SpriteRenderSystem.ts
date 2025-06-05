@@ -26,8 +26,10 @@ export class SpriteRenderSystem extends System<SpriteSystemNode> {
 
     public removeNode(entityID: EntityID): boolean {
         if (this.hasNode(entityID)) {
-            let node = this.getNode(entityID);
-            this.sortedNodeList.remove([entityID, node]);
+            let itemList = this.sortedNodeList.getItemList();
+            const index = itemList.findIndex(o => o.item[0] === entityID);
+            if (index !== -1)
+                itemList.splice(index, 1);
         }
         return super.removeNode(entityID);
     }
