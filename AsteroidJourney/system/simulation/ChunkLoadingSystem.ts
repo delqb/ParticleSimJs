@@ -1,7 +1,7 @@
-import { backgroundTileImage, createSpriteEntity, engine } from "../../AsteroidJourney.js";
-import { EntityID, System, Vec2, Vector2 } from "../../../engine/FluidECS.js";
+import { EntityID, System } from "../../../engine/FluidECS.js";
+import { FluidEngine } from "../../../engine/FluidEngine.js";
 import { PositionComponent, RenderCenterComponent } from "../../Components.js";
-import { ChunkMeta, ChunkStore } from "../../world/Chunk.js";
+import { WorldContext } from "../../world/World.js";
 
 type ChunkLoadingSystemNode = {
     renderCenter: RenderCenterComponent;
@@ -10,51 +10,39 @@ type ChunkLoadingSystemNode = {
 
 export class ChunkLoadingSystem extends System<ChunkLoadingSystemNode> {
     NODE_COMPONENT_KEYS: Set<keyof ChunkLoadingSystemNode> = new Set(["renderCenter", "position"]);
-    constructor(private chunkSize: number, private chunkStore: ChunkStore) {
+    constructor(private engineInstance: FluidEngine, private worldContext: WorldContext) {
         super();
     }
-    getChunkSize() {
-        return this.chunkSize;
-    }
-    getChunkCoordinates(position: Vec2): Vec2 {
-        return {
-            x: Math.floor(position.x / this.chunkSize),
-            y: Math.floor(position.y / this.chunkSize)
-        };
-    }
-    generateChunk(coordinates: Vec2): ChunkMeta {
-        createSpriteEntity(Vector2.scale(coordinates, this.chunkSize), 0, backgroundTileImage, 0, { resolution: { x: this.chunkSize, y: this.chunkSize } });
-        console.log(`${coordinates.x}, ${coordinates.y}`);
-        return {
-            lastAccessed: engine.getGameTime(),
-            state: "loaded"
-        }
-    }
+
     public updateNode(node: ChunkLoadingSystemNode, entityID: EntityID): void {
+        const world = this.worldContext;
+        const { chunkSize, chunkTimeout } = world;
+
         let renderDistance = node.renderCenter.renderDistance;
-        let centerPos = node.position;
-        let gameTime = engine.getGameTime();
+        let renderDistanceChunks = Math.ceil(renderDistance / chunkSize);
+        let renderCenterPos = node.position;
+        let gameTime = this.engineInstance.getGameTime();
 
-        for (let dX = -renderDistance; dX <= renderDistance; dX++)
-            for (let dY = -renderDistance; dY <= renderDistance; dY++) {
-                let chunkCoords = this.getChunkCoordinates({
-                    x: centerPos.position.x + dX * this.chunkSize,
-                    y: centerPos.position.y + dY * this.chunkSize
-                });
-                let chunkMeta = this.chunkStore.get(chunkCoords);
+        for (let dX = -renderDistanceChunks; dX <= renderDistanceChunks; dX++)
+            for (let dY = -renderDistanceChunks; dY <= renderDistanceChunks; dY++) {
+                const chunkTouchPos = {
+                    x: renderCenterPos.position.x + dX * chunkSize,
+                    y: renderCenterPos.position.y + dY * chunkSize
+                };
+                const chunkCoords = world.getChunkCoordinates(chunkTouchPos);
+                const chunkKey = world.computeChunkKey(chunkCoords);
 
-                if (!chunkMeta) {
-                    chunkMeta = this.generateChunk(chunkCoords);
-                    this.chunkStore.set(chunkCoords, chunkMeta);
+                let chunk = world.getChunk(chunkKey);
+                if (!chunk || (chunk && chunk.state == "unloaded")) {
+                    void world.loadChunk(chunkKey).catch(err => console.error(`Failed to load chunk#${chunkKey}:`, err));
+                    return;
                 }
-
-                if (chunkMeta.state == "unloaded") {
-                    this.chunkStore.load(chunkCoords).then(chunkMeta => {
-                        return;
-                    });
-                }
-
-                chunkMeta.lastAccessed = gameTime;
+                chunk.lastAccessed = gameTime;
             }
+
+        for (let chunk of world.getAllChunks()) {
+            if (chunk.state == "loaded" && this.engineInstance.getGameTime() - chunk.lastAccessed >= chunkTimeout)
+                void world.unloadChunk(world.computeChunkKey(chunk.coordinates)).catch(console.error);
+        }
     }
 }

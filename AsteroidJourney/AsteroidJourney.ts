@@ -2,7 +2,7 @@ import { Vec2, Vector2, EntityID, Entity, SystemPhase } from "../engine/FluidECS
 import { FluidEngine } from "../engine/FluidEngine.js";
 import * as Systems from "./system/SystemIndex.js";
 import * as Component from "./Components.js";
-import { ChunkMeta } from "./world/Chunk.js";
+import { WorldContext } from "./world/World.js";
 
 export var engine = new FluidEngine();
 
@@ -286,13 +286,8 @@ let hudRender = {
 
 engine.addPhase(simulationPhase, worldRender, hudRender);
 
-let renderDistance: number = 6;
-let chunkMap: Map<string, ChunkMeta> = new Map();
-let chunkSize = 0.96;
-
-function getChunkKey(coordinates: Vec2): string {
-    return `${coordinates.x},${coordinates.y}`;
-}
+let renderDistance: number = 2.56;
+const worldContext: WorldContext = new WorldContext(engine, 1.024, 0.1);
 
 let kinematicSystem = new Systems.KinematicSystem(),
     positionSystem = new Systems.PositionSystem(),
@@ -303,7 +298,7 @@ let kinematicSystem = new Systems.KinematicSystem(),
     particleStatSystem = new Systems.ParticleStatSystem(),
     firingSystem = new Systems.FiringSystem(),
     cursorSystem = new Systems.CursorSystem(),
-    worldRenderSystem = new Systems.WorldRenderSystem(),
+    // worldRenderSystem = new Systems.WorldRenderSystem(),
     projectileRenderSystem = new Systems.ProjectileRenderSystem(),
     particleRenderSystem = new Systems.ParticleRenderSystem(),
     viewportRenderSystem = new Systems.ViewportRenderSystem(),
