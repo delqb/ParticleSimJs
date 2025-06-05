@@ -62,9 +62,10 @@ export type Node<T extends Record<string, Component>> = T;
 
 
 export class Entity {
-    private id: EntityID = createUID();
-    private components = new Map<string, Component>();
     private removed: boolean = false;
+
+    constructor(private id: EntityID, private components: Map<string, Component>) {
+    }
 
     getID(): EntityID {
         return this.id;
@@ -78,8 +79,8 @@ export class Entity {
         return this.components.get(key) as T;
     }
 
-    addComponent<T extends Component>(component: T): void {
-        this.components.set(component.key, component);
+    addComponents(...components: Component[]): void {
+        components.forEach(component => this.components.set(component.key, component));
     }
 
     removeComponent(key: string): boolean {
