@@ -4,8 +4,8 @@ import * as Systems from "./system/SystemIndex.js";
 import * as Component from "./Components.js";
 import { WorldContext } from "./world/World.js";
 
-const zoomLevel = 0.2;
-export var engine = new FluidEngine(1000 * (1 - zoomLevel));
+const zoomLevel = 0.6;
+export var engine = new FluidEngine(1000 * zoomLevel);
 
 var CANVAS_ELEMENT = document.getElementById("canvas")! as HTMLCanvasElement;
 export var CONTEXT = CANVAS_ELEMENT.getContext("2d")!;
