@@ -343,14 +343,12 @@ export class FluidCore {
                     try {
                         system.update();
                     } catch (error) {
-                        console.error("An error has occurred while updating system: " + system);
-                        console.log(error);
+                        console.error(`An error has occurred while updating system: ${system}\n${error}`);
                     }
                 });
                 phase.postUpdate?.();
             } catch (error) {
-                console.error("An error has occurred during a phase update: " + phase.key);
-                console.log(error);
+                console.error(`An error has occurred during a phase update: ${phase.key}\n${error}`);
             }
         }
         // THIS IS BUGGED
