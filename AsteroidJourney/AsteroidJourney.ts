@@ -4,8 +4,11 @@ import * as Systems from "./system/SystemIndex.js";
 import * as Component from "./Components.js";
 import { Chunk, WorldContext } from "./world/World.js";
 
-const zoomLevel = 0.6;
-export var engine = new FluidEngine(1000 * zoomLevel);
+export var engine = new FluidEngine(1000);
+function setZoomScale(scale: number) {
+    engine.PIXELS_PER_METER = 1000 * scale;
+}
+setZoomScale(0.6);
 
 var CANVAS_ELEMENT = document.getElementById("canvas")! as HTMLCanvasElement;
 export var CONTEXT = CANVAS_ELEMENT.getContext("2d")!;
@@ -67,9 +70,9 @@ export function spawnProjectile(position: Vec2, rotation: number, velocity: Vec2
             acceleration: { x: 0, y: 0 },
             angular: 0
         } as Component.AccelerationComponent
-);
+    );
 
-return e;
+    return e;
 }
 
 export function destroyProjectile(entityID: EntityID) {
@@ -141,6 +144,14 @@ const HOTKEYS = {
         action: () => {
             engine.toggleAnimation();
         }
+    },
+    zoom1: {
+        keys: ["1"],
+        action: () => setZoomScale(0.6)
+    },
+    zoom2: {
+        keys: ["2"],
+        action: () => setZoomScale(0.1)
     }
 }
 
@@ -222,23 +233,10 @@ let simulationPhase = {
     }
 } as SystemPhase
 
-let scaledCanvasRes = Vector2.scale({ x: canvasWidth, y: canvasHeight }, 1 / engine.PIXELS_PER_METER);
-let scaledCanvasCenter = Vector2.scale(scaledCanvasRes, 1 / 2);
+
 let worldRender = {
     key: 'worldrender',
     order: 1,
-    preUpdate() {
-        clearCanvas();
-        CONTEXT.save();
-        CONTEXT.scale(engine.PIXELS_PER_METER, engine.PIXELS_PER_METER);
-        //Move canvas origin to center of screen (camera pivot point)
-        CONTEXT.translate(scaledCanvasCenter.x, scaledCanvasCenter.y);
-        //Rotate in the opposite direction of the player
-        CONTEXT.rotate(-particle1PositionComponent.rotation - Math.PI / 2);
-        let vpCenterPos = Vector2.add(VIEWPORT_POSITION.position, scaledCanvasCenter);
-        //Move world so that player is at the center of the screen
-        CONTEXT.translate(-vpCenterPos.x, -vpCenterPos.y);
-    },
     postUpdate() {
         CONTEXT.restore();
     }
@@ -318,7 +316,7 @@ let kinematicSystem = new Systems.KinematicSystem(),
     firingSystem = new Systems.FiringSystem(),
     cursorSystem = new Systems.CursorSystem(),
 
-    // worldRenderSystem = new Systems.WorldRenderSystem(),
+    worldPreRenderSystem = new Systems.WorldPreRenderSystem(engine),
     projectileRenderSystem = new Systems.ProjectileRenderSystem(),
     particleRenderSystem = new Systems.ParticleRenderSystem(),
     viewportRenderSystem = new Systems.ViewportRenderSystem(),
@@ -342,7 +340,7 @@ engine.appendSystems(simulationPhase,
 );
 
 engine.appendSystems(worldRender,
-    // worldRenderSystem,
+    worldPreRenderSystem,
     spriteRenderSystem,
     projectileRenderSystem,
     particleRenderSystem
@@ -388,37 +386,37 @@ const MAIN_CHARACTER = engine.createNewEntityFromComponents(
         computedAcceleration: 0,
         computedSpeed: 0
     } as Component.StatsComponent,
-        {
+    {
         key: "projectileSource",
         lastFireTime: 0,
         muzzleSpeed: 2.99792458,
         projectileSize: 0.075
     } as Component.ProjectileSourceComponent,
-        {
-            key: "renderCenter",
-            renderDistance: renderDistance
+    {
+        key: "renderCenter",
+        renderDistance: renderDistance
     } as Component.RenderCenterComponent,
     MOVEMENT_CONTROL_COMPONENT,
     FIRE_CONTROL,
-    );
+);
 
-    MOUSE_CONTROLS["fire"] = {
-        keys: [0],
-        action: () => {
-            FIRE_CONTROL.fireIntent = true;
-        },
-    };
+MOUSE_CONTROLS["fire"] = {
+    keys: [0],
+    action: () => {
+        FIRE_CONTROL.fireIntent = true;
+    },
+};
 
-    KEYBOARD_CONTROLS["fire"] = {
-        keys: [" "],
-        action: () => {
-            FIRE_CONTROL.fireIntent = true;
-        }
-    };
+KEYBOARD_CONTROLS["fire"] = {
+    keys: [" "],
+    action: () => {
+        FIRE_CONTROL.fireIntent = true;
+    }
+};
 
 let viewport = engine.createNewEntityFromComponents(
-        {
-            key: "position",
+    {
+        key: "position",
         position: {
             x: 0,
             y: 0,
@@ -653,3 +651,9 @@ export function createAsteroid(position: Vec2, rotation: number, velocity: Vec2,
 }
 
 engine.animate();
+
+
+
+// Issue:
+// Game freezes and glitches when zoomed out.
+// Is game unloading main character? 🤷‍♀️
