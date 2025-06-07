@@ -14,8 +14,5 @@ export class PositionSystem extends System<PositionSystemNode> {
         node.position.position.x += node.velocity.velocity.x * DELTA_TIME;
         node.position.position.y += node.velocity.velocity.y * DELTA_TIME;
         node.position.rotation += node.velocity.angular * DELTA_TIME;
-
-        const ANGULAR_VELOCITY_DECAY_FACTOR = 10;
-        node.velocity.angular = MathUtils.lerp(node.velocity.angular, 0, ANGULAR_VELOCITY_DECAY_FACTOR * DELTA_TIME);
     }
 }

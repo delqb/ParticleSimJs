@@ -1,5 +1,5 @@
 import { engine } from "../../AsteroidJourney.js";
-import { EntityID, System, Vector2 } from "../../../engine/FluidECS.js";
+import { EntityID, MathUtils, System, Vector2 } from "../../../engine/FluidECS.js";
 import { PositionComponent, VelocityComponent, AccelerationComponent, MovementControlComponent, TargetPositionComponent } from "../../Components.js";
 
 export type MovementControlSystemNode = {
@@ -13,12 +13,16 @@ export class MovementControlSystem extends System<MovementControlSystemNode> {
     NODE_COMPONENT_KEYS: Set<keyof MovementControlSystemNode> = new Set(['position', 'velocity', 'acceleration', 'movementControl']);
     public updateNode(node: MovementControlSystemNode, entityID: EntityID) {
         const DELTA_TIME = engine.getDeltaTime();
+
+        // const ANGULAR_VELOCITY_DECAY_FACTOR = 10;
+        // node.velocity.angular = MathUtils.lerp(node.velocity.angular, 0, ANGULAR_VELOCITY_DECAY_FACTOR * DELTA_TIME);
+
         const { acceleration, movementControl: input } = node;
         const { x: iX, y: iY } = input.accelerationInput;
         const rot = node.position.rotation;
 
         const THRUST_ACCELERATION = 1;
-        const ANGULAR_ACCELERATION = 23;
+        const ANGULAR_ACCELERATION = 23 / 10;
         const ROLL_ACCELERATION = 3 / 4;
 
         node.acceleration.angular = ANGULAR_ACCELERATION * node.movementControl.yawInput;
