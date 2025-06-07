@@ -287,12 +287,62 @@ let hudRender = {
 
 engine.addPhase(simulationPhase, worldRender, hudRender);
 
-let renderDistance: number = 2.56;
-const worldContext: WorldContext = new WorldContext(engine, 1.024, 0.1);
+let renderDistance: number = 3;
+function generateChunk(worldContext: WorldContext, chunkCoordinates: Vec2): Chunk {
+    // Creates background
+    let backgroundEntity = createSpriteEntity(
+        Vector2.scale(chunkCoordinates, this.chunkSize),
+        0,
+        backgroundTileImage,
+        0,
+        {
+            resolution: { x: this.chunkSize, y: this.chunkSize }
+        }
+    );
+
+    const gridSize = worldContext.chunkSize / 3,
+        asteroidProbability = 0.3;
+    const minVelocity = 0.08, maxVelocity = 0.32,
+        maxAngularVelocity = 1.2;
+    const minSize = 0.06,
+        maxSize = 0.20;
+
+    for (let dX = 0; dX < gridSize; dX++)
+        for (let dY = 0; dY < gridSize; dY++) {
+            if (Math.random() > asteroidProbability)
+                continue;
+
+            let cX = chunkCoordinates.x + dX * gridSize;
+            let cY = chunkCoordinates.y + dY * gridSize;
+            let position = {
+                x: boundedRandom(cX, cX + gridSize),
+                y: boundedRandom(cY, cY + gridSize)
+            }
+            let rotation = Math.random() * 2 * Math.PI;
+            let velocity = Vector2.scale(
+                Vector2.normalize(
+                    {
+                        x: Math.random() - 0.5,
+                        y: Math.random() - 0.5
+                    }),
+                boundedRandom(minVelocity, maxVelocity)
+            );
+            let angularVelocity = boundedRandom(minVelocity, maxAngularVelocity);
+            let scale = boundedRandom(minSize, maxSize);
+            createAsteroid(position, rotation, velocity, angularVelocity, scale);
+        }
+
+    return {
+        lastAccessed: this.engineInstance.getGameTime(),
+        state: "loaded",
+        coordinates: chunkCoordinates,
+        entityIDSet: new Set([backgroundEntity.getID()])
+    }
+}
+const worldContext: WorldContext = new WorldContext(engine, 1.024, 0.1, generateChunk);
 
 let kinematicSystem = new Systems.KinematicSystem(),
     positionSystem = new Systems.PositionSystem(),
-    // collisionSystem = new Systems.CollisionSystem(),
     movementControlSystem = new Systems.MovementControlSystem(),
     viewportSystem = new Systems.ViewportSystem(),
     projectileSystem = new Systems.ProjectileSystem(),
@@ -681,6 +731,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 export const backgroundTileImage = await loadImage("assets/background/space_background_tile.png");
+export const asteroidImage = await loadImage("assets/asteroid/asteroid1.png");
 
 export function createSpriteEntity(position: Vec2, rotation: number, spriteTexture: HTMLImageElement, zIndex: number, options: { scale?: Vec2, resolution?: Vec2 } = {}): Entity {
     let iRes = { x: spriteTexture.width, y: spriteTexture.height };
@@ -708,6 +759,22 @@ export function createSpriteEntity(position: Vec2, rotation: number, spriteTextu
             zIndex: zIndex
         } as Component.SpriteComponent
     );
+}
+
+export function boundedRandom(min: number, max: number): number {
+    return min + (max - min) * Math.random();
+}
+
+export function createAsteroid(position: Vec2, rotation: number, velocity: Vec2, angularVelocity: number, size: number): Entity {
+    let entity = createSpriteEntity(position, rotation, asteroidImage, 3, { resolution: { x: size, y: size } });
+    engine.addEntityComponents(entity,
+        {
+            key: "velocity",
+            velocity: velocity,
+            angular: angularVelocity
+        } as Component.VelocityComponent
+    );
+    return entity;
 }
 
 engine.animate();

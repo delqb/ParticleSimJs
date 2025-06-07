@@ -16,7 +16,7 @@ export class WorldContext {
     private unloadedEntitiesChunkMap = new Map<string, Entity[]>();
     private inFlightLoads = new Map<string, Promise<Chunk>>();
 
-    constructor(private engineInstance: FluidEngine, public readonly chunkSize: number, public readonly chunkTimeout: number) {
+    constructor(private engineInstance: FluidEngine, public readonly chunkSize: number, public readonly chunkTimeout: number, public generateChunk: (worldContext: WorldContext, chunkCoordinates: Vec2) => Chunk) {
     }
 
     deserializeChunkKeyToCoordinates(key: string): Vec2 {
@@ -54,7 +54,7 @@ export class WorldContext {
         const loadPromise = new Promise<Chunk>((resolve, reject) => {
             let chunk = this.chunkMap.get(key);
             if (!chunk) {
-                chunk = this.generateChunk(this.deserializeChunkKeyToCoordinates(key));
+                chunk = this.generateChunk(this, this.deserializeChunkKeyToCoordinates(key));
                 this.setChunk(key, chunk);
                 return resolve(chunk);
             }
@@ -110,25 +110,5 @@ export class WorldContext {
 
     getAllChunks(): Chunk[] {
         return Array.from(this.chunkMap.values());
-    }
-
-    private generateChunk(chunkCoordinates: Vec2): Chunk {
-        // Creates entity and adds it to ECS
-        let backgroundEntity = createSpriteEntity(
-            Vector2.scale(chunkCoordinates, this.chunkSize),
-            0,
-            backgroundTileImage,
-            0,
-            {
-                resolution: { x: this.chunkSize, y: this.chunkSize }
-            }
-        );
-
-        return {
-            lastAccessed: this.engineInstance.getGameTime(),
-            state: "loaded",
-            coordinates: chunkCoordinates,
-            entityIDSet: new Set([backgroundEntity.getID()])
-        }
     }
 }
