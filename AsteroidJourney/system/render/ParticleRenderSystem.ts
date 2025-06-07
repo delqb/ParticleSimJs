@@ -5,11 +5,10 @@ import { PARTICLE_PARAMETERS, SHIP_PARAMETERS, CONTEXT } from "../../AsteroidJou
 type ParticleRenderNode = {
     particle: ParticleComponent;
     position: PositionComponent;
-    targetPosition: TargetPositionComponent;
 }
 
 export class ParticleRenderSystem extends System<ParticleRenderNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ParticleRenderNode> = new Set(['particle', 'position', 'targetPosition']);
+    NODE_COMPONENT_KEYS: Set<keyof ParticleRenderNode> = new Set(['particle', 'position']);
     public updateNode(node: ParticleRenderNode, entityID: EntityID) {
         const { x: pX, y: pY } = node.position.position;
         const pSize = node.particle.radius / PARTICLE_PARAMETERS.radius;

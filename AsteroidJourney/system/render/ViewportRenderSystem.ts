@@ -1,14 +1,15 @@
 import { EntityID, System } from "../../../engine/FluidECS.js";
-import { ResolutionComponent, ViewportBorderWidthComponent } from "../../Components.js";
+import { ResolutionComponent, ViewportBorderWidthComponent, ViewportComponent } from "../../Components.js";
 import { CONTEXT } from "../../AsteroidJourney.js";
 
 type ViewportRenderNode = {
     resolution: ResolutionComponent;
     borderWidth: ViewportBorderWidthComponent;
+    viewport: ViewportComponent;
 }
 
 export class ViewportRenderSystem extends System<ViewportRenderNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ViewportRenderNode> = new Set(['resolution', 'borderWidth']);
+    NODE_COMPONENT_KEYS: Set<keyof ViewportRenderNode> = new Set(['resolution', 'borderWidth', 'viewport']);
     public updateNode(node: ViewportRenderNode, entityID: EntityID) {
         const isActive = true;
         if (!isActive)

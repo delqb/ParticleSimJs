@@ -1,5 +1,5 @@
 import { EntityID, System, MathUtils } from "../../../engine/FluidECS.js";
-import { ParticleStatsComponent } from "../../Components.js";
+import { AccelerationComponent, PositionComponent, StatsComponent, VelocityComponent } from "../../Components.js";
 import { engine, CONTEXT, measuredFPS } from "../../AsteroidJourney.js";
 
 
@@ -28,18 +28,21 @@ function drawComplexText(x: number, y: number, content = [["Colored ", "red"], [
 }
 
 type StatRenderNode = {
-    particleStats: ParticleStatsComponent;
+    position: PositionComponent;
+    velocity: VelocityComponent;
+    acceleration: AccelerationComponent;
+    stats: StatsComponent;
 }
 
 export class StatRenderSystem extends System<StatRenderNode> {
-    NODE_COMPONENT_KEYS: Set<keyof StatRenderNode> = new Set(['particleStats']);
+    NODE_COMPONENT_KEYS: Set<keyof StatRenderNode> = new Set(['stats', 'velocity', 'acceleration', 'position']);
     private isStatsVisible = true;
     static STATS = {
         isAnimating: (node: StatRenderNode) => engine.getAnimationState(),
         fps: (node: StatRenderNode) => MathUtils.round(measuredFPS),
-        position: (node: StatRenderNode) => `${MathUtils.round(node.particleStats.position.x)}, ${MathUtils.round(node.particleStats.position.y)}`,
-        velocity: (node: StatRenderNode) => `${MathUtils.round(node.particleStats.computedSpeed)} (${MathUtils.round(node.particleStats.velocity.x)}, ${MathUtils.round(node.particleStats.velocity.y)})`,
-        acceleration: (node: StatRenderNode) => `${MathUtils.round(node.particleStats.computedAcceleration)} (${MathUtils.round(node.particleStats.acceleration.x)}, ${MathUtils.round(node.particleStats.acceleration.y)})`,
+        position: (node: StatRenderNode) => `${MathUtils.round(node.position.position.x)}, ${MathUtils.round(node.position.position.y)}`,
+        velocity: (node: StatRenderNode) => `${MathUtils.round(node.stats.computedSpeed)} (${MathUtils.round(node.velocity.velocity.x)}, ${MathUtils.round(node.velocity.velocity.y)})`,
+        acceleration: (node: StatRenderNode) => `${MathUtils.round(node.stats.computedAcceleration)} (${MathUtils.round(node.acceleration.acceleration.x)}, ${MathUtils.round(node.acceleration.acceleration.y)})`,
     }
 
     static formatStats(key: string, value: any) {

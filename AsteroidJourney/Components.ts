@@ -10,7 +10,7 @@ export type PositionComponent = Component & {
 }
 
 export type TargetPositionComponent = Component & {
-    targetPosition: Vec2;
+    targetPositionComponent: PositionComponent;
 }
 
 export type VelocityComponent = Component & {
@@ -38,12 +38,6 @@ export type ViewportBorderWidthComponent = Component & {
 export type MovementControlComponent = Component & {
     accelerationInput: Vec2;
     yawInput: number;
-}
-
-export type WorldComponent = Component & {
-    resolution: Vec2;
-    borderWidth: number;
-    backgroundColor: string;
 }
 
 export type BackgroundGridComponent = Component & {
@@ -77,17 +71,17 @@ export type FireControlComponent = Component & {
 export type ProjectileSourceComponent = Component & {
     muzzleSpeed: number;
     lastFireTime: number;
-    projectileScale: number;
+    projectileSize: number;
 }
 
 export type CursorTranslateComponent = Component & {
     cursorTranslate: Vec2;
 }
 
-export type ParticleStatsComponent = Component & {
-    position: Vec2;
-    velocity: Vec2;
-    acceleration: Vec2;
+export type ViewportComponent = Component & {
+}
+
+export type StatsComponent = Component & {
     computedAcceleration: number;
     computedSpeed: number;
 }

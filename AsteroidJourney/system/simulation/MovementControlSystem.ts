@@ -7,11 +7,10 @@ export type MovementControlSystemNode = {
     velocity: VelocityComponent;
     acceleration: AccelerationComponent;
     movementControl: MovementControlComponent;
-    targetPosition: TargetPositionComponent;
 }
 
 export class MovementControlSystem extends System<MovementControlSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof MovementControlSystemNode> = new Set(['position', 'velocity', 'acceleration', 'movementControl', 'targetPosition']);
+    NODE_COMPONENT_KEYS: Set<keyof MovementControlSystemNode> = new Set(['position', 'velocity', 'acceleration', 'movementControl']);
     public updateNode(node: MovementControlSystemNode, entityID: EntityID) {
         const DELTA_TIME = engine.getDeltaTime();
         const { acceleration, movementControl: input } = node;

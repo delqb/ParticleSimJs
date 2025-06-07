@@ -1,15 +1,14 @@
 import { engine, destroyProjectile } from "../../AsteroidJourney.js";
 import { EntityID, System } from "../../../engine/FluidECS.js";
-import { ProjectileComponent, ParticleComponent, WorldComponent, PositionComponent } from "../../Components.js";
+import { ProjectileComponent, PositionComponent } from "../../Components.js";
 
 type ProjectileSystemNode = {
     projectile: ProjectileComponent;
-    world: WorldComponent;
     position: PositionComponent;
 }
 
 export class ProjectileSystem extends System<ProjectileSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ProjectileSystemNode> = new Set(['projectile', 'world', 'position']);
+    NODE_COMPONENT_KEYS: Set<keyof ProjectileSystemNode> = new Set(['projectile', 'position']);
     public updateNode(node: ProjectileSystemNode, entityID: EntityID) {
         const GAME_TIME = engine.getGameTime();
 

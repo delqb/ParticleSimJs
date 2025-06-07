@@ -2,7 +2,7 @@ import { Vec2, Vector2, EntityID, Entity, SystemPhase } from "../engine/FluidECS
 import { FluidEngine } from "../engine/FluidEngine.js";
 import * as Systems from "./system/SystemIndex.js";
 import * as Component from "./Components.js";
-import { WorldContext } from "./world/World.js";
+import { Chunk, WorldContext } from "./world/World.js";
 
 const zoomLevel = 0.6;
 export var engine = new FluidEngine(1000 * zoomLevel);
@@ -43,40 +43,15 @@ export const SHIP_PARAMETERS = {
     width: 0.035
 }
 
-export function createParticle(worldComponent: Component.WorldComponent, particleComponent: Component.ParticleComponent, positionComponent: Component.PositionComponent, velocityComponent: Component.VelocityComponent, accelerationComponent: Component.AccelerationComponent, projectileScale: number = 0.0003, optionalComponents?: { movementControlComponent?: Component.MovementControlComponent, targetPositionComponent?: Component.TargetPositionComponent }): Entity {
-    let computedSpeedComponent = { key: "computedSpeed", computedSpeed: 0 },
-        computedAccelerationComponent = { key: "computedAcceleration", computedAcceleration: 0 };
-    let entity = engine.createNewEntityFromComponents(
-        particleComponent,
-        positionComponent,
-        velocityComponent,
-        accelerationComponent,
-        worldComponent,
-        computedSpeedComponent,
-        computedAccelerationComponent,
-        {
-            key: "projectileSource",
-            lastFireTime: 0,
-            muzzleSpeed: 2.99792458,
-            projectileScale: projectileScale
-        } as Component.ProjectileSourceComponent
+export function spawnProjectile(position: Vec2, rotation: number, velocity: Vec2, deathTime: number, generation: number, size: number = 0.001): Entity {
+    let e = createSpriteEntity(
+        position,
+        rotation,
+        laserShotTexture,
+        0,
+        { resolution: { x: size, y: size } }
     );
-    if (optionalComponents) {
-        for (let component of Object.values(optionalComponents))
-            if (component)
-                entity.addComponents(component);
-    }
-    return entity;
-}
-
-export function spawnProjectile(worldComponent: Component.WorldComponent, position: Vec2, rotation: number, velocity: Vec2, deathTime: number, generation: number, scale: number = 0.001): Entity {
-    return engine.createNewEntityFromComponents(
-        worldComponent,
-        {
-            key: 'position',
-            position: position,
-            rotation: rotation
-        } as Component.PositionComponent,
+    engine.addEntityComponents(e,
         {
             key: 'velocity',
             velocity: velocity,
@@ -88,20 +63,13 @@ export function spawnProjectile(worldComponent: Component.WorldComponent, positi
             generation: generation
         } as Component.ProjectileComponent,
         {
-            key: "spriteTexture",
-            texture: laserShotTexture,
-            zIndex: 0
-        } as Component.SpriteComponent,
-        {
-            key: "scale",
-            scale: { x: scale, y: scale }
-        } as Component.ScaleComponent,
-        {
             key: 'acceleration',
             acceleration: { x: 0, y: 0 },
             angular: 0
-        } as Component.AccelerationComponent);
+        } as Component.AccelerationComponent
+);
 
+return e;
 }
 
 export function destroyProjectile(entityID: EntityID) {
@@ -190,7 +158,7 @@ function resizeCanvas() {
 
 window.addEventListener("resize", resizeCanvas);
 
-function clearCanvas() {
+export function clearCanvas() {
     CONTEXT.fillStyle = RENDER_BASE_COLOR;
     CONTEXT.fillRect(0, 0, canvasWidth, canvasHeight);
 }
@@ -346,9 +314,10 @@ let kinematicSystem = new Systems.KinematicSystem(),
     movementControlSystem = new Systems.MovementControlSystem(),
     viewportSystem = new Systems.ViewportSystem(),
     projectileSystem = new Systems.ProjectileSystem(),
-    particleStatSystem = new Systems.ParticleStatSystem(),
+    statSystem = new Systems.StatSystem(),
     firingSystem = new Systems.FiringSystem(),
     cursorSystem = new Systems.CursorSystem(),
+
     // worldRenderSystem = new Systems.WorldRenderSystem(),
     projectileRenderSystem = new Systems.ProjectileRenderSystem(),
     particleRenderSystem = new Systems.ParticleRenderSystem(),
@@ -367,9 +336,8 @@ engine.appendSystems(simulationPhase,
     projectileSystem,
     movementControlSystem,
     kinematicSystem,
-    // collisionSystem,
     positionSystem,
-    particleStatSystem,
+    statSystem,
     viewportSystem
 );
 
@@ -385,96 +353,53 @@ engine.appendSystems(hudRender,
     statRenderSystem
 );
 
-let VIEWPORT_POSITION: Component.PositionComponent;
-let FIRE_CONTROL: Component.FireControlComponent;
-
-// WORLD
-let worldComponent: Component.WorldComponent = {
-    key: "world",
-    resolution: {
-        x: 4.096,
-        y: 4.096
-    },
-    borderWidth: 0.1,
-    backgroundColor: "#23262B",
-}
-let backgroundGridComponent: Component.BackgroundGridComponent = {
-    key: "backgroundGrid",
-    gridSize: 0.064,
-    gridLineColor: "#424852",
-    gridLineWidth: 0.001
-}
 
 
-let particle1PositionComponent: Component.PositionComponent = {
+const FIRE_CONTROL = {
+    key: 'fireControl',
+    fireIntent: false
+} as Component.FireControlComponent;
+
+const MC_POS: Component.PositionComponent = {
     key: "position",
     position: { x: 0, y: 0 },
     rotation: 0
-};
+} as Component.PositionComponent;
 
-
-// Create red and blue particle
-(() => {
-    let particleComponent1: Component.ParticleComponent = {
-        key: "particle",
-        radius: PARTICLE_PARAMETERS.radius,
-        color: "red"
-    }
-    let velocityComponent1: Component.VelocityComponent = {
+const MAIN_CHARACTER = engine.createNewEntityFromComponents(
+    MC_POS,
+    {
         key: "velocity",
         velocity: { x: 0, y: 0 },
         angular: 0
-    }
-    let accelerationComponent1: Component.AccelerationComponent = {
+    } as Component.VelocityComponent,
+    {
         key: "acceleration",
         acceleration: { x: 0, y: 0 },
         angular: 0
-    }
-    let FIRE_CONTROL = {
-        key: 'fireControl',
-        fireIntent: false
-    } as Component.FireControlComponent;
-
-    let cursorPositionAsTarget = {
-        key: "targetPosition",
-        get targetPosition() {
-            return cursorPositionComponent.position;
-        }
-    };
-
-    let mainParticle = createParticle(
-        worldComponent,
-        particleComponent1,
-        particle1PositionComponent,
-        velocityComponent1,
-        accelerationComponent1,
-        0.0003,
+    } as Component.AccelerationComponent,
+    {
+        key: "particle",
+        radius: PARTICLE_PARAMETERS.radius,
+        color: "red"
+    } as Component.ParticleComponent,
+    {
+        key: 'stats',
+        computedAcceleration: 0,
+        computedSpeed: 0
+    } as Component.StatsComponent,
         {
-            movementControlComponent: MOVEMENT_CONTROL_COMPONENT,
-            targetPositionComponent: cursorPositionAsTarget
-        }
-    );
-
-    engine.addEntityComponents(mainParticle,
-        {
-            key: 'particleStats',
-            get position() {
-                return particle1PositionComponent.position;
-            },
-            get velocity() {
-                return velocityComponent1.velocity;
-            },
-            get acceleration() {
-                return accelerationComponent1.acceleration;
-            },
-            computedSpeed: Vector2.magnitude(velocityComponent1.velocity),
-            computedAcceleration: Vector2.magnitude(accelerationComponent1.acceleration)
-        } as Component.ParticleStatsComponent,
-        FIRE_CONTROL,
+        key: "projectileSource",
+        lastFireTime: 0,
+        muzzleSpeed: 2.99792458,
+        projectileSize: 0.075
+    } as Component.ProjectileSourceComponent,
         {
             key: "renderCenter",
             renderDistance: renderDistance
-        } as Component.RenderCenterComponent
+    } as Component.RenderCenterComponent,
+    MOVEMENT_CONTROL_COMPONENT,
+    FIRE_CONTROL,
     );
 
     MOUSE_CONTROLS["fire"] = {
@@ -483,58 +408,23 @@ let particle1PositionComponent: Component.PositionComponent = {
             FIRE_CONTROL.fireIntent = true;
         },
     };
+
     KEYBOARD_CONTROLS["fire"] = {
         keys: [" "],
         action: () => {
             FIRE_CONTROL.fireIntent = true;
         }
     };
-    let particleComponent2: Component.ParticleComponent = {
-        key: "particle",
-        radius: 2 * PARTICLE_PARAMETERS.radius,
-        color: "blue"
-    };
-
-    createParticle(
-        worldComponent,
-        particleComponent2,
-        {
-            key: "position",
-            position: Vector2.add(particle1PositionComponent.position, { x: 0.08, y: 0 }),
-            rotation: 0
-        },
-        {
-            key: "velocity",
-            velocity: { x: 0, y: 0 },
-            angular: 0
-        },
-        {
-            key: "acceleration",
-            acceleration: { x: 0, y: 0 },
-            angular: 0
-        },
-        0.0003,
-        {
-            targetPositionComponent: {
-                key: "targetPosition",
-                get targetPosition() {
-                    return particle1PositionComponent.position;
-                }
-            }
-        }
-    );
-})();
-
-VIEWPORT_POSITION = {
-    key: "position",
-    position: {
-        x: (worldComponent.resolution.x - canvasWidth) / (2 * engine.PIXELS_PER_METER),
-        y: (worldComponent.resolution.y - canvasHeight) / (2 * engine.PIXELS_PER_METER),
-    }
-} as Component.PositionComponent
 
 let viewport = engine.createNewEntityFromComponents(
-    VIEWPORT_POSITION,
+        {
+            key: "position",
+        position: {
+            x: 0,
+            y: 0,
+        },
+        rotation: 0
+    } as Component.PositionComponent,
     {
         key: "resolution",
         resolution: {
@@ -544,7 +434,7 @@ let viewport = engine.createNewEntityFromComponents(
     } as Component.ResolutionComponent,
     {
         key: "targetPosition",
-        targetPosition: particle1PositionComponent.position
+        targetPositionComponent: MC_POS
     } as Component.TargetPositionComponent,
     {
         key: "borderWidth",
@@ -554,34 +444,19 @@ let viewport = engine.createNewEntityFromComponents(
         key: "speedFactor",
         speedFactor: 22
     } as Component.CameraSpeedFactorComponent,
-    worldComponent
+    {
+        key: 'viewport'
+    }
 );
 
-// CURSOR
-const cursorPositionComponent: Component.PositionComponent = {
-    key: "position",
-    position: { x: 0, y: 0 },
-    rotation: 0
-}
 const cursorScreenPointComponent: Component.ScreenPointComponent = {
     key: "screenPoint",
     point: { x: 0, y: 0 }
 };
+
 CANVAS_ELEMENT.addEventListener("mousemove", (event) => {
     cursorScreenPointComponent.point = { x: event.offsetX, y: event.offsetY };
 });
-
-let cursor = engine.createNewEntityFromComponents(
-    cursorScreenPointComponent,
-    cursorPositionComponent,
-    {
-        key: 'cursorTranslate',
-        get cursorTranslate() {
-            return VIEWPORT_POSITION.position;
-        }
-    } as Component.CursorTranslateComponent);
-
-let world = engine.createNewEntityFromComponents(worldComponent, backgroundGridComponent);
 
 window.addEventListener("keydown", (event) => {
     KEY_STATES[event.key] = true;
@@ -658,7 +533,7 @@ const starImage = canvasToImage(createGlowingStar(3, 3, 5, 40));
 let starEntity1 = engine.createNewEntityFromComponents(
     {
         key: "position",
-        position: Vector2.copy(particle1PositionComponent.position),
+        position: Vector2.copy(MC_POS.position),
         rotation: Math.PI / 3
     } as Component.PositionComponent,
     {
