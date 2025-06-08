@@ -312,7 +312,6 @@ let kinematicSystem = new Systems.KinematicSystem(),
     movementControlSystem = new Systems.MovementControlSystem(),
     viewportSystem = new Systems.ViewportSystem(),
     projectileSystem = new Systems.ProjectileSystem(),
-    statSystem = new Systems.StatSystem(),
     firingSystem = new Systems.FiringSystem(),
     cursorSystem = new Systems.CursorSystem(),
 

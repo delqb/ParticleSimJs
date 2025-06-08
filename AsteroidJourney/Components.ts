@@ -82,18 +82,7 @@ export type ViewportComponent = Component & {
 }
 
 export type StatsComponent = Component & {
-    computedAcceleration: number;
-    computedSpeed: number;
 }
-
-export type ScaleComponent = Component & {
-    scale: Vec2;
-};
-
-export type SpriteComponent = Component & {
-    texture: HTMLImageElement;
-    zIndex: number;
-};
 
 export type RenderCenterComponent = Component & {
     renderDistance: number;

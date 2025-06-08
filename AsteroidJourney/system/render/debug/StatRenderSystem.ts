@@ -1,7 +1,8 @@
-import { EntityID, System, MathUtils } from "../../../engine/FluidECS.js";
-import { AccelerationComponent, PositionComponent, StatsComponent, VelocityComponent } from "../../Components.js";
-import { engine, CONTEXT, measuredFPS } from "../../AsteroidJourney.js";
+import { EntityID, System, MathUtils, Vector2 } from "../../../../engine/FluidECS.js";
+import { AccelerationComponent, PositionComponent, StatsComponent, VelocityComponent } from "../../../Components.js";
+import { engine, CONTEXT, measuredFPS } from "../../../AsteroidJourney.js";
 
+const round = MathUtils.round;
 
 function drawComplexText(x: number, y: number, content = [["Colored ", "red"], ["\n"], ["Text ", "Blue"], ["Test", "Green"]], lineSpacing = 2) {
     const TEXT_METRICS = CONTEXT.measureText("A");
@@ -39,14 +40,26 @@ export class StatRenderSystem extends System<StatRenderNode> {
     private isStatsVisible = true;
     static STATS = {
         isAnimating: (node: StatRenderNode) => engine.getAnimationState(),
-        fps: (node: StatRenderNode) => MathUtils.round(measuredFPS),
-        position: (node: StatRenderNode) => `${MathUtils.round(node.position.position.x)}, ${MathUtils.round(node.position.position.y)}`,
-        velocity: (node: StatRenderNode) => `${MathUtils.round(node.stats.computedSpeed)} (${MathUtils.round(node.velocity.velocity.x)}, ${MathUtils.round(node.velocity.velocity.y)})`,
-        acceleration: (node: StatRenderNode) => `${MathUtils.round(node.stats.computedAcceleration)} (${MathUtils.round(node.acceleration.acceleration.x)}, ${MathUtils.round(node.acceleration.acceleration.y)})`,
+        fps: (node: StatRenderNode) => round(measuredFPS),
+        position: (node: StatRenderNode) => {
+            const pC = node.position;
+            const { position: p, rotation: r } = pC;
+            return `([${round(p.x)}, ${round(p.y)}] m) (${round(r)} rad)`
+        },
+        velocity: (node: StatRenderNode) => {
+            const vC = node.velocity;
+            const { velocity: v, angular: a } = vC;
+            return `(${round(Vector2.magnitude(v))} m/s) (${round(a)} rad/s) ([${round(v.x)}, ${round(v.y)}] m/s)`
+        },
+        acceleration: (node: StatRenderNode) => {
+            const aC = node.acceleration;
+            const { acceleration: accel, angular: angl } = aC;
+            return `(${round(Vector2.magnitude(accel))} m/s^2) (${round(angl)} rad/s^2) ([${round(accel.x)}, ${round(accel.y)}] m/s^2)`
+        },
     }
 
     static formatStats(key: string, value: any) {
-        return [`${key}: ${typeof value === "number" ? MathUtils.round(value) : value}\n`, "white"];
+        return [`${key}: ${typeof value === "number" ? round(value) : value}\n`, "white"];
     }
 
     toggleStats() {
@@ -60,6 +73,7 @@ export class StatRenderSystem extends System<StatRenderNode> {
     public updateNode(node: StatRenderNode, entityID: EntityID) {
         if (!this.isStatsVisible)
             return;
+
         drawComplexText(10, 10,
             Object.keys(StatRenderSystem.STATS).map((key) => StatRenderSystem.formatStats(key, StatRenderSystem.STATS[key](node))),
             2);
