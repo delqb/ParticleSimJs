@@ -1,16 +1,14 @@
 import { System, EntityID, OrderedList } from "../../../engine/FluidECS.js";
-import { PositionComponent, ScaleComponent, SpriteComponent } from "../../Components.js";
+import { PositionComponent, SpriteComponent } from "../../Components.js";
 
 type SpriteSystemNode = {
     position: PositionComponent;
-    scale: ScaleComponent;
     spriteTexture: SpriteComponent;
 }
 
 export class SpriteRenderSystem extends System<SpriteSystemNode> {
     NODE_COMPONENT_KEYS: Set<keyof SpriteSystemNode> = new Set([
         "position",
-        "scale",
         "spriteTexture"
     ]);
 
@@ -35,17 +33,25 @@ export class SpriteRenderSystem extends System<SpriteSystemNode> {
     }
 
     public updateNode(node: SpriteSystemNode, entityID: EntityID) {
-        let { position, scale, spriteTexture } = node;
-        let { x, y } = position.position;
-        let { x: scaleX, y: scaleY } = scale.scale;
-        let { texture } = spriteTexture;
+        const { position, spriteTexture: texture } = node;
+        const { x, y } = position.position;
+        const transform = texture.transform;
+        const img = texture.image;
+        const ctx = this.ctx;
 
-        this.ctx.save();
-        this.ctx.translate(x, y);
-        this.ctx.rotate(-position.rotation);
-        this.ctx.scale(scaleX, scaleY);
-        this.ctx.drawImage(texture, -texture.width / 2, -texture.height / 2);
-        this.ctx.restore();
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(position.rotation);
+
+        if (transform) {
+            const { translate: trans, rotate: rot, scale } = transform;
+            if (rot) ctx.rotate(rot);
+            if (trans) ctx.translate(trans.x, trans.y);
+            if (scale) ctx.scale(scale, scale);
+        }
+
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        ctx.restore();
     }
 
     public update(): void {

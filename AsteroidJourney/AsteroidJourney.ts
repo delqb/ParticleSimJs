@@ -3,6 +3,7 @@ import { FluidEngine } from "../engine/FluidEngine.js";
 import * as Systems from "./system/SystemIndex.js";
 import * as Component from "./Components.js";
 import { Chunk, WorldContext } from "./world/World.js";
+import { ClientContext } from "./Client.js";
 
 export var engine = new FluidEngine(1000);
 function setZoomScale(scale: number) {
@@ -52,7 +53,7 @@ export function spawnProjectile(position: Vec2, rotation: number, velocity: Vec2
         rotation,
         laserShotTexture,
         0,
-        { resolution: { x: size, y: size } }
+        size / laserShotTexture.width
     );
     engine.addEntityComponents(e,
         {
@@ -69,7 +70,16 @@ export function spawnProjectile(position: Vec2, rotation: number, velocity: Vec2
             key: 'acceleration',
             acceleration: { x: 0, y: 0 },
             angular: 0
-        } as Component.AccelerationComponent
+        } as Component.AccelerationComponent,
+        {
+            key: "collider",
+            rect: {
+                width: size, height: size
+            },
+            transform: {
+                scale: 0.10
+            }
+        } as Component.ColliderComponent
     );
 
     return e;
@@ -140,7 +150,7 @@ const MOUSE_CONTROLS = {
 
 const HOTKEYS = {
     pause: {
-        keys: ["Escape"],
+        keys: ["escape"],
         action: () => {
             engine.toggleAnimation();
         }
@@ -152,12 +162,18 @@ const HOTKEYS = {
     zoom2: {
         keys: ["2"],
         action: () => setZoomScale(0.1)
+    },
+    toggle_colliders: {
+        keys: ["f3"],
+        action: () => {
+            clientContext.displayColliders = !clientContext.displayColliders;
+        }
     }
 }
 
 function activateHotkeyBindings() {
-    for (const binding of Object.keys(HOTKEYS).map(k => HOTKEYS[k])) {
-        if (binding.keys.some(k => KEY_STATES[k]))
+    for (const binding of Object.values(HOTKEYS)) {
+        if (binding.keys.some(k => KEY_STATES[k.toLowerCase()] === true))
             binding.action();
     }
 }
@@ -261,9 +277,7 @@ function generateChunk(worldContext: WorldContext, chunkCoordinates: Vec2): Chun
         0,
         backgroundTileImage,
         0,
-        {
-            resolution: { x: this.chunkSize, y: this.chunkSize }
-        }
+        this.chunkSize / backgroundTileImage.width
     );
 
     const gridSize = worldContext.chunkSize / 3,
@@ -305,7 +319,9 @@ function generateChunk(worldContext: WorldContext, chunkCoordinates: Vec2): Chun
         entityIDSet: new Set([backgroundEntity.getID()])
     }
 }
+
 const worldContext: WorldContext = new WorldContext(engine, 1.024, 0.1, generateChunk);
+const clientContext: ClientContext = new ClientContext(engine, worldContext, CONTEXT);
 
 let kinematicSystem = new Systems.KinematicSystem(),
     positionSystem = new Systems.PositionSystem(),
@@ -314,16 +330,16 @@ let kinematicSystem = new Systems.KinematicSystem(),
     projectileSystem = new Systems.ProjectileSystem(),
     firingSystem = new Systems.FiringSystem(),
     cursorSystem = new Systems.CursorSystem(),
+    chunkLoadingSystem = new Systems.ChunkLoadingSystem(engine, worldContext),
+    ChunkTrackingSystem = new Systems.ChunkTrackingSystem(engine, worldContext),
 
     worldPreRenderSystem = new Systems.WorldPreRenderSystem(engine),
-    projectileRenderSystem = new Systems.ProjectileRenderSystem(),
     particleRenderSystem = new Systems.ParticleRenderSystem(),
     viewportRenderSystem = new Systems.ViewportRenderSystem(),
     statRenderSystem = new Systems.StatRenderSystem(),
     spriteRenderSystem = new Systems.SpriteRenderSystem(CONTEXT),
-    chunkLoadingSystem = new Systems.ChunkLoadingSystem(engine, worldContext),
-    ChunkTrackingSystem = new Systems.ChunkTrackingSystem(engine, worldContext)
-    ;
+    colliderRenderSystem = new Systems.ColliderRenderSystem(clientContext);
+;
 
 engine.appendSystems(simulationPhase,
     chunkLoadingSystem,
@@ -334,15 +350,14 @@ engine.appendSystems(simulationPhase,
     movementControlSystem,
     kinematicSystem,
     positionSystem,
-    statSystem,
     viewportSystem
 );
 
 engine.appendSystems(worldRender,
     worldPreRenderSystem,
     spriteRenderSystem,
-    projectileRenderSystem,
-    particleRenderSystem
+    particleRenderSystem,
+    colliderRenderSystem
 );
 
 engine.appendSystems(hudRender,
@@ -389,12 +404,23 @@ const MAIN_CHARACTER = engine.createNewEntityFromComponents(
         key: "projectileSource",
         lastFireTime: 0,
         muzzleSpeed: 2.99792458,
-        projectileSize: 0.075
+        projectileSize: 0.095
     } as Component.ProjectileSourceComponent,
     {
         key: "renderCenter",
         renderDistance: renderDistance
     } as Component.RenderCenterComponent,
+    {
+        key: 'collider',
+        rect: { width: SHIP_PARAMETERS.width, height: SHIP_PARAMETERS.bowLength * 1.5 },
+        transform: {
+            rotate: Math.PI / 2,
+            translate: {
+                x: 0, y: -SHIP_PARAMETERS.bowLength / 3
+            },
+            scale: 0.95
+        }
+    } as Component.ColliderComponent,
     MOVEMENT_CONTROL_COMPONENT,
     FIRE_CONTROL,
 );
@@ -456,12 +482,13 @@ CANVAS_ELEMENT.addEventListener("mousemove", (event) => {
 });
 
 window.addEventListener("keydown", (event) => {
-    KEY_STATES[event.key] = true;
+    event.preventDefault();
+    KEY_STATES[event.key.toLowerCase()] = true;
     activateHotkeyBindings();
 });
 
 window.addEventListener("keyup", (event) => {
-    KEY_STATES[event.key] = false;
+    KEY_STATES[event.key.toLowerCase()] = false;
 });
 
 window.addEventListener("mousedown", (event: MouseEvent) => {
@@ -527,28 +554,14 @@ function canvasToImage(canvas: HTMLCanvasElement) {
 
 const starImage = canvasToImage(createGlowingStar(3, 3, 5, 40));
 
-let starEntity1 = engine.createNewEntityFromComponents(
-    {
-        key: "position",
-        position: Vector2.copy(MC_POS.position),
-        rotation: Math.PI / 3
-    } as Component.PositionComponent,
-    {
-        key: "spriteTexture",
-        texture: starImage,
-        zIndex: 1
-    } as Component.SpriteComponent,
-    {
-        key: "scale",
-        scale: { x: 0.0005, y: 0.002 }
-    } as Component.ScaleComponent,
+let starEntity1 = createSpriteEntity(Vector2.copy(MC_POS.position), Math.PI / 3, starImage, 1, 0.003);
+engine.addEntityComponents(starEntity1,
     {
         key: "velocity",
         velocity: ({ x: 0.008, y: 0.01 }),
         angular: 0
     } as Component.VelocityComponent
 );
-
 
 function renderSingleNeonLaserSprite({
     width = 256,
@@ -605,16 +618,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 export const backgroundTileImage = await loadImage("assets/background/space_background_tile.png");
 export const asteroidImage = await loadImage("assets/asteroid/asteroid1.png");
 
-export function createSpriteEntity(position: Vec2, rotation: number, spriteTexture: HTMLImageElement, zIndex: number, options: { scale?: Vec2, resolution?: Vec2 } = {}): Entity {
-    let iRes = { x: spriteTexture.width, y: spriteTexture.height };
-    let scale: Vec2;
-    if (options.scale)
-        scale = options.scale;
-    else
-        if (options.resolution)
-            scale = Vector2.divide(options.resolution, iRes);
-        else
-            scale = { x: 1, y: 1 };
+export function createSpriteEntity(position: Vec2, rotation: number, spriteTexture: HTMLImageElement, zIndex: number, scale = 1): Entity {
     return engine.createNewEntityFromComponents(
         {
             key: "position",
@@ -622,13 +626,12 @@ export function createSpriteEntity(position: Vec2, rotation: number, spriteTextu
             rotation: rotation
         } as Component.PositionComponent,
         {
-            key: "scale",
-            scale: scale
-        } as Component.ScaleComponent,
-        {
             key: "spriteTexture",
-            texture: spriteTexture,
-            zIndex: zIndex
+            image: spriteTexture,
+            zIndex: zIndex,
+            transform: {
+                scale: scale,
+            }
         } as Component.SpriteComponent
     );
 }
@@ -638,20 +641,22 @@ export function boundedRandom(min: number, max: number): number {
 }
 
 export function createAsteroid(position: Vec2, rotation: number, velocity: Vec2, angularVelocity: number, size: number): Entity {
-    let entity = createSpriteEntity(position, rotation, asteroidImage, 3, { resolution: { x: size, y: size } });
+    let entity = createSpriteEntity(Vector2.copy(position), rotation, asteroidImage, 3, size / asteroidImage.width);
     engine.addEntityComponents(entity,
         {
             key: "velocity",
             velocity: velocity,
             angular: angularVelocity
-        } as Component.VelocityComponent
+        } as Component.VelocityComponent,
+        {
+            key: "collider",
+            rect: { width: size, height: size },
+        } as Component.ColliderComponent
     );
     return entity;
 }
 
 engine.animate();
-
-
 
 // Issue:
 // Game freezes and glitches when zoomed out.

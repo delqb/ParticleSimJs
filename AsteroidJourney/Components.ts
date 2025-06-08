@@ -91,3 +91,25 @@ export type RenderCenterComponent = Component & {
 export type ChunkMembershipComponent = Component & {
     chunkKey: string;
 }
+
+export type Rectangle = {
+    width: number;
+    height: number;
+}
+
+export type Transform = {
+    translate: Vec2;
+    rotate: number;
+    scale: number;
+}
+
+export type SpriteComponent = Component & {
+    image: HTMLImageElement;
+    transform?: Transform;
+    zIndex: number;
+};
+
+export type ColliderComponent = Component & {
+    rect: Rectangle;
+    transform?: Transform;
+}

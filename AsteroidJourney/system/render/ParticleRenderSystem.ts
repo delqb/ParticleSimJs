@@ -1,5 +1,5 @@
 import { EntityID, System } from "../../../engine/FluidECS.js";
-import { ParticleComponent, PositionComponent, TargetPositionComponent } from "../../Components.js";
+import { ParticleComponent, PositionComponent } from "../../Components.js";
 import { PARTICLE_PARAMETERS, SHIP_PARAMETERS, CONTEXT } from "../../AsteroidJourney.js";
 
 type ParticleRenderNode = {

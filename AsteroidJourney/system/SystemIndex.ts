@@ -13,5 +13,5 @@ export * from "./render/WorldPreRenderSystem.js";
 export * from "./render/ParticleRenderSystem.js";
 export * from "./render/ViewportRenderSystem.js";
 export * from "./render/debug/StatRenderSystem.js";
-export * from "./render/ProjectileRenderSystem.js";
 export * from "./render/SpriteRenderSystem.js";
+export * from "./render/debug/ColliderRenderSystem.js";

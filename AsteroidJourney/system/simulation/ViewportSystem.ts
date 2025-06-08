@@ -28,5 +28,7 @@ export class ViewportSystem extends System<ViewportSystemNode> {
             const moveStep = Vector2.scale(moveVec, node.speedFactor.speedFactor * DELTA_TIME);
             node.position.position = Vector2.add(node.position.position, moveStep);
         }
+        // Set the viewport rotation equal to the target's
+        node.position.rotation = node.targetPosition.targetPositionComponent.rotation;
     }
 }

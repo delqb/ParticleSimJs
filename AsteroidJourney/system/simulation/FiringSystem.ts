@@ -28,7 +28,7 @@ export class FiringSystem extends System<FiringSystemNode> {
 
         spawnProjectile(
             position,
-            -node.position.rotation,
+            node.position.rotation,
             velocity,
             GAME_TIME + PARTICLE_PARAMETERS.projectile.lifetime,
             1,

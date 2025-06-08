@@ -41,5 +41,8 @@ export class MovementControlSystem extends System<MovementControlSystemNode> {
             let rollAccelerationVec = Vector2.scale(Vector2.fromAngle(rollVecAngle), ROLL_ACCELERATION);
             acceleration.acceleration = Vector2.add(acceleration.acceleration, rollAccelerationVec);
         }
+
+        if (node.position.rotation >= 2 * Math.PI)
+            node.position.rotation -= 2 * Math.PI;
     }
 }
