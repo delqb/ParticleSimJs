@@ -486,13 +486,11 @@ const FIRE_CONTROL = {
     fireIntent: false
 } as Component.FireControlComponent;
 
-const MC_POS: Component.PositionComponent = {
+export const MC_POS: Component.PositionComponent = {
     key: "position",
     position: { x: 0, y: 0 },
-    rotation: 0
+    rotation: -Math.PI / 2
 } as Component.PositionComponent;
-
-
 
 const MC_SCALE = 0.2 / shipImage.height;
 const MAIN_CHARACTER = engine.createNewEntityFromComponents(
