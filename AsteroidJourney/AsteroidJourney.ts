@@ -285,6 +285,12 @@ const HOTKEYS = {
         action: () => {
             clientContext.displayColliders = !clientContext.displayColliders;
         }
+    },
+    toggle_display_axes: {
+        keys: ["f3"],
+        action: () => {
+            clientContext.displayEntityAxes = !clientContext.displayEntityAxes;
+        }
     }
 }
 
@@ -455,6 +461,8 @@ let kinematicSystem = new Systems.KinematicSystem(clientContext),
     statRenderSystem = new Systems.StatRenderSystem(clientContext),
     spriteRenderSystem = new Systems.SpriteRenderSystem(CONTEXT),
     colliderRenderSystem = new Systems.ColliderRenderSystem(clientContext),
+    axisRenderSystem = new Systems.AxisRenderSystem(clientContext)
+    ;
 ;
 
 engine.appendSystems(simulationPhase,
@@ -473,7 +481,7 @@ engine.appendSystems(worldRender,
     worldPreRenderSystem,
     spriteRenderSystem,
     colliderRenderSystem,
-    colliderRenderSystem
+    axisRenderSystem
 );
 
 engine.appendSystems(hudRender,

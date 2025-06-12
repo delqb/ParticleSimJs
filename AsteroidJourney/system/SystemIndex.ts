@@ -14,3 +14,4 @@ export * from "./render/ViewportRenderSystem.js";
 export * from "./render/debug/StatRenderSystem.js";
 export * from "./render/SpriteRenderSystem.js";
 export * from "./render/debug/ColliderRenderSystem.js";
+export * from "./render/debug/AxisRenderSystem.js";
