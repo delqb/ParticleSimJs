@@ -217,13 +217,13 @@ const KEYBOARD_CONTROLS = {
         type: "movement",
         keys: ["w"],
         action: () => {
-            MOVEMENT_CONTROL_COMPONENT.accelerationInput.y += -1;
+            MOVEMENT_CONTROL_COMPONENT.accelerationInput.y += 1;
         }
     },
     down: {
         keys: ["s"],
         action: () => {
-            MOVEMENT_CONTROL_COMPONENT.accelerationInput.y += 1;
+            MOVEMENT_CONTROL_COMPONENT.accelerationInput.y += -1;
         }
     },
     left: {
