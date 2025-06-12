@@ -2,7 +2,8 @@ import { FluidEngine } from "../engine/FluidEngine";
 import { WorldContext } from "./world/World";
 
 export class ClientContext {
-    public displayColliders = true;
+    public displayColliders = false;
+    public displayDebugInfo = false;
     constructor(public engineInstance: FluidEngine, public worldContext: WorldContext, public renderingContext: CanvasRenderingContext2D) { }
 
 }

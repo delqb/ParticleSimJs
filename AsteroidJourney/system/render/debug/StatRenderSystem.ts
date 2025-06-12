@@ -1,6 +1,7 @@
 import { EntityID, System, MathUtils, Vector2 } from "../../../../engine/FluidECS.js";
 import { AccelerationComponent, PositionComponent, StatsComponent, VelocityComponent } from "../../../Components.js";
 import { engine, CONTEXT, measuredFPS } from "../../../AsteroidJourney.js";
+import { ClientContext } from "../../../Client.js";
 
 const round = MathUtils.round;
 
@@ -37,7 +38,9 @@ type StatRenderNode = {
 
 export class StatRenderSystem extends System<StatRenderNode> {
     NODE_COMPONENT_KEYS: Set<keyof StatRenderNode> = new Set(['stats', 'velocity', 'acceleration', 'position']);
-    private isStatsVisible = true;
+    constructor(public clientContext: ClientContext) {
+        super();
+    }
     static STATS = {
         isAnimating: (node: StatRenderNode) => engine.getAnimationState(),
         fps: (node: StatRenderNode) => round(measuredFPS),
@@ -62,16 +65,8 @@ export class StatRenderSystem extends System<StatRenderNode> {
         return [`${key}: ${typeof value === "number" ? round(value) : value}\n`, "white"];
     }
 
-    toggleStats() {
-        this.isStatsVisible = !this.isStatsVisible;
-    }
-
-    setStatsVisible(visible: boolean) {
-        this.isStatsVisible = visible;
-    }
-
     public updateNode(node: StatRenderNode, entityID: EntityID) {
-        if (!this.isStatsVisible)
+        if (!this.clientContext.displayDebugInfo)
             return;
 
         drawComplexText(10, 10,

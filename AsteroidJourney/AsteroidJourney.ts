@@ -274,8 +274,14 @@ const HOTKEYS = {
         keys: ["2"],
         action: () => setZoomScale(0.1)
     },
+    toggle_debug_info: {
+        keys: ["f1"],
+        action: () => {
+            clientContext.displayDebugInfo = !clientContext.displayDebugInfo;
+        }
+    },
     toggle_colliders: {
-        keys: ["f3"],
+        keys: ["f2"],
         action: () => {
             clientContext.displayColliders = !clientContext.displayColliders;
         }
@@ -448,7 +454,7 @@ let kinematicSystem = new Systems.KinematicSystem(clientContext),
     viewportRenderSystem = new Systems.ViewportRenderSystem(),
     statRenderSystem = new Systems.StatRenderSystem(clientContext),
     spriteRenderSystem = new Systems.SpriteRenderSystem(CONTEXT),
-    colliderRenderSystem = new Systems.ColliderRenderSystem(clientContext);
+    colliderRenderSystem = new Systems.ColliderRenderSystem(clientContext),
 ;
 
 engine.appendSystems(simulationPhase,
@@ -571,7 +577,7 @@ let viewport = engine.createNewEntityFromComponents(
     } as Component.ResolutionComponent,
     {
         key: "targetPosition",
-        targetPositionComponent: MC_POS
+        position: MC_POS
     } as Component.TargetPositionComponent,
     {
         key: "borderWidth",
