@@ -3,6 +3,8 @@ import { FluidEngine } from "../../../engine/FluidEngine.js";
 import { clearCanvas, CONTEXT } from "../../AsteroidJourney.js";
 import { PositionComponent, ResolutionComponent, ViewportComponent } from "../../Components.js";
 
+const hPI = Math.PI / 2;
+
 type WorldPreRenderSystemNode = {
     position: PositionComponent;
     resolution: ResolutionComponent;
@@ -15,10 +17,12 @@ export class WorldPreRenderSystem extends System<WorldPreRenderSystemNode> {
         super();
     }
     public updateNode(node: WorldPreRenderSystemNode, entityID: EntityID): void {
-        const { position, resolution } = node;
         const PPM = this.engineInstance.PIXELS_PER_METER;
-        let scaledCanvasRes = Vector2.scale(resolution.resolution, 1 / PPM);
-        let scaledCanvasCenter = Vector2.scale(scaledCanvasRes, 1 / 2);
+        const { position: vpPosComp, resolution: resolutionComponent } = node;
+        const vpPos = vpPosComp.position;
+        const resolution = resolutionComponent.resolution;
+        const hW = resolution.x / (2 * PPM), hH = resolution.y / (2 * PPM);
+
         clearCanvas();
         CONTEXT.save();
 
@@ -26,17 +30,15 @@ export class WorldPreRenderSystem extends System<WorldPreRenderSystemNode> {
         CONTEXT.scale(PPM, PPM);
 
         // Move canvas origin to center of screen (camera pivot point)
-        CONTEXT.translate(scaledCanvasCenter.x, scaledCanvasCenter.y);
+        CONTEXT.translate(hW, hH);
 
         // Rotate everything that follows by the inverse of the viewport's rotation
         // This simulates the rotation of the viewport by rotating everything else in the opposite direction
         // Offset the angle by -Math.PI/2 so that the entity's positive x-axis aligns with the screen's/viewport's positive y-axis
-        CONTEXT.rotate(-position.rotation - Math.PI / 2);
+        CONTEXT.rotate(-vpPosComp.rotation - hPI);
 
-        let vpCenterPos = Vector2.add(position.position, scaledCanvasCenter);
-
-        // Move world so that player is at the center of the screen
-        CONTEXT.translate(-vpCenterPos.x, -vpCenterPos.y);
+        // Translate everything that follows (world) so that viewport target is at the center of the screen
+        CONTEXT.translate(-hW - vpPos.x, -hH - vpPos.y);
     }
 
 }
