@@ -183,14 +183,14 @@ export function spawnProjectile(position: Vec2, rotation: number, velocity: Vec2
             angular: 0
         } as Component.AccelerationComponent,
         {
-            key: "collider",
-            rect: {
+            key: "boundingBox",
+            size: {
                 width: size, height: size
             },
             transform: {
                 scale: 0.10
             }
-        } as Component.ColliderComponent
+        } as Component.BoundingBox
     );
 
     return e;
@@ -446,7 +446,7 @@ let kinematicSystem = new Systems.KinematicSystem(clientContext),
 
     worldPreRenderSystem = new Systems.WorldPreRenderSystem(engine),
     viewportRenderSystem = new Systems.ViewportRenderSystem(),
-    statRenderSystem = new Systems.StatRenderSystem(),
+    statRenderSystem = new Systems.StatRenderSystem(clientContext),
     spriteRenderSystem = new Systems.SpriteRenderSystem(CONTEXT),
     colliderRenderSystem = new Systems.ColliderRenderSystem(clientContext);
 ;
@@ -526,15 +526,15 @@ const MAIN_CHARACTER = engine.createNewEntityFromComponents(
         }
     } as Component.SpriteComponent,
     {
-        key: 'collider',
-        rect: {
+        key: 'boundingBox',
+        size: {
             width: MC_SCALE * shipImage.width,
             height: MC_SCALE * shipImage.height
         },
         transform: {
             rotate: Math.PI / 2
         }
-    } as Component.ColliderComponent,
+    } as Component.BoundingBox,
     MOVEMENT_CONTROL_COMPONENT,
     FIRE_CONTROL,
 );
@@ -655,9 +655,9 @@ export function createAsteroid(position: Vec2, rotation: number, velocity: Vec2,
             angular: angularVelocity
         } as Component.VelocityComponent,
         {
-            key: "collider",
-            rect: { width: size, height: size },
-        } as Component.ColliderComponent
+            key: "boundingBox",
+            size: { width: size, height: size },
+        } as Component.BoundingBox
     );
     return entity;
 }

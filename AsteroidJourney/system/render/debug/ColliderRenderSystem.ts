@@ -1,14 +1,14 @@
 import { EntityID, System } from "../../../../engine/FluidECS.js";
 import { ClientContext } from "../../../Client.js";
-import { ColliderComponent, PositionComponent } from "../../../Components.js";
+import { BoundingBox, PositionComponent } from "../../../Components.js";
 
 type ColliderRenderSystemNode = {
     position: PositionComponent;
-    collider: ColliderComponent;
+    boundingBox: BoundingBox;
 }
 
 export class ColliderRenderSystem extends System<ColliderRenderSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ColliderRenderSystemNode> = new Set(['position', 'collider']);
+    NODE_COMPONENT_KEYS: Set<keyof ColliderRenderSystemNode> = new Set(['position', 'boundingBox']);
     constructor(public clientContext: ClientContext) {
         super();
     }
@@ -17,7 +17,7 @@ export class ColliderRenderSystem extends System<ColliderRenderSystemNode> {
             return;
 
         const { position: ePos, rotation: eRot } = node.position;
-        const { rect, transform } = node.collider;
+        const { size: rect, transform } = node.boundingBox;
         const ctx = this.clientContext.renderingContext;
 
         ctx.save();

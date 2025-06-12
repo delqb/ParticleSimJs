@@ -92,15 +92,15 @@ export type ChunkMembershipComponent = Component & {
     chunkKey: string;
 }
 
-export type Rectangle = {
+export type BoundRectSize = {
     width: number;
     height: number;
 }
 
 export type Transform = {
-    translate: Vec2;
-    rotate: number;
-    scale: number;
+    translate?: Vec2;
+    rotate?: number;
+    scale?: number;
 }
 
 export type SpriteComponent = Component & {
@@ -109,7 +109,7 @@ export type SpriteComponent = Component & {
     zIndex: number;
 };
 
-export type ColliderComponent = Component & {
-    rect: Rectangle;
+export type BoundingBox = Component & {
+    size: BoundRectSize;
     transform?: Transform;
 }

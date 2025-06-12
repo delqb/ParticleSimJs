@@ -1,10 +1,10 @@
 import { engine } from "../../AsteroidJourney.js";
 import { EntityID, System } from "../../../engine/FluidECS.js";
-import { PositionComponent, VelocityComponent, ParticleComponent, ColliderComponent } from "../../Components.js";
+import { PositionComponent, VelocityComponent, ParticleComponent, BoundingBox } from "../../Components.js";
 
 export type CollisionSystemNode = {
     position: PositionComponent;
-    collider: ColliderComponent;
+    collider: BoundingBox;
 }
 
 export class CollisionSystem extends System<CollisionSystemNode> {
