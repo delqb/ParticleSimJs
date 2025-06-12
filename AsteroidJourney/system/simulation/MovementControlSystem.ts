@@ -1,6 +1,12 @@
-import { engine } from "../../AsteroidJourney.js";
 import { EntityID, MathUtils, System, Vector2 } from "../../../engine/FluidECS.js";
 import { PositionComponent, VelocityComponent, AccelerationComponent, MovementControlComponent, TargetPositionComponent } from "../../Components.js";
+
+const hPI = Math.PI / 2;
+const THRUST_FORCE = 0.25
+
+const THRUST_ACCELERATION = THRUST_FORCE;
+const ANGULAR_ACCELERATION = THRUST_FORCE * 18 / 10;
+const ROLL_ACCELERATION = THRUST_FORCE * 3 / 4;
 
 export type MovementControlSystemNode = {
     position: PositionComponent;
@@ -12,37 +18,26 @@ export type MovementControlSystemNode = {
 export class MovementControlSystem extends System<MovementControlSystemNode> {
     NODE_COMPONENT_KEYS: Set<keyof MovementControlSystemNode> = new Set(['position', 'velocity', 'acceleration', 'movementControl']);
     public updateNode(node: MovementControlSystemNode, entityID: EntityID) {
-        const DELTA_TIME = engine.getDeltaTime();
-
-        // const ANGULAR_VELOCITY_DECAY_FACTOR = 10;
-        // node.velocity.angular = MathUtils.lerp(node.velocity.angular, 0, ANGULAR_VELOCITY_DECAY_FACTOR * DELTA_TIME);
-
-        const { acceleration, movementControl: input } = node;
+        const { acceleration: accelComp, movementControl: input } = node;
         const { x: iX, y: iY } = input.accelerationInput;
         const rot = node.position.rotation;
 
-        const THRUST_ACCELERATION = 1;
-        const ANGULAR_ACCELERATION = 23 / 10;
-        const ROLL_ACCELERATION = 3 / 4;
+        accelComp.angular = ANGULAR_ACCELERATION * input.yawInput;
 
-        node.acceleration.angular = ANGULAR_ACCELERATION * node.movementControl.yawInput;
+        let accel = { x: 0, y: 0 };
 
-        node.acceleration.acceleration.x = 0;
-        node.acceleration.acceleration.y = 0;
-
-        let thrust = -iY;
-        if (thrust) {
-            node.acceleration.acceleration = Vector2.scale({ x: Math.cos(rot), y: Math.sin(rot) }, thrust * THRUST_ACCELERATION);
+        if (iY) {
+            accel.x = iY * THRUST_ACCELERATION * Math.cos(rot);
+            accel.y = iY * THRUST_ACCELERATION * Math.sin(rot);
         }
 
-        let roll = iX;
-        if (roll) {
-            let rollVecAngle = rot + roll * Math.PI / 2;
-            let rollAccelerationVec = Vector2.scale(Vector2.fromAngle(rollVecAngle), ROLL_ACCELERATION);
-            acceleration.acceleration = Vector2.add(acceleration.acceleration, rollAccelerationVec);
+        if (iX) {
+            // if roll input is detected
+            // add the roll acceleration vector to the current acceleration vector
+            // roll acceleration vector direction is 90 degrees left or right of current entity rotation angle
+            accel = Vector2.add(accel, Vector2.scale(Vector2.fromAngle(rot + iX * hPI), ROLL_ACCELERATION));
         }
 
-        if (node.position.rotation >= 2 * Math.PI)
-            node.position.rotation -= 2 * Math.PI;
+        accelComp.acceleration = accel;
     }
 }
