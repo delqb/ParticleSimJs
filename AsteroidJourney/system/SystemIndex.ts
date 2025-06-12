@@ -10,7 +10,6 @@ export * from "./simulation/ChunkLoadingSystem.js"
 export * from "./simulation/ChunkTrackingSystem.js";
 
 export * from "./render/WorldPreRenderSystem.js";
-export * from "./render/ParticleRenderSystem.js";
 export * from "./render/ViewportRenderSystem.js";
 export * from "./render/debug/StatRenderSystem.js";
 export * from "./render/SpriteRenderSystem.js";

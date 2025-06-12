@@ -116,8 +116,6 @@ export const asteroidImage = await loadImage("assets/asteroid/asteroid1.png");
 export const shipImage = await loadImage("assets/ship/ship1.png");
 const starImage = canvasToImage(createGlowingStar(3, 3, 5, 40));
 
-// 
-
 export var engine = new FluidEngine(1024);
 function setZoomScale(scale: number) {
     engine.PIXELS_PER_METER = 1000 * scale;
@@ -436,7 +434,7 @@ function generateChunk(worldContext: WorldContext, chunkCoordinates: Vec2): Chun
 const worldContext: WorldContext = new WorldContext(engine, 1.024, 0.1, generateChunk);
 const clientContext: ClientContext = new ClientContext(engine, worldContext, CONTEXT);
 
-let kinematicSystem = new Systems.KinematicSystem(),
+let kinematicSystem = new Systems.KinematicSystem(clientContext),
     positionSystem = new Systems.PositionSystem(),
     movementControlSystem = new Systems.MovementControlSystem(),
     viewportSystem = new Systems.ViewportSystem(),
@@ -447,7 +445,6 @@ let kinematicSystem = new Systems.KinematicSystem(),
     ChunkTrackingSystem = new Systems.ChunkTrackingSystem(engine, worldContext),
 
     worldPreRenderSystem = new Systems.WorldPreRenderSystem(engine),
-    particleRenderSystem = new Systems.ParticleRenderSystem(),
     viewportRenderSystem = new Systems.ViewportRenderSystem(),
     statRenderSystem = new Systems.StatRenderSystem(),
     spriteRenderSystem = new Systems.SpriteRenderSystem(CONTEXT),
@@ -469,7 +466,7 @@ engine.appendSystems(simulationPhase,
 engine.appendSystems(worldRender,
     worldPreRenderSystem,
     spriteRenderSystem,
-    particleRenderSystem,
+    colliderRenderSystem,
     colliderRenderSystem
 );
 
@@ -477,8 +474,6 @@ engine.appendSystems(hudRender,
     viewportRenderSystem,
     statRenderSystem
 );
-
-
 
 const FIRE_CONTROL = {
     key: 'fireControl',
@@ -506,11 +501,6 @@ const MAIN_CHARACTER = engine.createNewEntityFromComponents(
         acceleration: { x: 0, y: 0 },
         angular: 0
     } as Component.AccelerationComponent,
-    // {
-    //     key: "particle",
-    //     radius: PARTICLE_PARAMETERS.radius,
-    //     color: "red"
-    // } as Component.ParticleComponent,
     {
         key: 'stats',
         computedAcceleration: 0,
