@@ -10,7 +10,7 @@ export type PositionComponent = Component & {
 }
 
 export type TargetPositionComponent = Component & {
-    targetPositionComponent: PositionComponent;
+    position: PositionComponent;
 }
 
 export type VelocityComponent = Component & {
