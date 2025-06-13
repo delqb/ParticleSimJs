@@ -1,4 +1,4 @@
-import { ClientContext } from "@asteroid/Client";
+import { ClientContext } from "@asteroid/client/Client";
 import { PositionComponent, BoundingBox } from "@asteroid/components";
 import { System, EntityID } from "@fluidengine/core";
 
@@ -34,7 +34,7 @@ export class AxisRenderSystem extends System<AxisRenderSystemNode> {
 
         const { position: ePos, rotation: eRot } = node.position;
         const { size: bbRect, transform: bbTransform } = node.boundingBox;
-        const ctx = this.clientContext.renderingContext;
+        const ctx = this.clientContext.renderer.renderContext;
         const PPM = this.clientContext.engineInstance.PIXELS_PER_METER;
         let rot = eRot, rotOffset = 0;
 

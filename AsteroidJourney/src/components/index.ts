@@ -2,6 +2,7 @@ import { Component } from "@fluidengine/core";
 import { Vec2, Transform } from "@fluidengine/lib/spatial";
 
 export * from "./BoundingBox";
+export * from "./Projectile";
 
 export type ResolutionComponent = Component & {
     resolution: Vec2;
@@ -62,19 +63,8 @@ export type ParticleComponent = Component & {
     color: string;
 }
 
-export type ProjectileComponent = Component & {
-    generation: number;
-    deathTime: number;
-}
-
 export type FireControlComponent = Component & {
     fireIntent: boolean;
-}
-
-export type ProjectileSourceComponent = Component & {
-    muzzleSpeed: number;
-    lastFireTime: number;
-    projectileSize: number;
 }
 
 export type CursorTranslateComponent = Component & {

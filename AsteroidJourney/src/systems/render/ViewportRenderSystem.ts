@@ -9,11 +9,11 @@ type ViewportRenderNode = {
 
 export class ViewportRenderSystem extends System<ViewportRenderNode> {
     NODE_COMPONENT_KEYS: Set<keyof ViewportRenderNode> = new Set(['resolution', 'borderWidth', 'viewport']);
-    constructor(public renderingContext: CanvasRenderingContext2D) {
+    constructor(public renderContext: CanvasRenderingContext2D) {
         super();
     }
     public updateNode(node: ViewportRenderNode, entityID: EntityID) {
-        const ctx = this.renderingContext;
+        const ctx = this.renderContext;
         const isActive = true;
         if (!isActive)
             return;

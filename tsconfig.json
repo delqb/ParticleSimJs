@@ -18,7 +18,7 @@
             // AsteroidJourney
             // 
             "@asteroid/*": [
-                "AsteroidJourney/*"
+                "AsteroidJourney/src/*"
             ],
         }
     },

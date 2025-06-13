@@ -3,10 +3,12 @@ import { FluidEngine } from "@fluidengine/FluidEngine";
 import { Vec2, Vector2 } from "@fluidengine/lib/spatial";
 import { ImageUtils } from "@fluidengine/lib/utils";
 import { canvasToImage } from "@fluidengine/lib/utils/ImageUtils";
-import { ClientContext } from "./Client";
-import { VelocityComponent, ProjectileComponent, AccelerationComponent, createBoundingBox, MovementControlComponent, FireControlComponent, PositionComponent, StatsComponent, ProjectileSourceComponent, RenderCenterComponent, SpriteComponent, ResolutionComponent, TargetPositionComponent, ViewportBorderWidthComponent, CameraSpeedFactorComponent, ScreenPointComponent } from "./components";
+import { ClientContext } from "./client/Client";
+import { VelocityComponent, ProjectileComponent, AccelerationComponent, createBoundingBox, MovementControlComponent, FireControlComponent, PositionComponent, StatsComponent, ProjectileSourceComponent, RenderCenterComponent, SpriteComponent, ResolutionComponent, TargetPositionComponent, ViewportBorderWidthComponent, CameraSpeedFactorComponent, ScreenPointComponent, createProjectileSourceComponent } from "./components";
 import { KinematicSystem, PositionSystem, MovementControlSystem, ViewportSystem, ProjectileSystem, FiringSystem, CursorSystem, ChunkLoadingSystem, ChunkTrackingSystem, BoundingBoxUpdateSystem, WorldPreRenderSystem, ViewportRenderSystem, StatRenderSystem, SpriteRenderSystem, BoundingBoxRenderSystem, AxisRenderSystem } from "./systems";
 import { WorldContext, Chunk } from "./world/World";
+import { CanvasRenderer } from "./client/renderer/Renderer";
+import { boundedRandom } from "@fluidengine/lib/utils/MathUtils";
 
 function createGlowingStar(spikes, outerRadius, innerRadius, glowRadius) {
     const size = glowRadius * 2;
@@ -102,12 +104,10 @@ const laserShotCanvas = renderSingleNeonLaserSprite();
 const laserShotTexture = canvasToImage(laserShotCanvas);
 
 export const assetRoot = "/AsteroidJourney/assets";
-
 export const backgroundTileImage = await loadImage("background/space_background_tile.png");
 export const asteroidImage = await loadImage("asteroid/asteroid1.png");
 export const shipImage = await loadImage("ship/ship1.png");
 const starImage = canvasToImage(createGlowingStar(3, 3, 5, 40));
-
 
 export var engine = new FluidEngine(1024);
 function setZoomScale(scale: number) {
@@ -115,77 +115,31 @@ function setZoomScale(scale: number) {
 }
 setZoomScale(0.6);
 
-var CANVAS_ELEMENT = document.getElementById("canvas")! as HTMLCanvasElement;
-export var renderContext = CANVAS_ELEMENT.getContext("2d")!;
-let canvasWidth = CANVAS_ELEMENT.width,
-    canvasHeight = CANVAS_ELEMENT.height;
-
-CANVAS_ELEMENT.addEventListener("contextmenu", function (e) {
+const canvasElement = document.getElementById("canvas")! as HTMLCanvasElement,
+    renderContext = canvasElement.getContext("2d")!,
+    renderer = new CanvasRenderer(canvasElement, { scale: 0.98, renderBaseColor: "black" });
+canvasElement.addEventListener("contextmenu", function (e) {
     e.preventDefault();
 });
 
-resizeCanvas();
+// export const PARTICLE_PARAMETERS = {
+//     radius: 0.01,
+//     projectile: {
+//         radius: 0.0045,
+//         lifetime: 5, //in seconds
+//         fireRate: 10 //in shots per second
+//     },
+//     cannon: {
+//         width: 0.01,
+//         length: 0.02
+//     }
+// }
 
-const RENDER_BASE_COLOR = "black";
+// export const SHIP_PARAMETERS = {
+//     bowLength: 0.045,
+//     width: 0.035
+// }
 
-export const PARTICLE_PARAMETERS = {
-    radius: 0.01,
-    projectile: {
-        radius: 0.0045,
-        lifetime: 5, //in seconds
-        fireRate: 10 //in shots per second
-    },
-    cannon: {
-        width: 0.01,
-        length: 0.02
-    }
-}
-
-export const SHIP_PARAMETERS = {
-    bowLength: 0.045,
-    width: 0.035
-}
-
-export function spawnProjectile(position: Vec2, rotation: number, velocity: Vec2, deathTime: number, generation: number, size: number = 0.001): Entity {
-    let e = createSpriteEntity(
-        position,
-        rotation,
-        laserShotTexture,
-        0,
-        size / laserShotTexture.width
-    );
-    engine.addEntityComponents(e,
-        {
-            key: "velocity",
-            velocity: velocity,
-            angular: 0
-        } as VelocityComponent,
-        {
-            key: "projectile",
-            deathTime: deathTime,
-            generation: generation
-        } as ProjectileComponent,
-        {
-            key: "acceleration",
-            acceleration: { x: 0, y: 0 },
-            angular: 0
-        } as AccelerationComponent,
-        createBoundingBox(
-            {
-                width: size,
-                height: size
-            },
-            { transform: { scale: 0.10 } }
-        )
-    );
-
-
-    return e;
-}
-
-export function destroyProjectile(entityID: EntityID) {
-    engine.removeEntity(entityID);
-}
 
 const KEY_STATES = {
 };
@@ -288,18 +242,6 @@ function activateHotkeyBindings() {
     }
 }
 
-function resizeCanvas() {
-    canvasWidth = CANVAS_ELEMENT.width = window.innerWidth * .98;
-    canvasHeight = CANVAS_ELEMENT.height = window.innerHeight * .98;
-}
-
-window.addEventListener("resize", resizeCanvas);
-
-export function clearCanvas() {
-    renderContext.fillStyle = RENDER_BASE_COLOR;
-    renderContext.fillRect(0, 0, canvasWidth, canvasHeight);
-}
-
 function activateControlBindings() {
     for (const controlBinding of Object.keys(KEYBOARD_CONTROLS).map(k => KEYBOARD_CONTROLS[k])) {
         if (controlBinding.keys.some(k => KEY_STATES[k]))
@@ -315,12 +257,11 @@ function drawPauseScreen() {
     renderContext.save();
 
     renderContext.globalAlpha = 0.5;
-    renderContext.fillStyle = RENDER_BASE_COLOR;
-    renderContext.fillRect(0, 0, canvasWidth, canvasHeight);
+    renderer.clear();
     renderContext.globalAlpha = 0.5;
     renderContext.font = "bold 256px calibri"
     renderContext.fillStyle = "white";
-    renderContext.fillText("⏸", (canvasWidth - 256) / 2, canvasHeight / 2);
+    renderContext.fillText("⏸", (renderer.getWidth() - 256) / 2, renderer.getHeight() / 2);
 
     renderContext.restore();
 }
@@ -335,6 +276,7 @@ let simulationPhase = {
         MOVEMENT_CONTROL_COMPONENT.yawInput = 0;
         MOVEMENT_CONTROL_COMPONENT.accelerationInput.x = 0;
         MOVEMENT_CONTROL_COMPONENT.accelerationInput.y = 0;
+        FIRE_CONTROL.fireIntent = false;
     }
 } as SystemPhase
 
@@ -410,14 +352,14 @@ function generateChunk(worldContext: WorldContext, chunkCoordinates: Vec2): Chun
 }
 
 const worldContext: WorldContext = new WorldContext(engine, 1.024, 0.1, generateChunk);
-const clientContext: ClientContext = new ClientContext(engine, worldContext, renderContext);
+const clientContext: ClientContext = new ClientContext(engine, worldContext, renderer);
 
 let kinematicSystem = new KinematicSystem(clientContext),
     positionSystem = new PositionSystem(engine),
     movementControlSystem = new MovementControlSystem(),
     viewportSystem = new ViewportSystem(clientContext),
-    projectileSystem = new ProjectileSystem(),
-    firingSystem = new FiringSystem(),
+    projectileSystem = new ProjectileSystem(engine),
+    firingSystem = new FiringSystem(engine, p => spawnProjectile(p.position, p.velocity, p.rotation, p.angularVelocity, p.deathTime, p.generation, p.size).getID()),
     cursorSystem = new CursorSystem(engine),
     chunkLoadingSystem = new ChunkLoadingSystem(engine, worldContext),
     chunkTrackingSystem = new ChunkTrackingSystem(engine, worldContext),
@@ -486,12 +428,7 @@ const MAIN_CHARACTER = engine.createNewEntityFromComponents(
         computedAcceleration: 0,
         computedSpeed: 0
     } as StatsComponent,
-    {
-        key: "projectileSource",
-        lastFireTime: 0,
-        muzzleSpeed: 2.99792458,
-        projectileSize: 0.180
-    } as ProjectileSourceComponent,
+    createProjectileSourceComponent(2.99792458, 10, 0.180, 1),
     {
         key: "renderCenter",
         renderDistance: renderDistance
@@ -546,8 +483,8 @@ let viewport = engine.createNewEntityFromComponents(
     {
         key: "resolution",
         resolution: {
-            x: canvasWidth,
-            y: canvasHeight
+            x: renderer.getWidth(),
+            y: renderer.getHeight()
         }
     } as ResolutionComponent,
     {
@@ -556,7 +493,7 @@ let viewport = engine.createNewEntityFromComponents(
     } as TargetPositionComponent,
     {
         key: "borderWidth",
-        borderWidth: 0.05 * Math.min(canvasWidth, canvasHeight)
+        borderWidth: 0.05 * Math.min(renderer.getWidth(), renderer.getHeight())
     } as ViewportBorderWidthComponent,
     {
         key: "speedFactor",
@@ -572,7 +509,7 @@ const cursorScreenPointComponent: ScreenPointComponent = {
     point: { x: 0, y: 0 }
 };
 
-CANVAS_ELEMENT.addEventListener("mousemove", (event) => {
+canvasElement.addEventListener("mousemove", (event) => {
     cursorScreenPointComponent.point = { x: event.offsetX, y: event.offsetY };
 });
 
@@ -590,20 +527,9 @@ window.addEventListener("mousedown", (event: MouseEvent) => {
     MOUSE_KEY_STATES[event.button] = true;
 });
 
-CANVAS_ELEMENT.addEventListener("mouseup", (event: MouseEvent) => {
+canvasElement.addEventListener("mouseup", (event: MouseEvent) => {
     MOUSE_KEY_STATES[event.button] = false;
 });
-
-let starEntity1 = createSpriteEntity(Vector2.copy(MC_POS.position), Math.PI / 3, starImage, 1, 0.003);
-engine.addEntityComponents(starEntity1,
-    {
-        key: "velocity",
-        velocity: ({ x: 0.008, y: 0.01 }),
-        angular: 0
-    } as VelocityComponent
-);
-
-
 
 export function createSpriteEntity(position: Vec2, rotation: number, spriteTexture: HTMLImageElement, zIndex: number, scale = 1): Entity {
     return engine.createNewEntityFromComponents(
@@ -623,10 +549,6 @@ export function createSpriteEntity(position: Vec2, rotation: number, spriteTextu
     );
 }
 
-export function boundedRandom(min: number, max: number): number {
-    return min + (max - min) * Math.random();
-}
-
 export function createAsteroid(position: Vec2, rotation: number, velocity: Vec2, angularVelocity: number, size: number): Entity {
     let entity = createSpriteEntity(Vector2.copy(position), rotation, asteroidImage, 3, size / asteroidImage.width);
     engine.addEntityComponents(entity,
@@ -638,6 +560,43 @@ export function createAsteroid(position: Vec2, rotation: number, velocity: Vec2,
         createBoundingBox({ width: size, height: size })
     );
     return entity;
+}
+
+export function spawnProjectile(position: Vec2, velocity: Vec2, rotation: number, angularVelocity: number, deathTime: number, generation: number, size: number = 0.001): Entity {
+    let e = createSpriteEntity(
+        position,
+        rotation,
+        laserShotTexture,
+        0,
+        size / laserShotTexture.width
+    );
+    engine.addEntityComponents(e,
+        {
+            key: "velocity",
+            velocity: velocity,
+            angular: angularVelocity
+        } as VelocityComponent,
+        {
+            key: "projectile",
+            deathTime: deathTime,
+            generation: generation
+        } as ProjectileComponent,
+        {
+            key: "acceleration",
+            acceleration: { x: 0, y: 0 },
+            angular: 0
+        } as AccelerationComponent,
+        createBoundingBox(
+            {
+                width: size,
+                height: size
+            },
+            { transform: { scale: 0.10 } }
+        )
+    );
+
+
+    return e;
 }
 
 

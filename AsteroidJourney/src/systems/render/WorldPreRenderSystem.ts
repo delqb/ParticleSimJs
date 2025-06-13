@@ -1,5 +1,4 @@
-import { clearCanvas } from "@asteroid/AsteroidJourney";
-import { ClientContext } from "@asteroid/Client";
+import { ClientContext } from "@asteroid/client/Client";
 import { PositionComponent, ResolutionComponent, ViewportComponent } from "@asteroid/components";
 import { System, EntityID } from "@fluidengine/core";
 
@@ -17,14 +16,15 @@ export class WorldPreRenderSystem extends System<WorldPreRenderSystemNode> {
         super();
     }
     public updateNode(node: WorldPreRenderSystemNode, entityID: EntityID): void {
-        const ctx = this.clientContext.renderingContext;
+        const renderer = this.clientContext.renderer;
+        const ctx = renderer.renderContext;
         const PPM = this.clientContext.engineInstance.PIXELS_PER_METER;
         const { position: vpPosComp, resolution: resolutionComponent } = node;
         const vpPos = vpPosComp.position;
         const resolution = resolutionComponent.resolution;
         const hW = resolution.x / (2 * PPM), hH = resolution.y / (2 * PPM);
 
-        clearCanvas();
+        renderer.clear();
         ctx.save();
 
         // Scale canvas to convert the unit space from meters to pixels

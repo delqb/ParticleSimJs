@@ -1,4 +1,4 @@
-import { ClientContext } from "@asteroid/Client";
+import { ClientContext } from "@asteroid/client/Client";
 import { BoundingBox } from "@asteroid/components";
 import { System, EntityID } from "@fluidengine/core";
 
@@ -22,7 +22,7 @@ export class BoundingBoxRenderSystem extends System<BoundingBoxRenderNode> {
         // const { position: ePos, rotation: eRot } = posComp;
         // const { x, y } = ePos;
         // const { size: rect, transform } = bb;
-        const ctx = this.clientContext.renderingContext;
+        const ctx = this.clientContext.renderer.renderContext;
 
         ctx.save();
 

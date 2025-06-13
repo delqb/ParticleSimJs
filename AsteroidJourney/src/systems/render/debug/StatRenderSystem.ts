@@ -1,4 +1,4 @@
-import { ClientContext } from "@asteroid/Client";
+import { ClientContext } from "@asteroid/client/Client";
 import { PositionComponent, VelocityComponent, AccelerationComponent, StatsComponent } from "@asteroid/components";
 import { System, EntityID } from "@fluidengine/core";
 import { Vector2 } from "@fluidengine/lib/spatial";
@@ -71,7 +71,7 @@ export class StatRenderSystem extends System<StatRenderNode> {
         if (!cc.displayDebugInfo)
             return;
 
-        drawComplexText(cc.renderingContext, 10, 10,
+        drawComplexText(cc.renderer.renderContext, 10, 10,
             Object.keys(stats).map(
                 (key) => StatRenderSystem.formatStats(key, stats[key](node))
             )

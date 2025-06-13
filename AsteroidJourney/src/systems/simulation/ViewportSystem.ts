@@ -1,4 +1,4 @@
-import { ClientContext } from "@asteroid/Client";
+import { ClientContext } from "@asteroid/client/Client";
 import { PositionComponent, ResolutionComponent, TargetPositionComponent, CameraSpeedFactorComponent, ViewportComponent } from "@asteroid/components";
 import { System, EntityID } from "@fluidengine/core";
 import { Vector2 } from "@fluidengine/lib/spatial";

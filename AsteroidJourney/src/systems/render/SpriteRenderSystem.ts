@@ -14,7 +14,7 @@ export class SpriteRenderSystem extends System<SpriteSystemNode> {
     ]);
 
     private sortedNodeList: OrderedList<[EntityID, SpriteSystemNode]> = new OrderedList();
-    constructor(private ctx: CanvasRenderingContext2D) {
+    constructor(private renderContext: CanvasRenderingContext2D) {
         super();
     }
 
@@ -38,7 +38,7 @@ export class SpriteRenderSystem extends System<SpriteSystemNode> {
         const { x, y } = position.position;
         const transform = texture.transform;
         const img = texture.image;
-        const ctx = this.ctx;
+        const ctx = this.renderContext;
 
         ctx.save();
         ctx.translate(x, y);
