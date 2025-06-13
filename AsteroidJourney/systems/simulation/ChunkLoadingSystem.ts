@@ -1,7 +1,7 @@
-import { EntityID, System } from "../../../engine/FluidECS.js";
-import { FluidEngine } from "../../../engine/FluidEngine.js";
-import { PositionComponent, RenderCenterComponent } from "../../Components.js";
-import { WorldContext } from "../../world/World.js";
+import { RenderCenterComponent, PositionComponent } from "@asteroid/components";
+import { WorldContext } from "@asteroid/world/World";
+import { System, EntityID } from "@fluidengine/core";
+import { FluidEngine } from "@fluidengine/FluidEngine";
 
 type ChunkLoadingSystemNode = {
     renderCenter: RenderCenterComponent;

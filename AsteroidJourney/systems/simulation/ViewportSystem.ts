@@ -1,6 +1,8 @@
-import { EntityID, MathUtils, System, Vector2 } from "../../../engine/FluidECS.js";
-import { PositionComponent, ResolutionComponent, TargetPositionComponent, CameraSpeedFactorComponent, ViewportComponent } from "../../Components.js";
-import { ClientContext } from "../../Client.js";
+import { ClientContext } from "@asteroid/Client";
+import { PositionComponent, ResolutionComponent, TargetPositionComponent, CameraSpeedFactorComponent, ViewportComponent } from "@asteroid/components";
+import { System, EntityID } from "@fluidengine/core";
+import { Vector2 } from "@fluidengine/lib/spatial";
+import { MathUtils } from "@fluidengine/lib/utils";
 
 const { shortestAngleDiff } = MathUtils;
 

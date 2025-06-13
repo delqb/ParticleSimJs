@@ -1,6 +1,6 @@
-import { EntityID, MathUtils, System } from "../../../engine/FluidECS.js";
-import { PositionComponent, VelocityComponent, AccelerationComponent } from "../../Components.js";
-import { ClientContext } from "../../Client.js";
+import { ClientContext } from "@asteroid/Client";
+import { PositionComponent, VelocityComponent, AccelerationComponent } from "@asteroid/components";
+import { System, EntityID } from "@fluidengine/core";
 
 export type KinematicSystemNode = {
     position: PositionComponent;

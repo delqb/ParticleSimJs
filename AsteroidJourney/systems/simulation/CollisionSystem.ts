@@ -1,6 +1,5 @@
-import { engine } from "../../AsteroidJourney.js";
-import { EntityID, System } from "../../../engine/FluidECS.js";
-import { PositionComponent, VelocityComponent, ParticleComponent, BoundingBox } from "../../Components.js";
+import { PositionComponent, BoundingBox } from "@asteroid/components";
+import { System, EntityID } from "@fluidengine/core";
 
 export type CollisionSystemNode = {
     position: PositionComponent;

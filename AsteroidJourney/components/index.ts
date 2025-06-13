@@ -1,4 +1,7 @@
-import { Component, Vec2 } from "../engine/FluidECS";
+import { Component } from "@fluidengine/core";
+import { Vec2, Transform } from "@fluidengine/lib/spatial";
+
+export * from "./BoundingBox";
 
 export type ResolutionComponent = Component & {
     resolution: Vec2;
@@ -92,24 +95,8 @@ export type ChunkMembershipComponent = Component & {
     chunkKey: string;
 }
 
-export type BoundRectSize = {
-    width: number;
-    height: number;
-}
-
-export type Transform = {
-    translate?: Vec2;
-    rotate?: number;
-    scale?: number;
-}
-
 export type SpriteComponent = Component & {
     image: HTMLImageElement;
     transform?: Transform;
     zIndex: number;
 };
-
-export type BoundingBox = Component & {
-    size: BoundRectSize;
-    transform?: Transform;
-}

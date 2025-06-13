@@ -1,12 +1,12 @@
-import { EntityID, System } from "../../../../engine/FluidECS.js";
-import { ClientContext } from "../../../Client.js";
-import { BoundingBox as BoundingBox, PositionComponent } from "../../../Components.js";
+import { ClientContext } from "@asteroid/Client";
+import { PositionComponent, BoundingBox } from "@asteroid/components";
+import { System, EntityID } from "@fluidengine/core";
 
 const PI = Math.PI, PI2 = 2 * PI;
 
 type AxisRenderSystemNode = {
     position: PositionComponent;
-    boundingBox: BoundingBox
+    boundingBox: BoundingBox;
 }
 
 const backgroundOverlayRenderColor = "black";
@@ -36,7 +36,7 @@ export class AxisRenderSystem extends System<AxisRenderSystemNode> {
         const { size: bbRect, transform: bbTransform } = node.boundingBox;
         const ctx = this.clientContext.renderingContext;
         const PPM = this.clientContext.engineInstance.PIXELS_PER_METER;
-        let rotOffset = eRot;
+        let rot = eRot, rotOffset = 0;
 
         ctx.save();
 
@@ -48,7 +48,9 @@ export class AxisRenderSystem extends System<AxisRenderSystemNode> {
                 bbRot = bbTransform.rotate;
             if (bbTranslate) ctx.translate(bbTranslate.x, bbTranslate.y);
             if (bbScale) ctx.scale(bbScale, bbScale);
-            if (bbRot) rotOffset += bbRot;
+            if (bbRot) {
+                rotOffset = bbRot;
+            };
         }
 
         const halfDiagonalLength = Math.sqrt(bbRect.width * bbRect.width + bbRect.height * bbRect.height) / 2;
@@ -81,12 +83,12 @@ export class AxisRenderSystem extends System<AxisRenderSystemNode> {
         ctx.lineWidth = orientedAxisThicknessFactor / PPM;
         ctx.strokeStyle = rotationAngleArcColor;
         ctx.beginPath();
-        ctx.arc(0, 0, rotationAngleArcRadiusFactor * halfDiagonalLength, 0, rotOffset, rotOffset < 0);
+        ctx.arc(0, 0, rotationAngleArcRadiusFactor * halfDiagonalLength, rotOffset, rot + rotOffset, rot < 0);
         ctx.stroke();
 
 
         // Rotate what follows to match entity's rotation
-        ctx.rotate(rotOffset);
+        ctx.rotate(rot);
 
 
         // Draw oriented axis lines

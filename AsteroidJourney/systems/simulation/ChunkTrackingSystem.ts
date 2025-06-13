@@ -1,7 +1,7 @@
-import { EntityID, System } from "../../../engine/FluidECS.js";
-import { FluidEngine } from "../../../engine/FluidEngine.js";
-import { ChunkMembershipComponent, PositionComponent } from "../../Components.js";
-import { WorldContext } from "../../world/World.js";
+import { PositionComponent, ChunkMembershipComponent } from "@asteroid/components";
+import { WorldContext } from "@asteroid/world/World";
+import { System, EntityID } from "@fluidengine/core";
+import { FluidEngine } from "@fluidengine/FluidEngine";
 
 type ChunkTrackingSystemNode = {
     position: PositionComponent;

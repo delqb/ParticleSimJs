@@ -1,6 +1,6 @@
-import { engine, destroyProjectile } from "../../AsteroidJourney.js";
-import { EntityID, System } from "../../../engine/FluidECS.js";
-import { ProjectileComponent, PositionComponent } from "../../Components.js";
+import { engine, destroyProjectile } from "@asteroid/AsteroidJourney";
+import { ProjectileComponent, PositionComponent } from "@asteroid/components";
+import { System, EntityID } from "@fluidengine/core";
 
 type ProjectileSystemNode = {
     projectile: ProjectileComponent;

@@ -1,6 +1,6 @@
-import { Entity, EntityID, Vec2, Vector2 } from "../../engine/FluidECS.js";
-import { FluidEngine } from "../../engine/FluidEngine.js";
-import { backgroundTileImage, createSpriteEntity } from "../AsteroidJourney.js";
+import { EntityID, Entity } from "@fluidengine/core";
+import { FluidEngine } from "@fluidengine/FluidEngine";
+import { Vec2 } from "@fluidengine/lib/spatial";
 
 export type ChunkState = "loaded" | "unloaded";
 

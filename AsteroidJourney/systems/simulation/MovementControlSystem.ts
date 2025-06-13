@@ -1,5 +1,6 @@
-import { EntityID, MathUtils, System, Vector2 } from "../../../engine/FluidECS.js";
-import { PositionComponent, VelocityComponent, AccelerationComponent, MovementControlComponent, TargetPositionComponent } from "../../Components.js";
+import { PositionComponent, VelocityComponent, AccelerationComponent, MovementControlComponent } from "@asteroid/components";
+import { System, EntityID } from "@fluidengine/core";
+import { Vector2 } from "@fluidengine/lib/spatial";
 
 const hPI = Math.PI / 2;
 const THRUST_FORCE = 0.25

@@ -1,7 +1,7 @@
-import { engine } from "../../AsteroidJourney.js";
-import { EntityID, System, Vector2 } from "../../../engine/FluidECS.js";
-import { PositionComponent, VelocityComponent, ProjectileSourceComponent, FireControlComponent } from "../../Components.js";
-import { PARTICLE_PARAMETERS, SHIP_PARAMETERS, spawnProjectile } from "../../AsteroidJourney.js";
+import { engine, PARTICLE_PARAMETERS, SHIP_PARAMETERS, spawnProjectile } from "@asteroid/AsteroidJourney";
+import { ProjectileSourceComponent, FireControlComponent, VelocityComponent, PositionComponent } from "@asteroid/components";
+import { System, EntityID } from "@fluidengine/core";
+import { Vector2 } from "@fluidengine/lib/spatial";
 
 type FiringSystemNode = {
     projectileSource: ProjectileSourceComponent;

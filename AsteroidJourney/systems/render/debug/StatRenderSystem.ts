@@ -1,29 +1,30 @@
-import { EntityID, System, MathUtils, Vector2 } from "../../../../engine/FluidECS.js";
-import { AccelerationComponent, PositionComponent, StatsComponent, VelocityComponent } from "../../../Components.js";
-import { engine, CONTEXT, measuredFPS } from "../../../AsteroidJourney.js";
-import { ClientContext } from "../../../Client.js";
+import { ClientContext } from "@asteroid/Client";
+import { PositionComponent, VelocityComponent, AccelerationComponent, StatsComponent } from "@asteroid/components";
+import { System, EntityID } from "@fluidengine/core";
+import { Vector2 } from "@fluidengine/lib/spatial";
+import { MathUtils } from "@fluidengine/lib/utils";
 
 const round = MathUtils.round;
 
-function drawComplexText(x: number, y: number, content = [["Colored ", "red"], ["\n"], ["Text ", "Blue"], ["Test", "Green"]], lineSpacing = 2) {
-    const TEXT_METRICS = CONTEXT.measureText("A");
+function drawComplexText(renderContext: CanvasRenderingContext2D, x: number, y: number, content = [["Colored ", "red"], ["\n"], ["Text ", "Blue"], ["Test", "Green"]], lineSpacing = 2) {
+    const TEXT_METRICS = renderContext.measureText("A");
     const FONT_HEIGHT = TEXT_METRICS.actualBoundingBoxAscent + TEXT_METRICS.actualBoundingBoxDescent;
 
     let xOrig = x;
     for (const piece of content) {
         let text = piece[0];
-        let color = piece.length > 1 ? piece[1] : CONTEXT.fillStyle;
-        CONTEXT.fillStyle = color;
+        let color = piece.length > 1 ? piece[1] : renderContext.fillStyle;
+        renderContext.fillStyle = color;
         if (text.includes("\n")) {
             for (const line of text.split("\n")) {
-                CONTEXT.fillText(line, x, y);
+                renderContext.fillText(line, x, y);
                 y += FONT_HEIGHT + lineSpacing;
                 x = xOrig;
             }
         }
         else {
-            CONTEXT.fillText(text, x, y);
-            x += CONTEXT.measureText(text).width;
+            renderContext.fillText(text, x, y);
+            x += renderContext.measureText(text).width;
         }
     }
     return y;
@@ -41,9 +42,9 @@ export class StatRenderSystem extends System<StatRenderNode> {
     constructor(public clientContext: ClientContext) {
         super();
     }
-    static STATS = {
-        isAnimating: (node: StatRenderNode) => engine.getAnimationState(),
-        fps: (node: StatRenderNode) => round(measuredFPS),
+    stats = {
+        isAnimating: (node: StatRenderNode) => this.clientContext.engineInstance.getAnimationState(),
+        fps: (node: StatRenderNode) => round(this.clientContext.engineInstance.getFPS()),
         position: (node: StatRenderNode) => {
             const pC = node.position;
             const { position: p, rotation: r } = pC;
@@ -66,11 +67,14 @@ export class StatRenderSystem extends System<StatRenderNode> {
     }
 
     public updateNode(node: StatRenderNode, entityID: EntityID) {
-        if (!this.clientContext.displayDebugInfo)
+        const cc = this.clientContext, stats = this.stats;
+        if (!cc.displayDebugInfo)
             return;
 
-        drawComplexText(10, 10,
-            Object.keys(StatRenderSystem.STATS).map((key) => StatRenderSystem.formatStats(key, StatRenderSystem.STATS[key](node))),
-            2);
+        drawComplexText(cc.renderingContext, 10, 10,
+            Object.keys(stats).map(
+                (key) => StatRenderSystem.formatStats(key, stats[key](node))
+            )
+            , 2);
     }
 }

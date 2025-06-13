@@ -1,7 +1,7 @@
-import { EntityID, System, Vector2 } from "../../../engine/FluidECS.js";
-import { FluidEngine } from "../../../engine/FluidEngine.js";
-import { clearCanvas, CONTEXT } from "../../AsteroidJourney.js";
-import { PositionComponent, ResolutionComponent, ViewportComponent } from "../../Components.js";
+import { clearCanvas } from "@asteroid/AsteroidJourney";
+import { ClientContext } from "@asteroid/Client";
+import { PositionComponent, ResolutionComponent, ViewportComponent } from "@asteroid/components";
+import { System, EntityID } from "@fluidengine/core";
 
 const hPI = Math.PI / 2;
 
@@ -13,32 +13,33 @@ type WorldPreRenderSystemNode = {
 
 export class WorldPreRenderSystem extends System<WorldPreRenderSystemNode> {
     NODE_COMPONENT_KEYS: Set<keyof WorldPreRenderSystemNode> = new Set(['position', 'resolution', 'viewport']);
-    constructor(private engineInstance: FluidEngine) {
+    constructor(private clientContext: ClientContext) {
         super();
     }
     public updateNode(node: WorldPreRenderSystemNode, entityID: EntityID): void {
-        const PPM = this.engineInstance.PIXELS_PER_METER;
+        const ctx = this.clientContext.renderingContext;
+        const PPM = this.clientContext.engineInstance.PIXELS_PER_METER;
         const { position: vpPosComp, resolution: resolutionComponent } = node;
         const vpPos = vpPosComp.position;
         const resolution = resolutionComponent.resolution;
         const hW = resolution.x / (2 * PPM), hH = resolution.y / (2 * PPM);
 
         clearCanvas();
-        CONTEXT.save();
+        ctx.save();
 
         // Scale canvas to convert the unit space from meters to pixels
-        CONTEXT.scale(PPM, PPM);
+        ctx.scale(PPM, PPM);
 
         // Move canvas origin to center of screen (camera pivot point)
-        CONTEXT.translate(hW, hH);
+        ctx.translate(hW, hH);
 
         // Rotate everything that follows by the inverse of the viewport's rotation
         // This simulates the rotation of the viewport by rotating everything else in the opposite direction
         // Offset the angle by -Math.PI/2 so that the entity's positive x-axis aligns with the screen's/viewport's positive y-axis
-        CONTEXT.rotate(-vpPosComp.rotation - hPI);
+        ctx.rotate(-vpPosComp.rotation - hPI);
 
         // Translate everything that follows (world) so that viewport target is at the center of the screen
-        CONTEXT.translate(-hW - vpPos.x, -hH - vpPos.y);
+        ctx.translate(-hW - vpPos.x, -hH - vpPos.y);
     }
 
 }

@@ -1,5 +1,6 @@
-import { System, EntityID, OrderedList } from "../../../engine/FluidECS.js";
-import { PositionComponent, SpriteComponent } from "../../Components.js";
+import { PositionComponent, SpriteComponent } from "@asteroid/components";
+import { System, EntityID } from "@fluidengine/core";
+import { OrderedList } from "@fluidengine/lib/structures";
 
 type SpriteSystemNode = {
     position: PositionComponent;

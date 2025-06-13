@@ -1,6 +1,6 @@
-import { engine } from "../../AsteroidJourney.js";
-import { EntityID, System, MathUtils } from "../../../engine/FluidECS.js";
-import { PositionComponent, VelocityComponent } from "../../Components.js";
+import { PositionComponent, VelocityComponent } from "@asteroid/components";
+import { System, EntityID } from "@fluidengine/core";
+import { FluidEngine } from "@fluidengine/FluidEngine";
 
 const PI = Math.PI, PI2 = 2 * PI;
 
@@ -11,8 +11,11 @@ export type PositionSystemNode = {
 
 export class PositionSystem extends System<PositionSystemNode> {
     NODE_COMPONENT_KEYS: Set<keyof PositionSystemNode> = new Set(['position', 'velocity']);
+    constructor(public engineInstance: FluidEngine) {
+        super();
+    }
     public updateNode(node: PositionSystemNode, entityID: EntityID) {
-        const DELTA_TIME = engine.getDeltaTime();
+        const DELTA_TIME = this.engineInstance.deltaTime;
         const { position: posComp, velocity: velComp } = node;
         const { position: pos } = posComp;
         const { velocity: vel, angular: angVel } = velComp;
