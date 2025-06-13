@@ -84,6 +84,10 @@ export class MVec2 implements Vec2 {
 }
 
 export const Vector2 = {
+    zero: (): Vec2 => {
+        return { x: 0, y: 0 };
+    },
+
     create: (x = 0, y = 0): Vec2 => ({ x, y }),
 
     add: (a: Vec2, b: Vec2): Vec2 => ({ x: a.x + b.x, y: a.y + b.y }),

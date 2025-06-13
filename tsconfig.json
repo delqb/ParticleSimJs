@@ -1,8 +1,26 @@
 {
     "compilerOptions": {
+        "moduleResolution": "node",
+        "moduleDetection": "force",
         "target": "ESNext",
-        "module": "esnext",
-        "outDir": "js"
+        "module": "ESNext",
+        "outDir": "js",
+        "baseUrl": "./",
+        "paths": {
+            // Engine root
+            "@fluidengine/*": [
+                "engine/src/*"
+            ],
+            "@fluidlib/*": [
+                "engine/src/lib/*"
+            ],
+            // 
+            // AsteroidJourney
+            // 
+            "@asteroid/*": [
+                "AsteroidJourney/*"
+            ],
+        }
     },
     "exclude": [
         "temp"

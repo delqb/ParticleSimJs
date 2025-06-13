@@ -1,10 +1,16 @@
-import { FluidCore } from "./FluidECS.js";
+import { FluidCore } from "./FluidECS";
+import { FPSTimer } from "./lib/utils/FPSTimer";
 
 export class FluidEngine extends FluidCore {
     private isAnimating = false;
     private gameTime = 0;
-    constructor(public PIXELS_PER_METER: number = 1000, public readonly deltaTime: number = 1 / 60) {
+    public readonly fpsTimer: FPSTimer;
+    constructor(public PIXELS_PER_METER: number = 1000, public readonly deltaTime: number = 1 / 60, FPS_SAMPLING_INTERVAL: number = 20) {
         super();
+        this.fpsTimer = new FPSTimer(FPS_SAMPLING_INTERVAL);
+    }
+    getFPS() {
+        return this.fpsTimer.getFPS();
     }
     getGameTime() {
         return this.gameTime;
@@ -14,6 +20,7 @@ export class FluidEngine extends FluidCore {
     }
     animate() {
         try {
+            this.fpsTimer.tick();
             this.update();
         } catch (err) {
             console.error(err);
