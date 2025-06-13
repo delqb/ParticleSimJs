@@ -14,3 +14,7 @@ export function round(num: number, decimalPlaces = 3): number {
 export function lerp(start: number, end: number, t: number): number {
     return start + (end - start) * t;
 }
+
+export function boundedRandom(min: number, max: number): number {
+    return min + (max - min) * Math.random();
+}
