@@ -1,21 +1,18 @@
 import { PositionComponent, BoundingBox } from "@asteroid/components";
 import { System, EntityID } from "@fluidengine/core";
-import { Vector2, AABB } from "@fluidengine/lib/spatial";
+import { Vector2, AABB, createOBB } from "@fluidengine/lib/spatial";
 
 const fcos = Math.cos, fsin = Math.sin, abs = Math.abs;
-const vzero = Vector2.zero;
 
 type BoundingBoxUpdateNode = {
     position: PositionComponent;
     boundingBox: BoundingBox;
-}
-
+};
 
 export class BoundingBoxUpdateSystem extends System<BoundingBoxUpdateNode> {
     NODE_COMPONENT_KEYS: Set<keyof BoundingBoxUpdateNode> = new Set(['position', 'boundingBox']);
-    constructor() {
-        super();
-    }
+    constructor() { super(); }
+
     public updateNode(node: BoundingBoxUpdateNode, entityID: EntityID): void {
         // Handle all bounding box calculations here and store results in boundingbox component once.
         // In bounding box rendering system, only use the stored values and do not do any transformations.
@@ -26,15 +23,14 @@ export class BoundingBoxUpdateSystem extends System<BoundingBoxUpdateNode> {
         const eP = posComp.position;
         const size = bb.size;
 
-        bb.rotation = posComp.rotation
+        // Apply transform (mutating size and center)
+        bb.rotation = posComp.rotation;
         center.x = eP.x;
         center.y = eP.y;
 
         const transform = bb.transform;
         if (transform) {
-            const scale = transform.scale;
-            const rotate = transform.rotate;
-            const translate = transform.translate;
+            const { scale, rotate, translate } = transform;
             if (scale) {
                 // Bake the scale into rectSize and reset;
                 size.width *= scale;
@@ -50,24 +46,47 @@ export class BoundingBoxUpdateSystem extends System<BoundingBoxUpdateNode> {
             }
         }
 
-        const { x, y } = center;
+        const { x: cx, y: cy } = center;
         const rot = bb.rotation;
-        const hW = size.width / 2, hH = size.height / 2;
         const cos = fcos(rot), sin = fsin(rot);
-        const dX = abs(hW * cos) + abs(hH * sin);
-        const dY = abs(hW * sin) + abs(hH * cos);
-        const left = x - dX,
-            right = x + dX,
-            top = y + dY,
-            bottom = y - dY;
+        const hw = size.width / 2, hh = size.height / 2;
+
+        // --- Compute AABB from rotated box ---
+        const dX = abs(hw * cos) + abs(hh * sin);
+        const dY = abs(hw * sin) + abs(hh * cos);
 
         const aabb = bb.aabb || {} as AABB;
-
-        aabb.left = left;
-        aabb.right = right;
-        aabb.top = top;
-        aabb.bottom = bottom;
-
+        aabb.left = cx - dX;
+        aabb.right = cx + dX;
+        aabb.top = cy + dY;
+        aabb.bottom = cy - dY;
         bb.aabb = aabb;
+
+        // Compute OBB axes and half-extents
+        const axisX = { x: cos, y: sin };        // Local X axis
+        const axisY = { x: -sin, y: cos };       // Local Y axis
+
+        const obb = bb.obb || createOBB();
+
+        obb.halfExtents.x = hw;
+        obb.halfExtents.y = hh;
+        obb.axes.x = axisX;
+        obb.axes.y = axisY;
+
+        // compute world-space corners
+        const hx = hw, hy = hh;
+
+        // Offset combinations for 4 corners
+        const dx = [hx, hx, -hx, -hx];
+        const dy = [hy, -hy, -hy, hy];
+
+        for (let i = 0; i < 4; i++) {
+            const offsetX = dx[i] * axisX.x + dy[i] * axisY.x;
+            const offsetY = dx[i] * axisX.y + dy[i] * axisY.y;
+            obb.corners[i].x = cx + offsetX;
+            obb.corners[i].y = cy + offsetY;
+        }
+
+        bb.obb = obb;
     }
 }

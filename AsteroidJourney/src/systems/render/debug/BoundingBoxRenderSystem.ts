@@ -19,38 +19,31 @@ export class BoundingBoxRenderSystem extends System<BoundingBoxRenderNode> {
             return;
 
         const { boundingBox: bb } = node;
-        // const { position: ePos, rotation: eRot } = posComp;
-        // const { x, y } = ePos;
-        // const { size: rect, transform } = bb;
         const ctx = this.clientContext.renderer.renderContext;
-
         ctx.save();
 
         ctx.lineWidth = 1 / PPM;
         ctx.strokeStyle = "white";
 
-        if (bb.aabb) {
-            const { top, bottom, left, right } = bb.aabb;
+        const aabb = bb.aabb;
+        if (aabb) {
+            const { top, bottom, left, right } = aabb;
             ctx.strokeRect(left, bottom, right - left, top - bottom);
         }
 
-        if (bb.obb) {
-
+        const obb = bb.obb;
+        if (obb && obb.corners) {
+            const corners = obb.corners;
+            ctx.beginPath();
+            let corner = corners[0];
+            ctx.moveTo(corner.x, corner.y);
+            for (let i = 1; i < 4; i++) {
+                corner = corners[i];
+                ctx.lineTo(corner.x, corner.y);
+            }
+            ctx.closePath();
+            ctx.stroke();
         }
-
-        // // Translate what follows to entity position and apply bounding box translations
-        // ctx.translate(x, y);
-        // if (transform && transform.translate) ctx.translate(transform.translate.x, transform.translate.y);
-
-        // // Rotate what follows to match entity's rotation to render the oriented bounding box
-        // ctx.rotate(eRot);
-
-        // // Apply local, collider-specific transformations that are relative to the entity, if any
-        // if (transform) {
-        //     if (transform.rotate) ctx.rotate(transform.rotate);
-        // }
-
-        // ctx.strokeRect(-rect.width / 2, -rect.height / 2, rect.width, rect.height);
 
         ctx.restore();
     }
