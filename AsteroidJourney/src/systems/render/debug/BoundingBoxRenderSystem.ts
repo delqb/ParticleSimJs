@@ -1,9 +1,11 @@
 import { ClientContext } from "@asteroid/client/Client";
-import { BoundingBox } from "@asteroid/components";
+import { BoundingBoxComponent } from "@asteroid/components";
 import { System, EntityID } from "@fluidengine/core";
 
+const PI = Math.PI;
+
 type BoundingBoxRenderNode = {
-    boundingBox: BoundingBox;
+    boundingBox: BoundingBoxComponent;
 }
 
 export class BoundingBoxRenderSystem extends System<BoundingBoxRenderNode> {
@@ -44,6 +46,14 @@ export class BoundingBoxRenderSystem extends System<BoundingBoxRenderNode> {
             ctx.closePath();
             ctx.stroke();
         }
+
+        ctx.beginPath();
+        ctx.fillStyle = "white";
+        const centerPointWidth = Math.min(bb.size.width, bb.size.height) / 20;
+        const hcpw = centerPointWidth / 2;
+        const ctr = bb.center;
+        ctx.arc(ctr.x, ctr.y, hcpw, 0, 2 * PI);
+        ctx.fill();
 
         ctx.restore();
     }

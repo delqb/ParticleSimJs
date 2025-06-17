@@ -1,8 +1,9 @@
 import { Component } from "@fluidengine/core";
 import { Vec2, Transform } from "@fluidengine/lib/spatial";
 
-export * from "./BoundingBox";
-export * from "./Projectile";
+export * from "./BoundingBoxComponent";
+export * from "./ProjectileComponent";
+export * from "./ChunkOccupancyComponent"
 
 export type ResolutionComponent = Component & {
     resolution: Vec2;
@@ -79,10 +80,6 @@ export type StatsComponent = Component & {
 
 export type RenderCenterComponent = Component & {
     renderDistance: number;
-}
-
-export type ChunkMembershipComponent = Component & {
-    chunkKey: string;
 }
 
 export type SpriteComponent = Component & {

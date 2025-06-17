@@ -1,12 +1,12 @@
 import { ClientContext } from "@asteroid/client/Client";
-import { PositionComponent, BoundingBox } from "@asteroid/components";
+import { PositionComponent, BoundingBoxComponent } from "@asteroid/components";
 import { System, EntityID } from "@fluidengine/core";
 
 const PI = Math.PI, PI2 = 2 * PI;
 
 type AxisRenderSystemNode = {
     position: PositionComponent;
-    boundingBox: BoundingBox;
+    boundingBox: BoundingBoxComponent;
 }
 
 const backgroundOverlayRenderColor = "black";
@@ -34,6 +34,9 @@ export class AxisRenderSystem extends System<AxisRenderSystemNode> {
 
         const { position: ePos, rotation: eRot } = node.position;
         const { size: bbRect, transform: bbTransform } = node.boundingBox;
+        const width = bbRect.width,
+            height = bbRect.height;
+
         const ctx = this.clientContext.renderer.renderContext;
         const PPM = this.clientContext.engineInstance.PIXELS_PER_METER;
         let rot = eRot, rotOffset = 0;
@@ -53,20 +56,19 @@ export class AxisRenderSystem extends System<AxisRenderSystemNode> {
             };
         }
 
-        const halfDiagonalLength = Math.sqrt(bbRect.width * bbRect.width + bbRect.height * bbRect.height) / 2;
-
+        const length = Math.max(width, height) / 2;
 
         // Draw background overlay
         ctx.globalAlpha = backgroundOverlayAlpha;
         ctx.beginPath();
-        ctx.arc(0, 0, halfDiagonalLength, 0, PI2);
+        ctx.arc(0, 0, length, 0, PI2);
         ctx.fillStyle = backgroundOverlayRenderColor;
         ctx.fill();
         ctx.globalAlpha = 1.0;
 
 
         // Draw axis-aligned lines
-        const axisAlignedLength = alignedAxisScaleFactor * halfDiagonalLength;
+        const axisAlignedLength = alignedAxisScaleFactor * length;
         ctx.strokeStyle = alignedAxisRenderColor;
         ctx.lineWidth = alignedAxisThicknessFactor / PPM;
         ctx.beginPath();
@@ -83,7 +85,7 @@ export class AxisRenderSystem extends System<AxisRenderSystemNode> {
         ctx.lineWidth = orientedAxisThicknessFactor / PPM;
         ctx.strokeStyle = rotationAngleArcColor;
         ctx.beginPath();
-        ctx.arc(0, 0, rotationAngleArcRadiusFactor * halfDiagonalLength, rotOffset, rot + rotOffset, rot < 0);
+        ctx.arc(0, 0, rotationAngleArcRadiusFactor * length, rotOffset, rot + rotOffset, rot < 0);
         ctx.stroke();
 
 
@@ -92,7 +94,7 @@ export class AxisRenderSystem extends System<AxisRenderSystemNode> {
 
 
         // Draw oriented axis lines
-        const orientedAxisLength = orientedAxisScaleFactor * halfDiagonalLength;
+        const orientedAxisLength = orientedAxisScaleFactor * length;
         ctx.strokeStyle = orientedAxisRenderColor;
         ctx.beginPath();
         ctx.moveTo(-orientedAxisLength, 0);

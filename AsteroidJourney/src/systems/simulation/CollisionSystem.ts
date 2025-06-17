@@ -1,9 +1,9 @@
-import { PositionComponent, BoundingBox } from "@asteroid/components";
+import { PositionComponent, BoundingBoxComponent } from "@asteroid/components";
 import { System, EntityID } from "@fluidengine/core";
 
 export type CollisionSystemNode = {
     position: PositionComponent;
-    collider: BoundingBox;
+    collider: BoundingBoxComponent;
 }
 
 export class CollisionSystem extends System<CollisionSystemNode> {

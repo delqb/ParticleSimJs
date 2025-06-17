@@ -1,4 +1,4 @@
-import { PositionComponent, BoundingBox } from "@asteroid/components";
+import { PositionComponent, BoundingBoxComponent } from "@asteroid/components";
 import { System, EntityID } from "@fluidengine/core";
 import { Vector2, AABB, createOBB } from "@fluidengine/lib/spatial";
 
@@ -6,7 +6,7 @@ const fcos = Math.cos, fsin = Math.sin, abs = Math.abs;
 
 type BoundingBoxUpdateNode = {
     position: PositionComponent;
-    boundingBox: BoundingBox;
+    boundingBox: BoundingBoxComponent;
 };
 
 export class BoundingBoxUpdateSystem extends System<BoundingBoxUpdateNode> {
@@ -51,7 +51,7 @@ export class BoundingBoxUpdateSystem extends System<BoundingBoxUpdateNode> {
         const cos = fcos(rot), sin = fsin(rot);
         const hw = size.width / 2, hh = size.height / 2;
 
-        // --- Compute AABB from rotated box ---
+        //Compute AABB from rotated box
         const dX = abs(hw * cos) + abs(hh * sin);
         const dY = abs(hw * sin) + abs(hh * cos);
 
@@ -73,12 +73,9 @@ export class BoundingBoxUpdateSystem extends System<BoundingBoxUpdateNode> {
         obb.axes.x = axisX;
         obb.axes.y = axisY;
 
-        // compute world-space corners
-        const hx = hw, hy = hh;
-
         // Offset combinations for 4 corners
-        const dx = [hx, hx, -hx, -hx];
-        const dy = [hy, -hy, -hy, hy];
+        const dx = [hw, hw, -hw, -hw];
+        const dy = [hh, -hh, -hh, hh];
 
         for (let i = 0; i < 4; i++) {
             const offsetX = dx[i] * axisX.x + dy[i] * axisY.x;

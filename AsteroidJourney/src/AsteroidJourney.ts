@@ -4,11 +4,14 @@ import { Vec2, Vector2 } from "@fluidengine/lib/spatial";
 import { ImageUtils } from "@fluidengine/lib/utils";
 import { canvasToImage } from "@fluidengine/lib/utils/ImageUtils";
 import { ClientContext } from "./client/Client";
-import { VelocityComponent, ProjectileComponent, AccelerationComponent, createBoundingBox, MovementControlComponent, FireControlComponent, PositionComponent, StatsComponent, ProjectileSourceComponent, RenderCenterComponent, SpriteComponent, ResolutionComponent, TargetPositionComponent, ViewportBorderWidthComponent, CameraSpeedFactorComponent, ScreenPointComponent, createProjectileSourceComponent } from "./components";
-import { KinematicSystem, PositionSystem, MovementControlSystem, ViewportSystem, ProjectileSystem, FiringSystem, CursorSystem, ChunkLoadingSystem, ChunkTrackingSystem, BoundingBoxUpdateSystem, WorldPreRenderSystem, ViewportRenderSystem, StatRenderSystem, SpriteRenderSystem, BoundingBoxRenderSystem, AxisRenderSystem } from "./systems";
-import { WorldContext, Chunk } from "./world/World";
+import { VelocityComponent, ProjectileComponent, AccelerationComponent, createBoundingBox, MovementControlComponent, FireControlComponent, PositionComponent, StatsComponent, ProjectileSourceComponent, RenderCenterComponent, SpriteComponent, ResolutionComponent, TargetPositionComponent, ViewportBorderWidthComponent, CameraSpeedFactorComponent, ScreenPointComponent, createProjectileSourceComponent, createChunkOccupancyComponent } from "./components";
+import { KinematicSystem, PositionSystem, MovementControlSystem, ViewportSystem, ProjectileSystem, FiringSystem, CursorSystem, ChunkLoadingSystem, ChunkOccupancyUpdateSystem, BoundingBoxUpdateSystem, WorldPreRenderSystem, ViewportRenderSystem, StatRenderSystem, SpriteRenderSystem, BoundingBoxRenderSystem, AxisRenderSystem, ChunkBorderRenderSystem, ChunkUnloadingSystem } from "./systems";
+import { WorldContext } from "./world/World";
+import { Chunk, ChunkIndex, ChunkState, createChunk, getChunkCenterFromIndex } from "../../engine/src/lib/world/chunk/Chunk";
 import { CanvasRenderer } from "./client/renderer/Renderer";
 import { boundedRandom } from "@fluidengine/lib/utils/MathUtils";
+import { createChunkComponent } from "./components/ChunkComponent";
+import { OccupiedChunkHighlightingSystem } from "./systems/render/debug/OccupiedChunkHighlightingSystem";
 
 function createGlowingStar(spikes, outerRadius, innerRadius, glowRadius) {
     const size = glowRadius * 2;
@@ -116,30 +119,25 @@ function setZoomScale(scale: number) {
 setZoomScale(0.6);
 
 const canvasElement = document.getElementById("canvas")! as HTMLCanvasElement,
+    VIEWPORT_RESOLUTION_COMPONENT = {
+        key: "resolution",
+        resolution: Vector2.zero()
+    } as ResolutionComponent,
     renderContext = canvasElement.getContext("2d")!,
-    renderer = new CanvasRenderer(canvasElement, { scale: 0.98, renderBaseColor: "black" });
+    renderer = new CanvasRenderer(
+        canvasElement,
+        {
+            scale: 0.98,
+            renderBaseColor: "black",
+            onresize:
+                (pw, ph, nw, nh) => {
+                    VIEWPORT_RESOLUTION_COMPONENT.resolution.x = nw;
+                    VIEWPORT_RESOLUTION_COMPONENT.resolution.y = nh;
+                }
+        });
 canvasElement.addEventListener("contextmenu", function (e) {
     e.preventDefault();
 });
-
-// export const PARTICLE_PARAMETERS = {
-//     radius: 0.01,
-//     projectile: {
-//         radius: 0.0045,
-//         lifetime: 5, //in seconds
-//         fireRate: 10 //in shots per second
-//     },
-//     cannon: {
-//         width: 0.01,
-//         length: 0.02
-//     }
-// }
-
-// export const SHIP_PARAMETERS = {
-//     bowLength: 0.045,
-//     width: 0.035
-// }
-
 
 const KEY_STATES = {
 };
@@ -232,6 +230,12 @@ const HOTKEYS = {
         action: () => {
             clientContext.displayEntityAxes = !clientContext.displayEntityAxes;
         }
+    },
+    toggle_display_chunks: {
+        keys: ["f4"],
+        action: () => {
+            clientContext.displayChunks = !clientContext.displayChunks;
+        }
     }
 }
 
@@ -301,36 +305,40 @@ let hudRender = {
 engine.addPhase(simulationPhase, worldRender, hudRender);
 
 let renderDistance: number = 3;
-function generateChunk(worldContext: WorldContext, chunkCoordinates: Vec2): Chunk {
+function generateChunk(worldContext: WorldContext, chunkIndex: ChunkIndex, chunkSize: number): Chunk {
+    const chunkCenter = getChunkCenterFromIndex(chunkIndex[0], chunkIndex[1], chunkSize);
     // Creates background
-    let backgroundEntity = createSpriteEntity(
-        Vector2.scale(chunkCoordinates, this.chunkSize),
+    let chunkEntity = createSpriteEntity(
+        chunkCenter,
         0,
         backgroundTileImage,
         0,
-        this.chunkSize / backgroundTileImage.width
+        chunkSize / backgroundTileImage.width
     );
 
-    const gridSize = worldContext.chunkSize / 3,
-        asteroidProbability = 0.3;
+    const halfChunkSize = chunkSize / 2;
+    const nSubDivision = 3;
+    const subGridSize = chunkSize / 3;
+    const asteroidProbability = 0.3,
+        sgap = asteroidProbability / (nSubDivision * nSubDivision);
     const minVelocity = 0.08, maxVelocity = 0.32,
         maxAngularVelocity = 1.2;
     const minSize = 0.06,
         maxSize = 0.20;
 
-    for (let dX = 0; dX < gridSize; dX++)
-        for (let dY = 0; dY < gridSize; dY++) {
-            if (Math.random() > asteroidProbability)
+    for (let i = 0; i < nSubDivision; i++)
+        for (let j = 0; j < nSubDivision; j++) {
+            if (Math.random() > sgap)
                 continue;
 
-            let cX = chunkCoordinates.x + dX * gridSize;
-            let cY = chunkCoordinates.y + dY * gridSize;
-            let position = {
-                x: boundedRandom(cX, cX + gridSize),
-                y: boundedRandom(cY, cY + gridSize)
+            let x = chunkCenter.x - halfChunkSize + i * subGridSize;
+            let y = chunkCenter.y - halfChunkSize + j * subGridSize;
+            let asteroidPosition = {
+                x: boundedRandom(x, x + subGridSize),
+                y: boundedRandom(y, y + subGridSize)
             }
-            let rotation = Math.random() * 2 * Math.PI;
-            let velocity = Vector2.scale(
+            let asteroidRotation = Math.random() * 2 * Math.PI;
+            let asteroidVelocity = Vector2.scale(
                 Vector2.normalize(
                     {
                         x: Math.random() - 0.5,
@@ -340,15 +348,21 @@ function generateChunk(worldContext: WorldContext, chunkCoordinates: Vec2): Chun
             );
             let angularVelocity = boundedRandom(minVelocity, maxAngularVelocity);
             let scale = boundedRandom(minSize, maxSize);
-            createAsteroid(position, rotation, velocity, angularVelocity, scale);
+            createAsteroid(asteroidPosition, asteroidRotation, asteroidVelocity, angularVelocity, scale);
         }
 
-    return {
-        lastAccessed: this.engineInstance.getGameTime(),
-        state: "loaded",
-        coordinates: chunkCoordinates,
-        entityIDSet: new Set([backgroundEntity.getID()])
-    }
+    const chunk = createChunk(
+        chunkIndex,
+        chunkSize,
+        ChunkState.Loaded,
+        {
+            entityIDSet: new Set([chunkEntity.getID()]),
+            lastAccessed: engine.getGameTime(),
+        }
+    );
+
+    engine.addEntityComponents(chunkEntity, createChunkComponent(chunk));
+    return chunk;
 }
 
 const worldContext: WorldContext = new WorldContext(engine, 1.024, 0.1, generateChunk);
@@ -362,21 +376,25 @@ let kinematicSystem = new KinematicSystem(clientContext),
     firingSystem = new FiringSystem(engine, p => spawnProjectile(p.position, p.velocity, p.rotation, p.angularVelocity, p.deathTime, p.generation, p.size).getID()),
     cursorSystem = new CursorSystem(engine),
     chunkLoadingSystem = new ChunkLoadingSystem(engine, worldContext),
-    chunkTrackingSystem = new ChunkTrackingSystem(engine, worldContext),
+    chunkUnloadingSystem = new ChunkUnloadingSystem(engine, worldContext),
+    chunkOccupancyUpdateSystem = new ChunkOccupancyUpdateSystem(engine, worldContext),
     boundingBoxUpdateSystem = new BoundingBoxUpdateSystem(),
 
     worldPreRenderSystem = new WorldPreRenderSystem(clientContext),
     viewportRenderSystem = new ViewportRenderSystem(renderContext),
     statRenderSystem = new StatRenderSystem(clientContext),
     spriteRenderSystem = new SpriteRenderSystem(renderContext),
-    colliderRenderSystem = new BoundingBoxRenderSystem(clientContext),
-    axisRenderSystem = new AxisRenderSystem(clientContext)
+    boundingBoxRenderSystem = new BoundingBoxRenderSystem(clientContext),
+    axisRenderSystem = new AxisRenderSystem(clientContext),
+    chunkBorderRenderSystem = new ChunkBorderRenderSystem(clientContext),
+    occupiedChunkHighlightingSystem = new OccupiedChunkHighlightingSystem(clientContext)
     ;
 ;
 
 engine.appendSystems(simulationPhase,
     chunkLoadingSystem,
-    chunkTrackingSystem,
+    chunkOccupancyUpdateSystem,
+    chunkUnloadingSystem,
     cursorSystem,
     firingSystem,
     projectileSystem,
@@ -390,7 +408,9 @@ engine.appendSystems(simulationPhase,
 engine.appendSystems(worldRender,
     worldPreRenderSystem,
     spriteRenderSystem,
-    colliderRenderSystem,
+    occupiedChunkHighlightingSystem,
+    chunkBorderRenderSystem,
+    boundingBoxRenderSystem,
     axisRenderSystem
 );
 
@@ -455,6 +475,7 @@ const MAIN_CHARACTER = engine.createNewEntityFromComponents(
     ),
     MOVEMENT_CONTROL_COMPONENT,
     FIRE_CONTROL,
+    createChunkOccupancyComponent(),
 );
 
 MOUSE_CONTROLS["fire"] = {
@@ -481,13 +502,6 @@ let viewport = engine.createNewEntityFromComponents(
         rotation: 0
     } as PositionComponent,
     {
-        key: "resolution",
-        resolution: {
-            x: renderer.getWidth(),
-            y: renderer.getHeight()
-        }
-    } as ResolutionComponent,
-    {
         key: "targetPosition",
         position: MC_POS
     } as TargetPositionComponent,
@@ -501,7 +515,8 @@ let viewport = engine.createNewEntityFromComponents(
     } as CameraSpeedFactorComponent,
     {
         key: "viewport"
-    }
+    },
+    VIEWPORT_RESOLUTION_COMPONENT
 );
 
 const cursorScreenPointComponent: ScreenPointComponent = {
@@ -557,7 +572,8 @@ export function createAsteroid(position: Vec2, rotation: number, velocity: Vec2,
             velocity: velocity,
             angular: angularVelocity
         } as VelocityComponent,
-        createBoundingBox({ width: size, height: size })
+        createBoundingBox({ width: size, height: size }),
+        createChunkOccupancyComponent()
     );
     return entity;
 }
@@ -592,12 +608,10 @@ export function spawnProjectile(position: Vec2, velocity: Vec2, rotation: number
                 height: size
             },
             { transform: { scale: 0.10 } }
-        )
+        ),
+        createChunkOccupancyComponent()
     );
-
-
     return e;
 }
-
 
 engine.animate();
