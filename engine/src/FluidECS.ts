@@ -107,7 +107,7 @@ export class FluidCore {
     }
 
     public createNewEntityFromComponents(...components: Component[]): Entity {
-        let entity = new Entity(createUID(), new Map());
+        let entity = new Entity(createUID());
         entity.addComponents(...components);
         this.addEntity(entity);
         return entity;

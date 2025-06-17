@@ -8,32 +8,46 @@ export function createUID(): EntityID {
 
 export class Entity {
     private removed: boolean = false;
+    private components: Map<string, Component> = new Map();
+    private componentKeySet: Set<string> = new Set();
 
-    constructor(private id: EntityID, private components: Map<string, Component>) {
+    constructor(private id: EntityID) {
     }
 
     getID(): EntityID {
         return this.id;
     }
 
-    hasComponents(keys: string[]): boolean {
-        return keys.every(key => this.components.has(key));
-    }
-
     getComponent<T extends Component>(key: string): T | undefined {
         return this.components.get(key) as T;
     }
 
+    addComponent(component: Component): void {
+        this.components.set(component.key, component);
+        this.componentKeySet.add(component.key);
+    }
+
     addComponents(...components: Component[]): void {
-        components.forEach(component => this.components.set(component.key, component));
+        components.forEach(component => {
+            this.addComponent(component);
+        });
+    }
+
+    hasComponent(key: string): boolean {
+        return this.componentKeySet.has(key);
+    }
+
+    hasComponents(keys: string[]): boolean {
+        return keys.every(key => this.componentKeySet.has(key));
     }
 
     removeComponent(key: string): boolean {
+        this.componentKeySet.delete(key);
         return this.components.delete(key);
     }
 
-    getComponentMap(): Map<string, Component> {
-        return this.components;
+    getComponentSignature(): ReadonlySet<string> {
+        return this.componentKeySet;
     }
 
     isRemoved() {
