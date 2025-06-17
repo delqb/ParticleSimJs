@@ -18,3 +18,13 @@ export function lerp(start: number, end: number, t: number): number {
 export function boundedRandom(min: number, max: number): number {
     return min + (max - min) * Math.random();
 }
+
+/* 
+    From the internet:
+    Szudzik's pairing function composed with ZigZag encoding
+*/
+export function encodeIntegerPair(x: number, y: number): number {
+    const X = x >= 0 ? 2 * x : -2 * x - 1;
+    const Y = y >= 0 ? 2 * y : -2 * y - 1;
+    return X >= Y ? X * X + X + Y : Y * Y + X;
+}
