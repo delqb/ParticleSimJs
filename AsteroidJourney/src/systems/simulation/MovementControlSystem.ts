@@ -3,7 +3,7 @@ import { System, EntityID } from "@fluidengine/core";
 import { Vector2 } from "@fluidengine/lib/spatial";
 
 const hPI = Math.PI / 2;
-const THRUST_FORCE = 0.25
+const THRUST_FORCE = 1.5
 
 const THRUST_ACCELERATION = THRUST_FORCE;
 const ANGULAR_ACCELERATION = THRUST_FORCE * 18 / 10;

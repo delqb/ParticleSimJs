@@ -448,7 +448,7 @@ const MAIN_CHARACTER = engine.createNewEntityFromComponents(
         computedAcceleration: 0,
         computedSpeed: 0
     } as StatsComponent,
-    createProjectileSourceComponent(2.99792458, 10, 0.180, 1),
+    createProjectileSourceComponent(1.2 * 2.99792458, 14, 0.180, 1.5),
     {
         key: "renderCenter",
         renderDistance: renderDistance
