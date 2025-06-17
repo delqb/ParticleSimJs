@@ -1,5 +1,8 @@
 export type Vec2 = { x: number, y: number };
 
+export const isVec2 = (value: any): value is Vec2 =>
+    typeof value === "object" && typeof value.x === "number" && typeof value.y === "number";
+
 export class MVec2 implements Vec2 {
     constructor(public x: number, public y: number) {
     }
