@@ -156,7 +156,7 @@ function generateChunk(worldContext: WorldContext, chunkIndex: ChunkIndex, chunk
             let angularVelocity = boundedRandom(minVelocity, maxAngularVelocity);
             let scale = boundedRandom(minSize, maxSize);
             createAsteroid(asteroidPosition, asteroidRotation, asteroidVelocity, angularVelocity, scale);
-}
+        }
 
     const chunk = createChunk(
         chunkIndex,
@@ -177,22 +177,22 @@ canvasElement.addEventListener("contextmenu", function (e) {
     e.preventDefault();
 });
 const VIEWPORT_RESOLUTION_COMPONENT = {
-        key: "resolution",
-        resolution: Vector2.zero()
+    key: "resolution",
+    resolution: Vector2.zero()
 } as ResolutionComponent;
 
 const renderContext = canvasElement.getContext("2d")!;
 const renderer = new CanvasRenderer(
-        canvasElement,
-        {
-            scale: 0.98,
-            renderBaseColor: "black",
-            onresize:
-                (pw, ph, nw, nh) => {
-                    VIEWPORT_RESOLUTION_COMPONENT.resolution.x = nw;
-                    VIEWPORT_RESOLUTION_COMPONENT.resolution.y = nh;
-                }
-        });
+    canvasElement,
+    {
+        scale: 0.98,
+        renderBaseColor: "black",
+        onresize:
+            (pw, ph, nw, nh) => {
+                VIEWPORT_RESOLUTION_COMPONENT.resolution.x = nw;
+                VIEWPORT_RESOLUTION_COMPONENT.resolution.y = nh;
+            }
+    });
 
 let renderDistance: number = 5;
 const engine = new FluidEngine(1024);
@@ -411,6 +411,7 @@ let kinematicSystem = new KinematicSystem(clientContext),
     chunkUnloadingSystem = new ChunkUnloadingSystem(engine, worldContext),
     chunkOccupancyUpdateSystem = new ChunkOccupancyUpdateSystem(engine, worldContext),
     boundingBoxUpdateSystem = new BoundingBoxUpdateSystem(),
+    collisionDetectionSystem = new CollisionDetectionSystem(engine),
 
     worldPreRenderSystem = new WorldPreRenderSystem(clientContext),
     viewportRenderSystem = new ViewportRenderSystem(renderContext),
@@ -434,7 +435,8 @@ engine.appendSystems(simulationPhase,
     kinematicSystem,
     positionSystem,
     viewportSystem,
-    boundingBoxUpdateSystem
+    boundingBoxUpdateSystem,
+    collisionDetectionSystem
 );
 
 engine.appendSystems(worldRender,
