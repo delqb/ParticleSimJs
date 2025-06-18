@@ -9,4 +9,18 @@ export class ClientContext {
     public displayChunks = false;
     constructor(public engineInstance: FluidEngine, public worldContext: WorldContext, public renderer: CanvasRenderer) { }
 
+    setZoomLevel(level: number) {
+        this.engineInstance.PIXELS_PER_METER = 10 * level;
+    }
+    getZoomLevel(): number {
+        return this.engineInstance.PIXELS_PER_METER / 10;
+    }
+
+    getSimulationSpeed() {
+        return this.engineInstance.deltaTime * 60;
+    }
+
+    setSimulationSpeed(speed: number) {
+        this.engineInstance.deltaTime = speed / 60;
+    }
 }

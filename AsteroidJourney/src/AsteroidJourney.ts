@@ -205,13 +205,47 @@ const HOTKEYS = {
             engine.toggleAnimation();
         }
     },
-    zoom1: {
-        keys: ["1"],
-        action: () => setZoomScale(0.6)
+    eagle_eye_zoom: {
+        keys: ["v"],
+        action: () => clientContext.setZoomLevel(5)
     },
-    zoom2: {
-        keys: ["2"],
-        action: () => setZoomScale(0.1)
+    reset_zoom: {
+        keys: ["x"],
+        action: () => clientContext.setZoomLevel(30)
+    },
+    decrease_zoom: {
+        keys: ["z"],
+        action: () => {
+            const decrement = 10;
+            const max = 100;
+            const min = decrement;
+            const next = (clientContext.getZoomLevel() - decrement);
+
+            clientContext.setZoomLevel(next < min ? max : next);
+        }
+    },
+    increase_zoom: {
+        keys: ["c"],
+        action: () => {
+            const increment = 10;
+            const max = 100;
+            const min = increment;
+            const next = (clientContext.getZoomLevel() + increment);
+
+            clientContext.setZoomLevel(next > max ? min : next);
+        }
+    },
+    slow_time: {
+        keys: ["["],
+        action: () => clientContext.setSimulationSpeed(clientContext.getSimulationSpeed() / 2)
+    },
+    speed_time: {
+        keys: ["]"],
+        action: () => clientContext.setSimulationSpeed(clientContext.getSimulationSpeed() * 2)
+    },
+    reset_simulation_speed: {
+        keys: ["-"],
+        action: () => clientContext.setSimulationSpeed(1)
     },
     toggle_debug_info: {
         keys: ["f1"],
