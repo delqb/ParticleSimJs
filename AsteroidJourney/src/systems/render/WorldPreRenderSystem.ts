@@ -1,6 +1,6 @@
-import { ClientContext } from "@asteroid/client/Client";
-import { PositionComponent, ResolutionComponent, ViewportComponent } from "@asteroid/components";
-import { System, EntityID } from "@fluidengine/core";
+import {ClientContext} from "@asteroid/client/Client";
+import {PositionComponent, ResolutionComponent, ViewportComponent} from "@asteroid/components";
+import {EntityID, System} from "@fluidengine/core";
 
 const hPI = Math.PI / 2;
 

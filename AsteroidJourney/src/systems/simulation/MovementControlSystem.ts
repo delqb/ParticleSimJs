@@ -1,6 +1,11 @@
-import { PositionComponent, VelocityComponent, AccelerationComponent, MovementControlComponent } from "@asteroid/components";
-import { System, EntityID } from "@fluidengine/core";
-import { Vector2 } from "@fluidengine/lib/spatial";
+import {
+    AccelerationComponent,
+    MovementControlComponent,
+    PositionComponent,
+    VelocityComponent
+} from "@asteroid/components";
+import {EntityID, System} from "@fluidengine/core";
+import {Vector2} from "@fluidengine/lib/spatial";
 
 const hPI = Math.PI / 2;
 const THRUST_FORCE = 1.5

@@ -1,8 +1,8 @@
-import { ChunkComponent } from "@asteroid/components/ChunkComponent";
-import { WorldContext } from "@asteroid/world/World";
-import { System, EntityID } from "@fluidengine/core";
-import { FluidEngine } from "@fluidengine/FluidEngine";
-import { ChunkState } from "@fluidengine/lib/world";
+import {ChunkComponent} from "@asteroid/components/ChunkComponent";
+import {WorldContext} from "@asteroid/world/World";
+import {EntityID, System} from "@fluidengine/core";
+import {FluidEngine} from "@fluidengine/FluidEngine";
+import {ChunkState} from "@fluidengine/lib/world";
 
 type ChunkNode = {
     chunk: ChunkComponent;

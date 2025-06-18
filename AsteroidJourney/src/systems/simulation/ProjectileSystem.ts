@@ -1,6 +1,6 @@
-import { ProjectileComponent, PositionComponent } from "@asteroid/components";
-import { System, EntityID } from "@fluidengine/core";
-import { FluidEngine } from "@fluidengine/FluidEngine";
+import {PositionComponent, ProjectileComponent} from "@asteroid/components";
+import {EntityID, System} from "@fluidengine/core";
+import {FluidEngine} from "@fluidengine/FluidEngine";
 
 type ProjectileSystemNode = {
     projectile: ProjectileComponent;

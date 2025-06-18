@@ -1,8 +1,8 @@
-import { RenderCenterComponent, PositionComponent } from "@asteroid/components";
-import { WorldContext } from "@asteroid/world/World";
-import { System, EntityID } from "@fluidengine/core";
-import { FluidEngine } from "@fluidengine/FluidEngine";
-import { ChunkState, getChunkIndexFromPosition, getChunkKeyFromIndex } from "@fluidengine/lib/world";
+import {PositionComponent, RenderCenterComponent} from "@asteroid/components";
+import {WorldContext} from "@asteroid/world/World";
+import {EntityID, System} from "@fluidengine/core";
+import {FluidEngine} from "@fluidengine/FluidEngine";
+import {ChunkState, getChunkIndexFromPosition, getChunkKeyFromIndex} from "@fluidengine/lib/world";
 
 const floor = Math.floor;
 

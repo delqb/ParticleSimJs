@@ -1,5 +1,5 @@
-import { Component } from "@fluidengine/core";
-import { Vec2, Transform } from "@fluidengine/lib/spatial";
+import {Component} from "@fluidengine/core";
+import {Transform, Vec2} from "@fluidengine/lib/spatial";
 
 export * from "./BoundingBoxComponent";
 export * from "./ProjectileComponent";

@@ -1,7 +1,7 @@
-import { ClientContext } from "@asteroid/client/Client";
-import { ChunkOccupancyComponent } from "@asteroid/components";
-import { System, EntityID } from "@fluidengine/core";
-import { getChunkCornerFromIndex, parseChunkKey } from "@fluidengine/lib/world";
+import {ClientContext} from "@asteroid/client/Client";
+import {ChunkOccupancyComponent} from "@asteroid/components";
+import {EntityID, System} from "@fluidengine/core";
+import {getChunkCornerFromIndex, parseChunkKey} from "@fluidengine/lib/world";
 
 type ChunkLoadingSystemNode = {
     chunks: ChunkOccupancyComponent;
