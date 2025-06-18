@@ -55,7 +55,7 @@ export class ChunkOccupancyUpdateSystem extends System<ChunkOccupancyUpdateNode>
                 }
             );
         } else if (aabb) {
-            const { left, right, bottom, top } = aabb;
+            const { minX: left, maxX: right, minY: bottom, maxY: top } = aabb;
             const corners = [
                 { x: left, y: bottom },
                 { x: right, y: bottom },

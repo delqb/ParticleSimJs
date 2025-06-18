@@ -45,10 +45,8 @@ export class FiringSystem extends System<FiringSystemNode> {
         if (GAME_TIME - projectileSource.lastFireTime < 1 / projectileSource.fireRate)
             return
 
-        const tRot = transform?.rotate;
         if (transform?.rotate !== undefined)
             rot += transform.rotate;
-
 
         const directionX = Math.cos(rot),
             directionY = Math.sin(rot);

@@ -21,6 +21,7 @@ export class BoundingBoxRenderSystem extends System<BoundingBoxRenderNode> {
             return;
 
         const { boundingBox: bb } = node;
+        const { width, height } = bb.size;
         const ctx = this.clientContext.renderer.renderContext;
         ctx.save();
 
@@ -29,8 +30,8 @@ export class BoundingBoxRenderSystem extends System<BoundingBoxRenderNode> {
 
         const aabb = bb.aabb;
         if (aabb) {
-            const { top, bottom, left, right } = aabb;
-            ctx.strokeRect(left, bottom, right - left, top - bottom);
+            const { maxY, minY, minX, maxX } = aabb;
+            ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
         }
 
         const obb = bb.obb;
@@ -47,12 +48,22 @@ export class BoundingBoxRenderSystem extends System<BoundingBoxRenderNode> {
             ctx.stroke();
         }
 
-        ctx.beginPath();
         ctx.fillStyle = "white";
-        const centerPointWidth = Math.min(bb.size.width, bb.size.height) / 20;
+        ctx.beginPath();
+        const centerPointWidth = Math.min(width, height) / 20;
         const hcpw = centerPointWidth / 2;
         const ctr = bb.center;
         ctx.arc(ctr.x, ctr.y, hcpw, 0, 2 * PI);
+        ctx.fill();
+
+        ctx.fillStyle = "yellow";
+        ctx.beginPath();
+        ctx.arc(bb.aabb.maxX, ctr.y, hcpw, 0, 2 * PI);
+        ctx.fill();
+
+        ctx.fillStyle = "green";
+        ctx.beginPath();
+        ctx.arc(ctr.x, bb.aabb.maxY, hcpw, 0, 2 * PI);
         ctx.fill();
 
         ctx.restore();

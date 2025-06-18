@@ -56,10 +56,10 @@ export class BoundingBoxUpdateSystem extends System<BoundingBoxUpdateNode> {
         const dY = abs(hw * sin) + abs(hh * cos);
 
         const aabb = bb.aabb || {} as AABB;
-        aabb.left = cx - dX;
-        aabb.right = cx + dX;
-        aabb.top = cy + dY;
-        aabb.bottom = cy - dY;
+        aabb.minX = cx - dX;
+        aabb.maxX = cx + dX;
+        aabb.maxY = cy + dY;
+        aabb.minY = cy - dY;
         bb.aabb = aabb;
 
         // Compute OBB axes and half-extents
