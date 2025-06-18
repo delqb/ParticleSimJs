@@ -480,7 +480,7 @@ const MAIN_CHARACTER = engine.createNewEntityFromComponents(
         computedAcceleration: 0,
         computedSpeed: 0
     } as StatsComponent,
-    createProjectileSourceComponent(1.2 * 2.99792458, 14, 0.180, 1.5),
+    createProjectileSourceComponent(1.2 * 2.99792458, 14, 0.180, 1.5, { transform: { scale: shipImage.width * MC_SCALE * 1.5 / 2 } }),
     {
         key: "renderCenter",
         renderDistance: renderDistance
