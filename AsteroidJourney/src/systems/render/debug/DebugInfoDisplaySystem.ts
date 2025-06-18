@@ -61,10 +61,10 @@ export class DebugInfoDisplaySystem extends System<DebugInfoNode> {
             return `(${round(Vector2.magnitude(accel))} m/s^2) (${round(angl)} rad/s^2) ([${round(accel.x)}, ${round(accel.y)}] m/s^2)`
         },
         zoom: () => {
-            return `x%${this.clientContext.getZoomLevel()}`;
+            return `%${round(this.clientContext.getZoomLevel())}`;
         },
         time: () => {
-            return `x${this.clientContext.getSimulationSpeed()}`;
+            return `x${round(this.clientContext.getSimulationSpeed(), 5)}`;
         }
     }
 
