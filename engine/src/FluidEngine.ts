@@ -5,7 +5,7 @@ export class FluidEngine extends FluidCore {
     private isAnimating = false;
     private gameTime = 0;
     public readonly fpsTimer: FPSTimer;
-    constructor(public PIXELS_PER_METER: number = 1000, public readonly deltaTime: number = 1 / 60, FPS_SAMPLING_INTERVAL: number = 20) {
+    constructor(public PIXELS_PER_METER: number = 1000, public deltaTime: number = 1 / 60, FPS_SAMPLING_INTERVAL: number = 20) {
         super();
         this.fpsTimer = new FPSTimer(FPS_SAMPLING_INTERVAL);
     }
