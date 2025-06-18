@@ -30,50 +30,56 @@ function drawComplexText(renderContext: CanvasRenderingContext2D, x: number, y: 
     return y;
 }
 
-type StatRenderNode = {
+type DebugInfoNode = {
     position: PositionComponent;
     velocity: VelocityComponent;
     acceleration: AccelerationComponent;
     stats: StatsComponent;
 }
 
-export class StatRenderSystem extends System<StatRenderNode> {
-    NODE_COMPONENT_KEYS: Set<keyof StatRenderNode> = new Set(['stats', 'velocity', 'acceleration', 'position']);
+export class DebugInfoDisplaySystem extends System<DebugInfoNode> {
+    NODE_COMPONENT_KEYS: Set<keyof DebugInfoNode> = new Set(['stats', 'velocity', 'acceleration', 'position']);
     constructor(public clientContext: ClientContext) {
         super();
     }
     stats = {
-        isAnimating: (node: StatRenderNode) => this.clientContext.engineInstance.getAnimationState(),
-        fps: (node: StatRenderNode) => round(this.clientContext.engineInstance.getFPS()),
-        position: (node: StatRenderNode) => {
+        isAnimating: (node: DebugInfoNode) => this.clientContext.engineInstance.getAnimationState(),
+        fps: (node: DebugInfoNode) => round(this.clientContext.engineInstance.getFPS()),
+        position: (node: DebugInfoNode) => {
             const pC = node.position;
             const { position: p, rotation: r } = pC;
             return `([${round(p.x)}, ${round(p.y)}] m) (${round(r)} rad)`
         },
-        velocity: (node: StatRenderNode) => {
+        velocity: (node: DebugInfoNode) => {
             const vC = node.velocity;
             const { velocity: v, angular: a } = vC;
             return `(${round(Vector2.magnitude(v))} m/s) (${round(a)} rad/s) ([${round(v.x)}, ${round(v.y)}] m/s)`
         },
-        acceleration: (node: StatRenderNode) => {
+        acceleration: (node: DebugInfoNode) => {
             const aC = node.acceleration;
             const { acceleration: accel, angular: angl } = aC;
             return `(${round(Vector2.magnitude(accel))} m/s^2) (${round(angl)} rad/s^2) ([${round(accel.x)}, ${round(accel.y)}] m/s^2)`
         },
+        zoom: () => {
+            return `x%${this.clientContext.getZoomLevel()}`;
+        },
+        time: () => {
+            return `x${this.clientContext.getSimulationSpeed()}`;
+        }
     }
 
     static formatStats(key: string, value: any) {
         return [`${key}: ${typeof value === "number" ? round(value) : value}\n`, "white"];
     }
 
-    public updateNode(node: StatRenderNode, entityID: EntityID) {
+    public updateNode(node: DebugInfoNode, entityID: EntityID) {
         const cc = this.clientContext, stats = this.stats;
         if (!cc.displayDebugInfo)
             return;
 
         drawComplexText(cc.renderer.renderContext, 10, 10,
             Object.keys(stats).map(
-                (key) => StatRenderSystem.formatStats(key, stats[key](node))
+                (key) => DebugInfoDisplaySystem.formatStats(key, stats[key](node))
             )
             , 2);
     }

@@ -12,7 +12,7 @@ export * from "./simulation/chunk"
 
 export * from "./render/WorldPreRenderSystem"
 export * from "./render/ViewportRenderSystem"
-export * from "./render/debug/StatRenderSystem"
+export * from "./render/debug/DebugInfoDisplaySystem"
 export * from "./render/SpriteRenderSystem"
 export * from "./render/debug/BoundingBoxRenderSystem"
 export * from "./render/debug/AxisRenderSystem"

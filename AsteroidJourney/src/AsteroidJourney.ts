@@ -9,7 +9,7 @@ import { ClientContext } from "./client/Client";
 import { CanvasRenderer } from "./client/renderer/Renderer";
 import { ResolutionComponent, MovementControlComponent, FireControlComponent, PositionComponent, VelocityComponent, AccelerationComponent, StatsComponent, createProjectileSourceComponent, RenderCenterComponent, SpriteComponent, createBoundingBox, createChunkOccupancyComponent, TargetPositionComponent, ViewportBorderWidthComponent, CameraSpeedFactorComponent, ScreenPointComponent, ProjectileComponent } from "./components";
 import { createChunkComponent } from "./components/ChunkComponent";
-import { KinematicSystem, PositionSystem, MovementControlSystem, ViewportSystem, ProjectileSystem, FiringSystem, CursorSystem, ChunkLoadingSystem, ChunkUnloadingSystem, ChunkOccupancyUpdateSystem, BoundingBoxUpdateSystem, CollisionDetectionSystem, WorldPreRenderSystem, ViewportRenderSystem, StatRenderSystem, SpriteRenderSystem, BoundingBoxRenderSystem, AxisRenderSystem, ChunkBorderRenderSystem } from "./systems";
+import { KinematicSystem, PositionSystem, MovementControlSystem, ViewportSystem, ProjectileSystem, FiringSystem, CursorSystem, ChunkLoadingSystem, ChunkUnloadingSystem, ChunkOccupancyUpdateSystem, BoundingBoxUpdateSystem, CollisionDetectionSystem, WorldPreRenderSystem, ViewportRenderSystem, DebugInfoDisplaySystem, SpriteRenderSystem, BoundingBoxRenderSystem, AxisRenderSystem, ChunkBorderRenderSystem } from "./systems";
 import { OccupiedChunkHighlightingSystem } from "./systems/render/debug/OccupiedChunkHighlightingSystem";
 import { WorldContext } from "./world/World";
 
@@ -414,7 +414,7 @@ let kinematicSystem = new KinematicSystem(clientContext),
 
     worldPreRenderSystem = new WorldPreRenderSystem(clientContext),
     viewportRenderSystem = new ViewportRenderSystem(renderContext),
-    statRenderSystem = new StatRenderSystem(clientContext),
+    debugInfoDisplaySystem = new DebugInfoDisplaySystem(clientContext),
     spriteRenderSystem = new SpriteRenderSystem(renderContext),
     boundingBoxRenderSystem = new BoundingBoxRenderSystem(clientContext),
     axisRenderSystem = new AxisRenderSystem(clientContext),
@@ -448,7 +448,7 @@ engine.appendSystems(worldRender,
 
 engine.appendSystems(hudRender,
     viewportRenderSystem,
-    statRenderSystem
+    debugInfoDisplaySystem
 );
 
 const FIRE_CONTROL = {
