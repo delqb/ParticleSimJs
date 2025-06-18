@@ -1,5 +1,5 @@
-import { Entity, EntityID } from "./Entity";
-import { Node } from "./Node";
+import {Entity, EntityID} from "./Entity";
+import {Node} from "./Node";
 
 export abstract class System<T extends Node<any>> {
     abstract readonly NODE_COMPONENT_KEYS: Set<Extract<keyof T, string>>;

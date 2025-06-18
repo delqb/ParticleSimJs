@@ -1,5 +1,5 @@
-import { Component } from "@fluidengine/core";
-import { Chunk } from "@fluidengine/lib/world";
+import {Component} from "@fluidengine/core";
+import {Chunk} from "@fluidengine/lib/world";
 
 
 /**

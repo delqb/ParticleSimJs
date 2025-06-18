@@ -1,5 +1,5 @@
-import { Axes, Vec2 } from "../spatial";
-import { encodeIntegerPair } from "./MathUtils";
+import {Axes, Vec2} from "../spatial";
+import {encodeIntegerPair} from "./MathUtils";
 
 const ceil = Math.ceil, floor = Math.floor;
 

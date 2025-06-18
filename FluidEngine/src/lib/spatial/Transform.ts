@@ -1,4 +1,4 @@
-import { Vec2 } from "./Vector2";
+import {Vec2} from "./Vector2";
 
 export type Transform = {
     translate?: Vec2;

@@ -1,28 +1,30 @@
 {
-    "compilerOptions": {
-        "moduleResolution": "node",
-        "moduleDetection": "force",
-        "target": "ESNext",
-        "module": "ESNext",
-        "outDir": "js",
-        "baseUrl": "./",
-        "paths": {
-            // Engine root
-            "@fluidengine/*": [
-                "engine/src/*"
-            ],
-            "@fluidlib/*": [
-                "engine/src/lib/*"
-            ],
-            // 
-            // AsteroidJourney
-            // 
-            "@asteroid/*": [
-                "AsteroidJourney/src/*"
-            ],
-        }
-    },
-    "exclude": [
-        "temp"
-    ]
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "moduleDetection": "force",
+    "target": "ESNext",
+    "module": "ESNext",
+    "outDir": "js",
+    "baseUrl": "./",
+    "paths": {
+      //
+      // FluidEngine
+      //
+      "@fluidengine/*": [
+        "FluidEngine/src/*"
+      ],
+      "@fluidlib/*": [
+        "FluidEngine/src/lib/*"
+      ],
+      //
+      // AsteroidJourney
+      //
+      "@asteroid/*": [
+        "AsteroidJourney/src/*"
+      ]
+    }
+  },
+  "exclude": [
+    "temp"
+  ]
 }

@@ -1,8 +1,8 @@
-import { ClientContext } from "@asteroid/client/Client";
-import { PositionComponent, VelocityComponent, AccelerationComponent, StatsComponent } from "@asteroid/components";
-import { System, EntityID } from "@fluidengine/core";
-import { Vector2 } from "@fluidengine/lib/spatial";
-import { MathUtils } from "@fluidengine/lib/utils";
+import {ClientContext} from "@asteroid/client/Client";
+import {AccelerationComponent, PositionComponent, StatsComponent, VelocityComponent} from "@asteroid/components";
+import {EntityID, System} from "@fluidengine/core";
+import {Vector2} from "@fluidengine/lib/spatial";
+import {MathUtils} from "@fluidengine/lib/utils";
 
 const round = MathUtils.round;
 

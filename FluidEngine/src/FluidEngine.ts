@@ -1,5 +1,5 @@
-import { FluidCore } from "./FluidECS";
-import { FPSTimer } from "./lib/utils/FPSTimer";
+import {FluidCore} from "./FluidECS";
+import {FPSTimer} from "./lib/utils/FPSTimer";
 
 export class FluidEngine extends FluidCore {
     private isAnimating = false;

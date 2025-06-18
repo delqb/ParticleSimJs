@@ -1,4 +1,4 @@
-import { RectSize } from "./RectSize";
+import {RectSize} from "./RectSize";
 
 export type AABB = {
     maxY: number;

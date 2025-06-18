@@ -1,7 +1,7 @@
 export * from "./core";
 
-import { Component, createUID, Entity, EntityID, System, SystemPhase } from "./core";
-import { OrderedList } from "./lib/structures";
+import {Component, createUID, Entity, EntityID, System, SystemPhase} from "./core";
+import {OrderedList} from "./lib/structures";
 
 export class FluidCore {
     private entityMap: Map<EntityID, Entity> = new Map();

@@ -1,4 +1,4 @@
-import { Vec2, Vector2 } from "./Vector2";
+import {Vec2, Vector2} from "./Vector2";
 
 export type Axes = {
     x: Vec2;

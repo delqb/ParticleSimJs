@@ -1,4 +1,4 @@
-import { Vec2 } from "./Vector2";
+import {Vec2} from "./Vector2";
 
 export type ConvexPolygon = Vec2[];// must be in counter-clockwise or clockwise order
 
