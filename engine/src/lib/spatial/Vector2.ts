@@ -113,6 +113,9 @@ export const Vector2 = {
         const mag = Vector2.magnitude(v)
         return mag === 0 ? { x: 0, y: 0 } : { x: v.x / mag, y: v.y / mag }
     },
+    distanceSquared: (a: Vec2, b: Vec2): number =>
+        (a.x - b.x) ** 2 + (a.y - b.y) ** 2,
+
     distance: (a: Vec2, b: Vec2): number =>
         Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2),
 
