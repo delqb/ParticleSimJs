@@ -1,14 +1,8 @@
-import {ClientContext} from "@asteroid/client/Client";
-import {
-    CameraSpeedFactorComponent,
-    PositionComponent,
-    ResolutionComponent,
-    TargetPositionComponent,
-    ViewportComponent
-} from "@asteroid/components";
-import {EntityID, System} from "@fluidengine/core";
-import {Vector2} from "@fluidengine/lib/spatial";
-import {MathUtils} from "@fluidengine/lib/utils";
+import { ClientContext } from "@asteroid/client/Client";
+import { PositionComponent, ResolutionComponent, TargetPositionComponent, CameraSpeedFactorComponent, ViewportComponent } from "@asteroid/components";
+import { System, EntityID } from "@fluidengine/core";
+import { Vector2 } from "@fluidengine/lib/spatial";
+import { MathUtils } from "@fluidengine/lib/utils";
 
 const { shortestAngleDiff } = MathUtils;
 

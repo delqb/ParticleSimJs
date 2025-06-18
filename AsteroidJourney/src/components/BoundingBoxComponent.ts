@@ -1,5 +1,5 @@
-import {Component} from "@fluidengine/core";
-import {AABB, createTransform, OBB, RectSize, Transform, Vec2, Vector2} from "@fluidengine/lib/spatial";
+import { Component } from "@fluidengine/core";
+import { Vec2, RectSize, Transform, AABB, OBB, Vector2, createTransform } from "@fluidengine/lib/spatial";
 
 export type BoundingBoxComponent = Component & {
     // Center and rotation are computed from position + transform in a system then stored here

@@ -1,7 +1,7 @@
-import {ClientContext} from "@asteroid/client/Client";
-import {ChunkComponent} from "@asteroid/components/ChunkComponent";
-import {EntityID, System} from "@fluidengine/core";
-import {ChunkState, getChunkCornerFromIndex} from "@fluidengine/lib/world/chunk/Chunk";
+import { ClientContext } from "@asteroid/client/Client";
+import { ChunkComponent } from "@asteroid/components/ChunkComponent";
+import { EntityID, System } from "@fluidengine/core";
+import { ChunkState, getChunkCornerFromIndex } from "@fluidengine/lib/world/chunk/Chunk";
 
 type ChunkNode = {
     chunk: ChunkComponent;

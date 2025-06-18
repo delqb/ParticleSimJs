@@ -1,6 +1,6 @@
-import {Entity, EntityID} from "@fluidengine/core";
-import {FluidEngine} from "@fluidengine/FluidEngine";
-import {Chunk, ChunkIndex, ChunkKey, ChunkState, parseChunkKey} from "@fluidengine/lib/world";
+import { Entity, EntityID } from "@fluidengine/core";
+import { FluidEngine } from "@fluidengine/FluidEngine";
+import { Chunk, ChunkIndex, ChunkKey, ChunkState, parseChunkKey } from "@fluidengine/lib/world";
 
 export interface ChunkGenerator {
     (worldContext: WorldContext, chunkIndex: ChunkIndex, chunkSize: number): Chunk

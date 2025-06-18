@@ -1,10 +1,10 @@
-import {BoundingBoxComponent} from "@asteroid/components";
-import {ChunkOccupancyComponent} from "@asteroid/components/ChunkOccupancyComponent";
-import {WorldContext} from "@asteroid/world/World";
-import {EntityID, System} from "@fluidengine/core";
-import {FluidEngine} from "@fluidengine/FluidEngine";
-import {conservativeOBBRasterization} from "@fluidengine/lib/utils/GridUtils";
-import {ChunkKey, ChunkState, getChunkIndexFromPosition, getChunkKeyFromIndex} from "@fluidengine/lib/world";
+import { BoundingBoxComponent, PositionComponent, RenderCenterComponent } from "@asteroid/components";
+import { ChunkOccupancyComponent } from "@asteroid/components/ChunkOccupancyComponent";
+import { WorldContext } from "@asteroid/world/World";
+import { System, EntityID } from "@fluidengine/core";
+import { FluidEngine } from "@fluidengine/FluidEngine";
+import { conservativeOBBRasterization } from "@fluidengine/lib/utils/GridUtils";
+import { ChunkKey, ChunkState, getChunkIndexFromPosition, getChunkKeyFromIndex } from "@fluidengine/lib/world";
 
 type ChunkOccupancyUpdateNode = {
     boundingBox: BoundingBoxComponent;

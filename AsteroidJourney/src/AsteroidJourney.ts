@@ -1,55 +1,17 @@
-import {Entity, SystemPhase} from "@fluidengine/core";
-import {FluidEngine} from "@fluidengine/FluidEngine";
-import {Vec2, Vector2} from "@fluidengine/lib/spatial";
-import {ImageUtils} from "@fluidengine/lib/utils";
-import {canvasToImage} from "@fluidengine/lib/utils/ImageUtils";
-import {boundedRandom} from "@fluidengine/lib/utils/MathUtils";
-import {Chunk, ChunkIndex, ChunkState, createChunk, getChunkCenterFromIndex} from "@fluidengine/lib/world";
-import {ClientContext} from "./client/Client";
-import {CanvasRenderer} from "./client/renderer/Renderer";
-import {
-    AccelerationComponent,
-    CameraSpeedFactorComponent,
-    createBoundingBox,
-    createChunkOccupancyComponent,
-    createProjectileSourceComponent,
-    FireControlComponent,
-    MovementControlComponent,
-    PositionComponent,
-    ProjectileComponent,
-    RenderCenterComponent,
-    ResolutionComponent,
-    ScreenPointComponent,
-    SpriteComponent,
-    StatsComponent,
-    TargetPositionComponent,
-    VelocityComponent,
-    ViewportBorderWidthComponent
-} from "./components";
-import {createChunkComponent} from "./components/ChunkComponent";
-import {
-    AxisRenderSystem,
-    BoundingBoxRenderSystem,
-    BoundingBoxUpdateSystem,
-    ChunkBorderRenderSystem,
-    ChunkLoadingSystem,
-    ChunkOccupancyUpdateSystem,
-    ChunkUnloadingSystem,
-    CollisionDetectionSystem,
-    CursorSystem,
-    DebugInfoDisplaySystem,
-    FiringSystem,
-    KinematicSystem,
-    MovementControlSystem,
-    PositionSystem,
-    ProjectileSystem,
-    SpriteRenderSystem,
-    ViewportRenderSystem,
-    ViewportSystem,
-    WorldPreRenderSystem
-} from "./systems";
-import {OccupiedChunkHighlightingSystem} from "./systems/render/debug/OccupiedChunkHighlightingSystem";
-import {WorldContext} from "./world/World";
+import { SystemPhase, Entity } from "@fluidengine/core";
+import { FluidEngine } from "@fluidengine/FluidEngine";
+import { Vector2, Vec2 } from "@fluidengine/lib/spatial";
+import { ImageUtils } from "@fluidengine/lib/utils";
+import { canvasToImage } from "@fluidengine/lib/utils/ImageUtils";
+import { boundedRandom } from "@fluidengine/lib/utils/MathUtils";
+import { ChunkIndex, Chunk, getChunkCenterFromIndex, createChunk, ChunkState } from "@fluidengine/lib/world";
+import { ClientContext } from "./client/Client";
+import { CanvasRenderer } from "./client/renderer/Renderer";
+import { ResolutionComponent, MovementControlComponent, FireControlComponent, PositionComponent, VelocityComponent, AccelerationComponent, StatsComponent, createProjectileSourceComponent, RenderCenterComponent, SpriteComponent, createBoundingBox, createChunkOccupancyComponent, TargetPositionComponent, ViewportBorderWidthComponent, CameraSpeedFactorComponent, ScreenPointComponent, ProjectileComponent } from "./components";
+import { createChunkComponent } from "./components/ChunkComponent";
+import { KinematicSystem, PositionSystem, MovementControlSystem, ViewportSystem, ProjectileSystem, FiringSystem, CursorSystem, ChunkLoadingSystem, ChunkUnloadingSystem, ChunkOccupancyUpdateSystem, BoundingBoxUpdateSystem, CollisionDetectionSystem, WorldPreRenderSystem, ViewportRenderSystem, DebugInfoDisplaySystem, SpriteRenderSystem, BoundingBoxRenderSystem, AxisRenderSystem, ChunkBorderRenderSystem } from "./systems";
+import { OccupiedChunkHighlightingSystem } from "./systems/render/debug/OccupiedChunkHighlightingSystem";
+import { WorldContext } from "./world/World";
 
 function createGlowingStar(spikes, outerRadius, innerRadius, glowRadius) {
     const size = glowRadius * 2;

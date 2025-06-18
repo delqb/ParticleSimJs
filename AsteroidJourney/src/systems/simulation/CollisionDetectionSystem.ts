@@ -1,8 +1,8 @@
-import {BoundingBoxComponent, ChunkOccupancyComponent} from "@asteroid/components";
-import {Component, EntityID, System} from "@fluidengine/core";
-import {FluidEngine} from "@fluidengine/FluidEngine";
-import {aabbsIntersect, isSeparatingAxisExistent} from "@fluidengine/lib/spatial";
-import {ChunkKey} from "@fluidengine/lib/world";
+import { BoundingBoxComponent, ChunkOccupancyComponent } from "@asteroid/components";
+import { Component, System, EntityID } from "@fluidengine/core";
+import { FluidEngine } from "@fluidengine/FluidEngine";
+import { aabbsIntersect, isSeparatingAxisExistent } from "@fluidengine/lib/spatial";
+import { ChunkKey } from "@fluidengine/lib/world";
 
 export type CollisionDetectionParametersComponent = Component & {
     checkRadius: number;
