@@ -1,5 +1,5 @@
-import {EntityID} from "@fluidengine/core";
-import {Vec2} from "@fluidengine/lib/spatial";
+import { ECSEntityId } from "@fluidengine/core";
+import { Vec2 } from "@fluidengine/lib/spatial";
 
 const floor = Math.floor;
 
@@ -21,12 +21,12 @@ export interface Chunk {
     readonly size: number;
     state: ChunkState;
     lastAccessed: number;
-    entityIDSet: Set<EntityID>;
+    entityIDSet: Set<ECSEntityId>;
 }
 
 type ChunkCreationOptionalParameters = {
     lastAccessed?: number;
-    entityIDSet?: Set<EntityID>, size?: number
+    entityIDSet?: Set<ECSEntityId>, size?: number
 }
 
 export function createChunk(index: ChunkIndex, size: number, state: ChunkState, options?: ChunkCreationOptionalParameters): Chunk;
@@ -34,7 +34,7 @@ export function createChunk(key: ChunkKey, size: number, state: ChunkState, opti
 
 export function createChunk(
     indexOrKey: ChunkIndex | ChunkKey, size: number, state: ChunkState,
-    { lastAccessed = 0, entityIDSet = new Set<EntityID>() } = {}
+    { lastAccessed = 0, entityIDSet = new Set<ECSEntityId>() } = {}
 ): Chunk {
     let key: ChunkKey;
     let index: ChunkIndex;
