@@ -1,6 +1,3 @@
-import {Component} from "@fluidengine/core";
-import {Chunk} from "@fluidengine/lib/world";
-
 
 /**
  * Component used to associate an entity with a 'Chunk' instance. 

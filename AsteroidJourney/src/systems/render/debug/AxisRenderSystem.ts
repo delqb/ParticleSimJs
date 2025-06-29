@@ -1,6 +1,7 @@
-import {ClientContext} from "@asteroid/client/Client";
-import {BoundingBoxComponent, PositionComponent} from "@asteroid/components";
-import {EntityID, System} from "@fluidengine/core";
+import { ClientContext } from "@asteroid/client/Client";
+import { BoundingBoxComponent } from "@asteroid/components";
+import { PositionComponent } from "@asteroid/components/PositionComponent";
+import { EntityID, System } from "@fluidengine/core";
 
 const PI = Math.PI, PI2 = 2 * PI;
 

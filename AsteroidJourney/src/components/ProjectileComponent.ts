@@ -1,6 +1,3 @@
-import {Component} from "@fluidengine/core";
-import {Transform} from "@fluidengine/lib/spatial";
-
 export type ProjectileComponent = Component & {
     generation: number;
     deathTime: number;

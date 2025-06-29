@@ -1,6 +1,7 @@
-import {PositionComponent, VelocityComponent} from "@asteroid/components";
-import {EntityID, System} from "@fluidengine/core";
-import {FluidEngine} from "@fluidengine/FluidEngine";
+import { VelocityComponent } from "@asteroid/components/VelocityComponent";
+import { PositionComponent } from "@asteroid/components/PositionComponent";
+import { EntityID, System } from "@fluidengine/core";
+import { FluidEngine } from "@fluidengine/FluidEngine";
 
 const PI = Math.PI, PI2 = 2 * PI;
 

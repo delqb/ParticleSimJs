@@ -1,32 +1,32 @@
-import {Entity, SystemPhase} from "@fluidengine/core";
-import {FluidEngine} from "@fluidengine/FluidEngine";
-import {Vec2, Vector2} from "@fluidengine/lib/spatial";
-import {ImageUtils} from "@fluidengine/lib/utils";
-import {canvasToImage} from "@fluidengine/lib/utils/ImageUtils";
-import {boundedRandom} from "@fluidengine/lib/utils/MathUtils";
-import {Chunk, ChunkIndex, ChunkState, createChunk, getChunkCenterFromIndex} from "@fluidengine/lib/world";
-import {ClientContext} from "./client/Client";
-import {CanvasRenderer} from "./client/renderer/Renderer";
+import { Entity, SystemPhase } from "@fluidengine/core";
+import { FluidEngine } from "@fluidengine/FluidEngine";
+import { Vec2, Vector2 } from "@fluidengine/lib/spatial";
+import { ImageUtils } from "@fluidengine/lib/utils";
+import { canvasToImage } from "@fluidengine/lib/utils/ImageUtils";
+import { boundedRandom } from "@fluidengine/lib/utils/MathUtils";
+import { Chunk, ChunkIndex, ChunkState, createChunk, getChunkCenterFromIndex } from "@fluidengine/lib/world";
+import { ClientContext } from "./client/Client";
+import { CanvasRenderer } from "./client/renderer/Renderer";
 import {
-    AccelerationComponent,
-    CameraSpeedFactorComponent,
     createBoundingBox,
     createChunkOccupancyComponent,
     createProjectileSourceComponent,
-    FireControlComponent,
-    MovementControlComponent,
-    PositionComponent,
-    ProjectileComponent,
-    RenderCenterComponent,
-    ResolutionComponent,
-    ScreenPointComponent,
-    SpriteComponent,
-    StatsComponent,
-    TargetPositionComponent,
-    VelocityComponent,
-    ViewportBorderWidthComponent
+    ProjectileComponent
 } from "./components";
-import {createChunkComponent} from "./components/ChunkComponent";
+import { SpriteComponent } from "./components/SpriteComponent";
+import { RenderCenterComponent } from "./components/RenderCenterComponent";
+import { StatsComponent } from "./components/StatsComponent";
+import { FireControlComponent } from "./components/FireControlComponent";
+import { MovementControlComponent } from "./components/MovementControlComponent";
+import { ViewportBorderWidthComponent } from "./components/ViewportBorderWidthComponent";
+import { CameraSpeedFactorComponent } from "./components/CameraSpeedFactorComponent";
+import { ScreenPointComponent } from "./components/ScreenPointComponent";
+import { AccelerationComponent } from "./components/AccelerationComponent";
+import { VelocityComponent } from "./components/VelocityComponent";
+import { TargetPositionComponent } from "./components/TargetPositionComponent";
+import { PositionComponent } from "./components/PositionComponent";
+import { ResolutionComponent } from "./components/ResolutionComponent";
+import { createChunkComponent } from "./components/ChunkComponent";
 import {
     AxisRenderSystem,
     BoundingBoxRenderSystem,
@@ -48,8 +48,8 @@ import {
     ViewportSystem,
     WorldPreRenderSystem
 } from "./systems";
-import {OccupiedChunkHighlightingSystem} from "./systems/render/debug/OccupiedChunkHighlightingSystem";
-import {WorldContext} from "./world/World";
+import { OccupiedChunkHighlightingSystem } from "./systems/render/debug/OccupiedChunkHighlightingSystem";
+import { WorldContext } from "./world/World";
 
 function createGlowingStar(spikes, outerRadius, innerRadius, glowRadius) {
     const size = glowRadius * 2;

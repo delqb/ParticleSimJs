@@ -1,5 +1,3 @@
-import {Component} from "@fluidengine/core";
-import {ChunkKey} from "@fluidengine/lib/world";
 
 /**
  * Component that tracks the set of chunks currently occupied by an entity.

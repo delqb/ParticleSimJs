@@ -1,6 +1,8 @@
-import {ClientContext} from "@asteroid/client/Client";
-import {AccelerationComponent, PositionComponent, VelocityComponent} from "@asteroid/components";
-import {EntityID, System} from "@fluidengine/core";
+import { ClientContext } from "@asteroid/client/Client";
+import { AccelerationComponent } from "@asteroid/components/AccelerationComponent";
+import { VelocityComponent } from "@asteroid/components/VelocityComponent";
+import { PositionComponent } from "@asteroid/components/PositionComponent";
+import { EntityID, System } from "@fluidengine/core";
 
 export type KinematicSystemNode = {
     position: PositionComponent;

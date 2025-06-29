@@ -1,7 +1,11 @@
-import {Component} from "@fluidengine/core";
-import {AABB, createTransform, OBB, RectSize, Transform, Vec2, Vector2} from "@fluidengine/lib/spatial";
+import { Fluid } from "@fluid/Fluid";
+import { AABB } from "@fluid/lib/spatial/AABB";
+import { OBB } from "@fluid/lib/spatial/OBB";
+import { RectSize } from "@fluid/lib/spatial/RectSize";
+import { Transform, createTransform } from "@fluid/lib/spatial/Transform";
+import { Vec2, Vector2 } from "@fluid/lib/spatial/Vector2";
 
-export type BoundingBoxComponent = Component & {
+export interface BoundingBoxComponent {
     // Center and rotation are computed from position + transform in a system then stored here
     center: Vec2;
     rotation: number;
@@ -11,6 +15,8 @@ export type BoundingBoxComponent = Component & {
     obb?: OBB;
 }
 
-export function createBoundingBox(size: RectSize, { key = 'boundingBox', center = Vector2.zero(), rotation = 0, transform = createTransform(), aabb = undefined, obb = undefined } = {}): BoundingBoxComponent {
-    return { key, center, rotation, size, transform, obb, aabb };
+export const BoundingBox = Fluid.defineComponentType<BoundingBoxComponent>("BoundingBox");
+
+export function createBoundingBox(size: RectSize, { center = Vector2.zero(), rotation = 0, transform = createTransform(), aabb = undefined, obb = undefined } = {}): BoundingBoxComponent {
+    return { center, rotation, size, transform, obb, aabb };
 }

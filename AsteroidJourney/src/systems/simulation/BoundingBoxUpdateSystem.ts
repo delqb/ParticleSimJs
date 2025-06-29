@@ -1,6 +1,7 @@
-import {BoundingBoxComponent, PositionComponent} from "@asteroid/components";
-import {EntityID, System} from "@fluidengine/core";
-import {AABB, createOBB} from "@fluidengine/lib/spatial";
+import { BoundingBoxComponent } from "@asteroid/components";
+import { PositionComponent } from "@asteroid/components/PositionComponent";
+import { EntityID, System } from "@fluidengine/core";
+import { AABB, createOBB } from "@fluidengine/lib/spatial";
 
 const fcos = Math.cos, fsin = Math.sin, abs = Math.abs;
 

@@ -1,12 +1,12 @@
 import {
-    FireControlComponent,
-    PositionComponent,
-    ProjectileSourceComponent,
-    VelocityComponent
+    ProjectileSourceComponent
 } from "@asteroid/components";
-import {EntityID, System} from "@fluidengine/core";
-import {FluidEngine} from "@fluidengine/FluidEngine";
-import {Vec2} from "@fluidengine/lib/spatial";
+import { FireControlComponent } from "@asteroid/components/FireControlComponent";
+import { VelocityComponent } from "@asteroid/components/VelocityComponent";
+import { PositionComponent } from "@asteroid/components/PositionComponent";
+import { EntityID, System } from "@fluidengine/core";
+import { FluidEngine } from "@fluidengine/FluidEngine";
+import { Vec2 } from "@fluidengine/lib/spatial";
 
 type FiringSystemNode = {
     projectileSource: ProjectileSourceComponent;

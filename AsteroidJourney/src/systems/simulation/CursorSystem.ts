@@ -1,7 +1,9 @@
-import {CursorTranslateComponent, PositionComponent, ScreenPointComponent} from "@asteroid/components";
-import {EntityID, System} from "@fluidengine/core";
-import {FluidEngine} from "@fluidengine/FluidEngine";
-import {Vector2} from "@fluidengine/lib/spatial";
+import { CursorTranslateComponent } from "@asteroid/components/CursorTranslateComponent";
+import { ScreenPointComponent } from "@asteroid/components/ScreenPointComponent";
+import { PositionComponent } from "@asteroid/components/PositionComponent";
+import { EntityID, System } from "@fluidengine/core";
+import { FluidEngine } from "@fluidengine/FluidEngine";
+import { Vector2 } from "@fluidengine/lib/spatial";
 
 export type CursorSystemNode = {
     position: PositionComponent;

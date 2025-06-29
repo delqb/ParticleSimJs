@@ -1,6 +1,7 @@
-import {PositionComponent, SpriteComponent} from "@asteroid/components";
-import {EntityID, System} from "@fluidengine/core";
-import {OrderedList} from "@fluidengine/lib/structures";
+import { SpriteComponent } from "@asteroid/components/SpriteComponent";
+import { PositionComponent } from "@asteroid/components/PositionComponent";
+import { EntityID, System } from "@fluidengine/core";
+import { OrderedList } from "@fluidengine/lib/structures";
 
 type SpriteSystemNode = {
     position: PositionComponent;

@@ -1,0 +1,2 @@
+
+export type StatsComponent = Component & {};

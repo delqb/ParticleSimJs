@@ -1,5 +1,7 @@
-import {ResolutionComponent, ViewportBorderWidthComponent, ViewportComponent} from "@asteroid/components";
-import {EntityID, System} from "@fluidengine/core";
+import { ViewportComponent } from "@asteroid/components/ViewportComponent";
+import { ViewportBorderWidthComponent } from "@asteroid/components/ViewportBorderWidthComponent";
+import { ResolutionComponent } from "@asteroid/components/ResolutionComponent";
+import { EntityID, System } from "@fluidengine/core";
 
 type ViewportRenderNode = {
     resolution: ResolutionComponent;
