@@ -1,10 +1,10 @@
+import { ECSNodeSchema } from "@fluid/core/node/schema/NodeSchema";
+import { ECSNodeSchemaArchetypeHook } from "@fluid/core/node/schema/NodeSchemaArchetypeHook";
+import { ECSNodeSchemaMeta } from "@fluid/core/node/schema/NodeSchemaMeta";
+import { ECSNodeSchemaRegistryHook } from "@fluid/core/node/schema/NodeSchemaRegistryHook";
+import { HookDispatcher } from "@fluid/core/util/hook/HookDispatcher";
 import { FluidArchetype } from "../../archetype/FluidArchetype";
 import { FluidArchetypeRegistry } from "../../archetype/FluidArchetypeRegistry";
-import { ECSNodeSchemaRegistryHook } from "@fluidengine/core/node/schema/NodeSchemaRegistryHook";
-import { ECSNodeSchemaMeta } from "@fluidengine/core/node/schema/NodeSchemaMeta";
-import { ECSNodeSchema } from "@fluidengine/core/node/schema/NodeSchema";
-import { HookDispatcher } from "@fluidengine/core/util/hook/HookDispatcher";
-import { ECSNodeSchemaArchetypeHook } from "@fluidengine/core/node/schema/NodeSchemaArchetypeHook";
 
 export class FluidNodeSchemaArchetypeBridge implements ECSNodeSchemaRegistryHook {
     private schemaToArchetypeMap: Map<symbol, FluidArchetype> = new Map(); // Maps each schema symbol to its archetype

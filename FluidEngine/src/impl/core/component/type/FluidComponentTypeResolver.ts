@@ -1,6 +1,7 @@
-import { ECSComponentType, ECSComponentTypeRegistry } from "@fluidengine/core/component";
-import { ECSComponentTypeRegistryHook } from "@fluidengine/core/component/type/ComponentTypeRegistryHook";
-import { ECSComponentTypeResolver } from "@fluidengine/core/component/type/ComponentTypeResolver";
+import { ECSComponentType } from "@fluid/core/component/type/ComponentType";
+import { ECSComponentTypeRegistry } from "@fluid/core/component/type/ComponentTypeRegistry";
+import { ECSComponentTypeRegistryHook } from "@fluid/core/component/type/ComponentTypeRegistryHook";
+import { ECSComponentTypeResolver } from "@fluid/core/component/type/ComponentTypeResolver";
 
 export class FluidComponentTypeResolver implements ECSComponentTypeResolver, ECSComponentTypeRegistryHook {
     private byNumericId: Map<number, ECSComponentType<any>> = new Map();

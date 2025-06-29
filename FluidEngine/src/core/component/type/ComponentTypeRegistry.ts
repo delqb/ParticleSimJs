@@ -1,5 +1,5 @@
-import { ECSComponentType } from "./ComponentType";
-import { ECSComponentTypeId } from "./ComponentTypeId";
+import {ECSComponentType} from "./ComponentType";
+import {ECSComponentTypeId} from "./ComponentTypeId";
 
 export interface ECSComponentTypeRegistry {
     hasComponentType(id: ECSComponentTypeId): boolean;

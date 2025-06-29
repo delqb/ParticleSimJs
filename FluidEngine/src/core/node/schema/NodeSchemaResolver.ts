@@ -1,4 +1,4 @@
-import { ECSNodeSchemaMeta } from "./NodeSchemaMeta";
+import {ECSNodeSchemaMeta} from "./NodeSchemaMeta";
 
 export interface ECSNodeSchemaResolver {
     (idSymbol: symbol): ECSNodeSchemaMeta;

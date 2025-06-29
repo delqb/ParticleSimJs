@@ -1,6 +1,6 @@
-import { ECSEntityId } from "../entity";
-import { ECSComponent } from "./Component";
-import { ECSComponentType } from "./type/ComponentType";
+import {ECSEntityId} from "../entity/EntityId";
+import {ECSComponent} from "./Component";
+import {ECSComponentType} from "./type/ComponentType";
 
 export interface ECSComponentRepository {
     hasComponent<T>(componentType: ECSComponentType<T>, entityId: ECSEntityId): boolean;

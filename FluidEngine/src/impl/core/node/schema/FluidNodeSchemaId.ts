@@ -1,4 +1,4 @@
-import { ECSNodeSchemaId } from "@fluidengine/core/node/schema/NodeSchemaId";
+import { ECSNodeSchemaId } from "@fluid/core/node/schema/NodeSchemaId";
 
 export class FluidNodeSchemaId implements ECSNodeSchemaId {
     private idSymbol: symbol;

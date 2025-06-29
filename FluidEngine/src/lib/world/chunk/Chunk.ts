@@ -1,5 +1,5 @@
-import { ECSEntityId } from "@fluidengine/core";
-import { Vec2 } from "@fluidengine/lib/spatial";
+import { ECSEntityId } from "@fluid/core/entity/EntityId";
+import { Vec2 } from "@fluid/lib/spatial";
 
 const floor = Math.floor;
 

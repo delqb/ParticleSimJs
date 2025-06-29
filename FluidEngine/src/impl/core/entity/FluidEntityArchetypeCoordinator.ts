@@ -1,12 +1,14 @@
-import { ECSArchetype } from "@fluidengine/core/archetype";
-import { ECSEntityArchetypeResolver } from "@fluidengine/core/entity/EntityArchetypeResolver";
-import { ECSComponent, ECSComponentRepositoryHook, ECSComponentType } from "@fluidengine/core/component";
-import { ECSEntityId } from "@fluidengine/core/entity/EntityId";
-import { FluidArchetypeRegistry } from "../archetype/FluidArchetypeRegistry";
-import { ECSEntityArchetypeHook } from "@fluidengine/core/entity/EntityArchetypeHook";
-import { ECSEntityComponentTypesProvider } from "@fluidengine/core/entity/EntityComponentTypesProvider";
+import { ECSArchetype } from "@fluid/core/archetype/Archetype";
+import { ECSComponent } from "@fluid/core/component/Component";
+import { ECSComponentRepositoryHook } from "@fluid/core/component/ComponentRepositoryHook";
+import { ECSComponentType } from "@fluid/core/component/type/ComponentType";
+import { ECSEntityArchetypeHook } from "@fluid/core/entity/EntityArchetypeHook";
+import { ECSEntityArchetypeResolver } from "@fluid/core/entity/EntityArchetypeResolver";
+import { ECSEntityComponentTypesProvider } from "@fluid/core/entity/EntityComponentTypesProvider";
+import { ECSEntityId } from "@fluid/core/entity/EntityId";
+import { HookDispatcher } from "@fluid/core/util/hook/HookDispatcher";
 import { FluidArchetype } from "../archetype/FluidArchetype";
-import { HookDispatcher } from "@fluidengine/core/util/hook/HookDispatcher";
+import { FluidArchetypeRegistry } from "../archetype/FluidArchetypeRegistry";
 
 export class FluidEntityArchetypeCoordinator implements ECSEntityArchetypeResolver, ECSComponentRepositoryHook {
     private archetypeMap: Map<symbol, FluidArchetype> = new Map();

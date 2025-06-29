@@ -1,7 +1,7 @@
-import { ECSEntityId } from "../entity";
-import { ECSNode } from "./Node";
-import { ECSNodeSchema } from "./schema/NodeSchema";
-import { ECSNodeSchemaId } from "./schema/NodeSchemaId";
+import {ECSEntityId} from "../entity/EntityId";
+import {ECSNode} from "./Node";
+import {ECSNodeSchema} from "./schema/NodeSchema";
+import {ECSNodeSchemaId} from "./schema/NodeSchemaId";
 
 export interface ECSNodeRepository {
     hasNode(schemaId: ECSNodeSchemaId, entityId: ECSEntityId): boolean;

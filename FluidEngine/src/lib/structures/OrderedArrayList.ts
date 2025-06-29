@@ -1,4 +1,4 @@
-import { OrderedList } from "@fluidengine/core/util/OrderedList";
+import { OrderedList } from "@fluid/core/util/OrderedList";
 
 export type OrderedArrayListItem<T> = {
     item: T;

@@ -1,5 +1,5 @@
-import { ECSNodeSchema } from "./NodeSchema";
-import { ECSNodeSchemaId } from "./NodeSchemaId";
+import {ECSNodeSchema} from "./NodeSchema";
+import {ECSNodeSchemaId} from "./NodeSchemaId";
 
 export interface ECSNodeSchemaMeta {
     readonly id: ECSNodeSchemaId;

@@ -1,6 +1,6 @@
-import { ECSNodeSchema } from "./NodeSchema";
-import { ECSNodeSchemaId } from "./NodeSchemaId";
-import { ECSNodeSchemaMeta } from "./NodeSchemaMeta";
+import {ECSNodeSchema} from "./NodeSchema";
+import {ECSNodeSchemaId} from "./NodeSchemaId";
+import {ECSNodeSchemaMeta} from "./NodeSchemaMeta";
 
 export interface ECSNodeSchemaRegistry {
     hasSchema(schemaId: ECSNodeSchemaId): boolean;

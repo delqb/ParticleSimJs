@@ -1,5 +1,5 @@
-import { ECSArchetype } from "@fluidengine/core/archetype";
-import { ECSComponentType } from "@fluidengine/core/component";
+import { ECSArchetype } from "@fluid/core/archetype/Archetype";
+import { ECSComponentType } from "@fluid/core/component/type/ComponentType";
 
 export class FluidArchetype implements ECSArchetype {
     constructor(

@@ -1,6 +1,6 @@
-import { ECSComponentType } from "../component";
-import { ECSEntityId } from "../entity";
-import { ECSNodeSchema } from "./schema/NodeSchema";
+import {ECSComponentType} from "../component/type/ComponentType";
+import {ECSEntityId} from "../entity/EntityId";
+import {ECSNodeSchema} from "./schema/NodeSchema";
 
 export type ECSNodeComponentUnion<S extends ECSNodeSchema> =
     S[keyof S] extends ECSComponentType<infer T> ? T : never;

@@ -1,11 +1,14 @@
-import { ECSArchetype } from "@fluidengine/core/archetype";
-import { ECSEntityArchetypeHook } from "@fluidengine/core/entity/EntityArchetypeHook";
-import { ECSNodeSchemaArchetypeProvider } from "@fluidengine/core/node/schema/NodeSchemaArchetypeProvider";
-import { ECSComponentType } from "@fluidengine/core/component";
-import { ECSEntityId } from "@fluidengine/core/entity";
-import { ECSNodeRepository, ECSNodeFactory, ECSNodeSchemaRegistry, ECSNodeIndex } from "@fluidengine/core/node";
-import { ECSNodeManager } from "@fluidengine/core/node/NodeManager";
-import { ECSNodeSchemaIndex } from "@fluidengine/core/node/schema/NodeSchemaIndex";
+import { ECSArchetype } from "@fluid/core/archetype/Archetype";
+import { ECSComponentType } from "@fluid/core/component/type/ComponentType";
+import { ECSEntityArchetypeHook } from "@fluid/core/entity/EntityArchetypeHook";
+import { ECSEntityId } from "@fluid/core/entity/EntityId";
+import { ECSNodeFactory } from "@fluid/core/node/NodeFactory";
+import { ECSNodeIndex } from "@fluid/core/node/NodeIndex";
+import { ECSNodeManager } from "@fluid/core/node/NodeManager";
+import { ECSNodeRepository } from "@fluid/core/node/NodeRepository";
+import { ECSNodeSchemaArchetypeProvider } from "@fluid/core/node/schema/NodeSchemaArchetypeProvider";
+import { ECSNodeSchemaIndex } from "@fluid/core/node/schema/NodeSchemaIndex";
+import { ECSNodeSchemaRegistry } from "@fluid/core/node/schema/NodeSchemaRegistry";
 
 export class FluidNodeManager implements ECSNodeManager, ECSEntityArchetypeHook {
     constructor(

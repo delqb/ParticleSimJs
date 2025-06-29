@@ -1,5 +1,5 @@
-import { ECSComponent } from "../Component";
-import { ECSComponentTypeId } from "./ComponentTypeId";
+import {ECSComponent} from "../Component";
+import {ECSComponentTypeId} from "./ComponentTypeId";
 
 /**
  * Represents a type descriptor for a specific component kind. Serves as a factory and identifier for components of type `T`.

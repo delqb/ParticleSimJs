@@ -1,11 +1,11 @@
-import { ECSArchetype } from "@fluidengine/core/archetype";
-import { ECSComponent, ECSComponentType } from "@fluidengine/core/component";
-import { ECSNodeSchemaIndex } from "@fluidengine/core/node/schema/NodeSchemaIndex";
-import { ECSNodeSchemaMeta } from "@fluidengine/core/node/schema/NodeSchemaMeta";
-import { ECSNodeSchemaRegistryHook } from "@fluidengine/core/node/schema/NodeSchemaRegistryHook";
+import { ECSArchetype } from "@fluid/core/archetype/Archetype";
+import { ECSComponentType } from "@fluid/core/component/type/ComponentType";
+import { ECSNodeSchemaIndex } from "@fluid/core/node/schema/NodeSchemaIndex";
+import { ECSNodeSchemaMeta } from "@fluid/core/node/schema/NodeSchemaMeta";
+import { ECSNodeSchemaRegistryHook } from "@fluid/core/node/schema/NodeSchemaRegistryHook";
+import { ECSNodeSchemaResolver } from "@fluid/core/node/schema/NodeSchemaResolver";
+import { getLazyMappedIterable } from "@fluid/lib/utils/LazyIterableMap";
 import { FluidArchetype } from "../../archetype/FluidArchetype";
-import { ECSNodeSchemaResolver } from "@fluidengine/core/node/schema/NodeSchemaResolver";
-import { getLazyMappedIterable } from "@fluidengine/lib/utils/LazyIterableMap";
 
 export class FluidNodeSchemaIndex implements ECSNodeSchemaIndex, ECSNodeSchemaRegistryHook {
     private archetypeToSchemaMap: Map<bigint, Set<symbol>> = new Map();

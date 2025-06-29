@@ -7,18 +7,27 @@
     "outDir": "js",
     "baseUrl": "./",
     "paths": {
-      //
-      // FluidEngine
-      //
-      "@fluidengine/*": [
+      /* 
+      Fluid
+      */
+      "@fluid/*": [
         "FluidEngine/src/*"
       ],
+      /*  
+      Fluid core
+      */
+      "@fluidcore/*": [
+        "FluidEngine/src/core/*"
+      ],
+      /* 
+      Fluid lib
+      */
       "@fluidlib/*": [
         "FluidEngine/src/lib/*"
       ],
-      //
-      // AsteroidJourney
-      //
+      /* 
+      AsteroidJourney
+      */
       "@asteroid/*": [
         "AsteroidJourney/src/*"
       ]

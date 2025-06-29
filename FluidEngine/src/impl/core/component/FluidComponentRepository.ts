@@ -1,6 +1,9 @@
-import { ECSComponent, ECSComponentRepositoryHook, ECSComponentRepository, ECSComponentType } from "@fluidengine/core/component";
-import { ECSEntityId } from "@fluidengine/core/entity";
-import { HookDispatcher } from "@fluidengine/core/util/hook/HookDispatcher";
+import { ECSComponent } from "@fluid/core/component/Component";
+import { ECSComponentRepository } from "@fluid/core/component/ComponentRepository";
+import { ECSComponentRepositoryHook } from "@fluid/core/component/ComponentRepositoryHook";
+import { ECSComponentType } from "@fluid/core/component/type/ComponentType";
+import { ECSEntityId } from "@fluid/core/entity/EntityId";
+import { HookDispatcher } from "@fluid/core/util/hook/HookDispatcher";
 
 export class FluidComponentRepository implements ECSComponentRepository {
     private static readonly EMPTY_COMPONENT_TYPES: ReadonlyArray<ECSComponentType<any>> = Object.freeze([]);

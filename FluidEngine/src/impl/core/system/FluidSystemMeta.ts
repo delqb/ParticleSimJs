@@ -1,5 +1,5 @@
-import { ECSNodeSchemaMeta } from "@fluidengine/core/node/schema/NodeSchemaMeta";
-import { ECSSystemMeta } from "@fluidengine/core/system";
+import { ECSNodeSchemaMeta } from "@fluid/core/node/schema/NodeSchemaMeta";
+import { ECSSystemMeta } from "@fluid/core/system/SystemMeta";
 
 export class FluidSystemMeta implements ECSSystemMeta {
     constructor(

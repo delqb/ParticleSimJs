@@ -1,4 +1,4 @@
-import { ECSEntityId } from "./EntityId";
+import {ECSEntityId} from "./EntityId";
 
 export interface ECSEntityFactory {
     createEntityId(): ECSEntityId;

@@ -1,5 +1,5 @@
-import { ECSComponentType } from "./ComponentType";
-import { ECSComponentTypeRegistry } from "./ComponentTypeRegistry";
+import {ECSComponentType} from "./ComponentType";
+import {ECSComponentTypeRegistry} from "./ComponentTypeRegistry";
 
 export interface ECSComponentTypeRegistryHook {
     onRegisterComponentType<T>(

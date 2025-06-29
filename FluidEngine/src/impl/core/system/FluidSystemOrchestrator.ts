@@ -1,7 +1,8 @@
-import { ECSNodeIndex } from "@fluidengine/core/node";
-import { ECSSystemOrchestrator, ECSSystemPhase } from "@fluidengine/core/system";
-import { OrderedList } from "@fluidengine/core/util/OrderedList";
-import { OrderedArrayList } from "@fluidengine/lib/structures";
+import { ECSNodeIndex } from "@fluid/core/node/NodeIndex";
+import { ECSSystemOrchestrator } from "@fluid/core/system/SystemOrchestrator";
+import { ECSSystemPhase } from "@fluid/core/system/SystemPhase";
+import { OrderedList } from "@fluid/core/util/OrderedList";
+import { OrderedArrayList } from "@fluid/lib/structures/OrderedArrayList";
 
 export class FluidSystemOrchestrator implements ECSSystemOrchestrator {
     private readonly phaseList: OrderedList<ECSSystemPhase> = new OrderedArrayList(); //Store phases in proper order

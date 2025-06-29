@@ -1,4 +1,4 @@
-import { Core } from "@fluidengine/core/Core";
+import {Core} from "./Core";
 
 export class CoreRuntime {
     private static __instance: Core | null = null;

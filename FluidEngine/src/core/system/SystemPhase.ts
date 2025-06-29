@@ -1,6 +1,6 @@
-import { ECSNodeIndex } from "../node";
-import { ECSNodeSchema } from "../node/schema/NodeSchema";
-import { ECSSystem } from "./System";
+import {ECSNodeIndex} from "../node/NodeIndex";
+import {ECSNodeSchema} from "../node/schema/NodeSchema";
+import {ECSSystem} from "./System";
 
 export interface ECSSystemPhase {
     getName(): string;

@@ -1,8 +1,9 @@
-import { ECSComponentTypeRegistry, ECSComponentRepository } from "@fluidengine/core/component";
-import { ECSComponentFactory } from "@fluidengine/core/component/ComponentFactory";
-import { ECSComponentManager } from "@fluidengine/core/component/ComponentManager";
-import { ECSComponentTypeFactory } from "@fluidengine/core/component/type/ComponentTypeFactory";
-import { ECSComponentTypeResolver } from "@fluidengine/core/component/type/ComponentTypeResolver";
+import { ECSComponentFactory } from "@fluid/core/component/ComponentFactory";
+import { ECSComponentManager } from "@fluid/core/component/ComponentManager";
+import { ECSComponentRepository } from "@fluid/core/component/ComponentRepository";
+import { ECSComponentTypeFactory } from "@fluid/core/component/type/ComponentTypeFactory";
+import { ECSComponentTypeRegistry } from "@fluid/core/component/type/ComponentTypeRegistry";
+import { ECSComponentTypeResolver } from "@fluid/core/component/type/ComponentTypeResolver";
 
 export class FluidComponentManager implements ECSComponentManager {
     constructor(

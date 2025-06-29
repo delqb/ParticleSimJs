@@ -1,4 +1,4 @@
-import { ECSEntityId } from "@fluidengine/core/entity/EntityId";
+import { ECSEntityId } from "@fluid/core/entity/EntityId";
 
 export class FluidEntityId implements ECSEntityId {
     private symbol: symbol;

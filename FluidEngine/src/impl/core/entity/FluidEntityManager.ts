@@ -1,5 +1,8 @@
-import { ECSEntityFactory, ECSEntityId, ECSEntityManager, ECSEntityProxy } from "@fluidengine/core/entity";
-import { ECSEntityProxyFactory } from "@fluidengine/core/entity/EntityProxyFactory";
+import { ECSEntityFactory } from "@fluid/core/entity/EntityFactory";
+import { ECSEntityId } from "@fluid/core/entity/EntityId";
+import { ECSEntityManager } from "@fluid/core/entity/EntityManager";
+import { ECSEntityProxy } from "@fluid/core/entity/EntityProxy";
+import { ECSEntityProxyFactory } from "@fluid/core/entity/EntityProxyFactory";
 
 
 export class FluidEntityManager implements ECSEntityManager {

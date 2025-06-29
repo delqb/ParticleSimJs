@@ -1,5 +1,8 @@
-import { ECSComponent, ECSComponentRepository, ECSComponentType } from "@fluidengine/core/component";
-import { ECSEntityId, ECSEntityProxy } from "@fluidengine/core/entity";
+import { ECSComponent } from "@fluid/core/component/Component";
+import { ECSComponentRepository } from "@fluid/core/component/ComponentRepository";
+import { ECSComponentType } from "@fluid/core/component/type/ComponentType";
+import { ECSEntityId } from "@fluid/core/entity/EntityId";
+import { ECSEntityProxy } from "@fluid/core/entity/EntityProxy";
 
 
 export class FluidEntityProxy implements ECSEntityProxy {

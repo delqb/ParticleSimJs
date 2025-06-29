@@ -1,4 +1,5 @@
-import { ECSComponent, ECSComponentType } from "../component";
+import {ECSComponent} from "../component/Component";
+import {ECSComponentType} from "../component/type/ComponentType";
 
 export interface ECSEntityProxy {
     hasComponent<T>(componentType: ECSComponentType<T>): boolean;

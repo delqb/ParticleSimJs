@@ -1,4 +1,5 @@
-import { ECSEntityFactory, ECSEntityId } from "@fluidengine/core/entity";
+import { ECSEntityFactory } from "@fluid/core/entity/EntityFactory";
+import { ECSEntityId } from "@fluid/core/entity/EntityId";
 import { FluidEntityId } from "./FluidEntityId";
 
 export class FluidEntityFactory implements ECSEntityFactory {

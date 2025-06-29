@@ -1,4 +1,4 @@
-import { ECSComponentTypeId } from ".";
+import {ECSComponentTypeId} from "./type/ComponentTypeId";
 
 export interface ECSComponent<T> {
     readonly componentTypeId: ECSComponentTypeId;

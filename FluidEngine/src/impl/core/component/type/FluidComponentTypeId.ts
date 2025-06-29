@@ -1,4 +1,4 @@
-import { ECSComponentTypeId } from "@fluidengine/core/component";
+import { ECSComponentTypeId } from "@fluid/core/component/type/ComponentTypeId";
 
 export class FluidComponentTypeId implements ECSComponentTypeId {
     private static readonly prefix: string = "FluidComponentType";

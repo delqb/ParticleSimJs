@@ -1,8 +1,9 @@
-import { ECSEntityComponentProvider } from "@fluidengine/core/entity/EntityComponentProvider";
-import { ECSEntityId } from "@fluidengine/core/entity";
-import { ECSNode, ECSNodeFactory } from "@fluidengine/core/node";
-import { ECSNodeSchema } from "@fluidengine/core/node/schema/NodeSchema";
-import { ECSNodeSchemaMeta } from "@fluidengine/core/node/schema/NodeSchemaMeta";
+import { ECSEntityComponentProvider } from "@fluid/core/entity/EntityComponentProvider";
+import { ECSEntityId } from "@fluid/core/entity/EntityId";
+import { ECSNode } from "@fluid/core/node/Node";
+import { ECSNodeFactory } from "@fluid/core/node/NodeFactory";
+import { ECSNodeSchema } from "@fluid/core/node/schema/NodeSchema";
+import { ECSNodeSchemaMeta } from "@fluid/core/node/schema/NodeSchemaMeta";
 
 export class FluidNodeFactory implements ECSNodeFactory {
     constructor(

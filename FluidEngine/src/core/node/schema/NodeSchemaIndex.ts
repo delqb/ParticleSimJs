@@ -1,6 +1,6 @@
-import { ECSArchetype } from "@fluidengine/core/archetype";
-import { ECSNodeSchemaMeta } from "./NodeSchemaMeta";
-import { ECSComponentType } from "@fluidengine/core/component";
+import {ECSComponentType} from "@fluid/core/component/type/ComponentType";
+import {ECSNodeSchemaMeta} from "./NodeSchemaMeta";
+import {ECSArchetype} from "@fluid/core/archetype/Archetype";
 
 export interface ECSNodeSchemaIndex {
     getSchemasWithComponentType<T>(componentType: ECSComponentType<T>): Iterable<ECSNodeSchemaMeta>;

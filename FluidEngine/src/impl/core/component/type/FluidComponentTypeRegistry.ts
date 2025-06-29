@@ -1,7 +1,8 @@
-import { ECSComponentType, ECSComponentTypeId } from "@fluidengine/core/component";
-import { ECSComponentTypeRegistry } from "@fluidengine/core/component/type/ComponentTypeRegistry";
-import { ECSComponentTypeRegistryHook } from "@fluidengine/core/component/type/ComponentTypeRegistryHook";
-import { HookDispatcher } from "@fluidengine/core/util/hook/HookDispatcher";
+import { ECSComponentType } from "@fluid/core/component/type/ComponentType";
+import { ECSComponentTypeId } from "@fluid/core/component/type/ComponentTypeId";
+import { ECSComponentTypeRegistry } from "@fluid/core/component/type/ComponentTypeRegistry";
+import { ECSComponentTypeRegistryHook } from "@fluid/core/component/type/ComponentTypeRegistryHook";
+import { HookDispatcher } from "@fluid/core/util/hook/HookDispatcher";
 
 export class FluidComponentTypeRegistry implements ECSComponentTypeRegistry {
     private map: Map<symbol, ECSComponentType<any>> = new Map();

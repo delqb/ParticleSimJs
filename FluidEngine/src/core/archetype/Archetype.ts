@@ -1,4 +1,4 @@
-import { ECSComponentType } from "../component";
+import {ECSComponentType} from "../component";
 
 export interface ECSArchetype {
     equals(other: ECSArchetype): boolean;

@@ -1,4 +1,4 @@
-import { ECSComponentType } from "./ComponentType";
+import {ECSComponentType} from "./ComponentType";
 
 export interface ECSComponentTypeResolver {
     getBySymbol<T>(symbol: symbol): ECSComponentType<T>;

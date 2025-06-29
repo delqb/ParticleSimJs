@@ -1,4 +1,4 @@
-import { ECSNodeSchemaMeta } from "./NodeSchemaMeta";
+import {ECSNodeSchemaMeta} from "./NodeSchemaMeta";
 
 export interface ECSNodeSchemaRegistryHook {
     onRegisterNodeSchema(meta: ECSNodeSchemaMeta): void;

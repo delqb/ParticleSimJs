@@ -1,4 +1,4 @@
-import { Core } from "./core";
+import { Core } from ".";
 import { FPSTimer } from "./lib/utils/FPSTimer";
 
 export class FluidEngine {

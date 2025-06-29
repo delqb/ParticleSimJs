@@ -1,5 +1,5 @@
-import { ECSNodeIndex } from "../node";
-import { ECSSystemPhase } from "./SystemPhase";
+import {ECSNodeIndex} from "../node/NodeIndex";
+import {ECSSystemPhase} from "./SystemPhase";
 
 export interface ECSSystemOrchestrator {
     hasPhase(phase: ECSSystemPhase): boolean;

@@ -1,9 +1,10 @@
-import { ECSComponentType, ECSComponentTypeRegistry } from "@fluidengine/core/component";
-import { ECSComponentFactory } from "@fluidengine/core/component/ComponentFactory";
-import { ECSComponentTypeFactory } from "@fluidengine/core/component/type/ComponentTypeFactory";
+import { ECSComponentFactory } from "@fluid/core/component/ComponentFactory";
+import { ECSComponentType } from "@fluid/core/component/type/ComponentType";
+import { ECSComponentTypeFactory } from "@fluid/core/component/type/ComponentTypeFactory";
+import { ECSComponentTypeRegistry } from "@fluid/core/component/type/ComponentTypeRegistry";
+import { ECSComponentTypeRegistryHook } from "@fluid/core/component/type/ComponentTypeRegistryHook";
 import { FluidComponentType } from "./FluidComponentType";
 import { FluidComponentTypeId } from "./FluidComponentTypeId";
-import { ECSComponentTypeRegistryHook } from "@fluidengine/core/component/type/ComponentTypeRegistryHook";
 
 export class FluidComponentTypeFactory implements ECSComponentTypeFactory, ECSComponentTypeRegistryHook {
     private nextNumericId: number = 0;

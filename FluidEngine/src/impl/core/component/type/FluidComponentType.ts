@@ -1,6 +1,8 @@
-import { ECSComponent, ECSComponentType, ECSComponentTypeId } from "@fluidengine/core/component";
+import { ECSComponent } from "@fluid/core/component/Component";
+import { ECSComponentFactory } from "@fluid/core/component/ComponentFactory";
+import { ECSComponentType } from "@fluid/core/component/type/ComponentType";
+import { ECSComponentTypeId } from "@fluid/core/component/type/ComponentTypeId";
 import { FluidComponentTypeId } from "./FluidComponentTypeId";
-import { ECSComponentFactory } from "@fluidengine/core/component/ComponentFactory";
 
 export class FluidComponentType<T> implements ECSComponentType<T> {
     constructor(

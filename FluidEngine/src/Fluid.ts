@@ -1,6 +1,5 @@
-import { CoreRuntime } from "@fluidengine/core/CoreRuntime";
-import { Core } from "./core/Core";
-import { ECSComponentType } from "./core/component";
+import { Core, CoreRuntime } from ".";
+import { ECSComponentType } from "./core/component/type/ComponentType";
 
 export class Fluid {
     static core(): Core {

@@ -1,6 +1,7 @@
-import { ECSNode } from "@fluidengine/core/node";
-import { ECSNodeSchema } from "@fluidengine/core/node/schema/NodeSchema";
-import { ECSSystem, ECSSystemMeta } from "@fluidengine/core/system";
+import { ECSNode } from "@fluid/core/node/Node";
+import { ECSNodeSchema } from "@fluid/core/node/schema/NodeSchema";
+import { ECSSystem } from "@fluid/core/system/System";
+import { ECSSystemMeta } from "@fluid/core/system/SystemMeta";
 
 export abstract class FluidSystem<S extends ECSNodeSchema> implements ECSSystem<S> {
     constructor(

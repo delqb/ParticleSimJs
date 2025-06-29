@@ -1,5 +1,5 @@
-import { ECSComponent } from "./Component";
-import { ECSComponentType } from "./type/ComponentType";
+import {ECSComponent} from "./Component";
+import {ECSComponentType} from "./type/ComponentType";
 
 export interface ECSComponentFactory {
     /**

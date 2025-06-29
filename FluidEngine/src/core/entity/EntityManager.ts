@@ -1,6 +1,5 @@
-import { ECSEntityFactory } from "./EntityFactory";
-import { ECSEntityId } from "./EntityId";
-import { ECSEntityProxy } from "./EntityProxy";
+import {ECSEntityId} from "./EntityId";
+import {ECSEntityProxy} from "./EntityProxy";
 
 export interface ECSEntityManager {
     getEntities(): Iterable<ECSEntityId>;

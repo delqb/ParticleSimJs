@@ -1,10 +1,10 @@
-import { ECSNodeSchemaRegistry } from "@fluidengine/core/node";
-import { ECSNodeSchema } from "@fluidengine/core/node/schema/NodeSchema";
-import { ECSNodeSchemaId } from "@fluidengine/core/node/schema/NodeSchemaId";
-import { ECSNodeSchemaMeta } from "@fluidengine/core/node/schema/NodeSchemaMeta";
+import { ECSNodeSchema } from "@fluid/core/node/schema/NodeSchema";
+import { ECSNodeSchemaId } from "@fluid/core/node/schema/NodeSchemaId";
+import { ECSNodeSchemaMeta } from "@fluid/core/node/schema/NodeSchemaMeta";
+import { ECSNodeSchemaRegistry } from "@fluid/core/node/schema/NodeSchemaRegistry";
+import { ECSNodeSchemaRegistryHook } from "@fluid/core/node/schema/NodeSchemaRegistryHook";
+import { HookDispatcher } from "@fluid/core/util/hook/HookDispatcher";
 import { FluidNodeSchemaId } from "./FluidNodeSchemaId";
-import { ECSNodeSchemaRegistryHook } from "@fluidengine/core/node/schema/NodeSchemaRegistryHook";
-import { HookDispatcher } from "@fluidengine/core/util/hook/HookDispatcher";
 
 export class FluidNodeSchemaRegistry implements ECSNodeSchemaRegistry {
     private schemaMap: Map<symbol, ECSNodeSchemaMeta> = new Map();
