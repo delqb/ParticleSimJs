@@ -1,5 +1,4 @@
-import { ECSEntityId } from "@fluid/core/entity/EntityId";
-import { Vec2 } from "@fluid/lib/spatial";
+import { Vec2 } from "@fluid/lib/spatial/Vector2";
 
 const floor = Math.floor;
 
@@ -7,35 +6,35 @@ export type ChunkIndex = [number, number] & { __brand: "ChunkIndex" };
 export type ChunkKey = string & { __brand: "ChunkKey" };
 
 export const enum ChunkState {
-    Loaded = "loaded",
-    Unloaded = "unloaded",
+    Loaded = 1,
+    Unloaded = 2,
 }
 
 export function isChunkState(value: any): value is ChunkState {
     return value === ChunkState.Loaded || value === ChunkState.Unloaded;
 }
 
-export interface Chunk {
+export interface ChunkMeta {
     readonly index: ChunkIndex;
     readonly key: ChunkKey;
     readonly size: number;
     state: ChunkState;
     lastAccessed: number;
-    entityIDSet: Set<ECSEntityId>;
+    entitySymbolSet: Set<symbol>;
 }
 
 type ChunkCreationOptionalParameters = {
     lastAccessed?: number;
-    entityIDSet?: Set<ECSEntityId>, size?: number
+    entitySymbolSet?: Set<symbol>, size?: number
 }
 
-export function createChunk(index: ChunkIndex, size: number, state: ChunkState, options?: ChunkCreationOptionalParameters): Chunk;
-export function createChunk(key: ChunkKey, size: number, state: ChunkState, options?: ChunkCreationOptionalParameters): Chunk;
+export function createChunk(index: ChunkIndex, size: number, state: ChunkState, options?: ChunkCreationOptionalParameters): ChunkMeta;
+export function createChunk(key: ChunkKey, size: number, state: ChunkState, options?: ChunkCreationOptionalParameters): ChunkMeta;
 
 export function createChunk(
     indexOrKey: ChunkIndex | ChunkKey, size: number, state: ChunkState,
-    { lastAccessed = 0, entityIDSet = new Set<ECSEntityId>() } = {}
-): Chunk {
+    { lastAccessed = 0, entitySymbolSet = new Set<symbol>() } = {}
+): ChunkMeta {
     let key: ChunkKey;
     let index: ChunkIndex;
 
@@ -59,7 +58,7 @@ export function createChunk(
         key,
         state,
         lastAccessed,
-        entityIDSet,
+        entitySymbolSet: entitySymbolSet,
         size
     };
 }
