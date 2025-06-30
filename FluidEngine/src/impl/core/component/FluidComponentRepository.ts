@@ -158,9 +158,26 @@ export class FluidComponentRepository implements ECSComponentRepository {
     removeEntityComponents(entityId: ECSEntityId): void {
         const entitySymbol = entityId.getSymbol();
         const componentTypesMap = this.entityToComponentTypesMap.get(entitySymbol);
+        if (!componentTypesMap)
+            return;
+        const componentTypes = Array.from(componentTypesMap.values());
+        this.entityToComponentTypesMap.delete(entitySymbol);
+        for (const componentType of componentTypes) {
+            const typeSymbol = componentType.getId().getSymbol();
+            const component = this.componentTypeToComponentMap.get(typeSymbol)?.get(entitySymbol);
+            if (component) {
+                this.componentTypeToComponentMap.get(typeSymbol)!.delete(entitySymbol);
+                this.hooks.invokeHooks(h => h.onRemoveComponent(componentType, component, entityId));
+            }
+        }
+    }
+
+    * getEntityComponents(entityId: ECSEntityId): Iterable<ECSComponent<any>> {
+        const entitySymbol = entityId.getSymbol();
+        const componentTypesMap = this.entityToComponentTypesMap.get(entitySymbol);
         if (componentTypesMap) {
-            for (const componentType of Array.from(componentTypesMap.values())) {
-                this.removeComponent(componentType, entityId);
+            for (const componentType of componentTypesMap.values()) {
+                yield this.withComponentEntry(componentType, entityId, (map, key) => map.get(key)!);
             }
         }
     }

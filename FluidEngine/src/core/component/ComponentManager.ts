@@ -1,8 +1,10 @@
-import {ECSComponentFactory} from "./ComponentFactory";
-import {ECSComponentRepository} from "./ComponentRepository";
-import {ECSComponentTypeFactory} from "./type/ComponentTypeFactory";
-import {ECSComponentTypeRegistry} from "./type/ComponentTypeRegistry";
-import {ECSComponentTypeResolver} from "./type/ComponentTypeResolver";
+import { ECSEntityId } from "../entity/EntityId";
+import { ECSComponent } from "./Component";
+import { ECSComponentFactory } from "./ComponentFactory";
+import { ECSComponentRepository } from "./ComponentRepository";
+import { ECSComponentTypeFactory } from "./type/ComponentTypeFactory";
+import { ECSComponentTypeRegistry } from "./type/ComponentTypeRegistry";
+import { ECSComponentTypeResolver } from "./type/ComponentTypeResolver";
 
 export interface ECSComponentManager {
     getComponentTypeFactory(): ECSComponentTypeFactory;
