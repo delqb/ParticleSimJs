@@ -1,49 +1,46 @@
-import { SpriteComponent } from "@asteroid/components/SpriteComponent";
-import { PositionComponent } from "@asteroid/components/PositionComponent";
-import { EntityID, System } from "@fluidengine/core";
-import { OrderedList } from "@fluidengine/lib/structures";
+import { Position } from "@asteroid/components/PositionComponent";
+import { Sprite } from "@asteroid/components/SpriteComponent";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { ECSNode } from "@fluid/core/node/Node";
+import { Transform } from "@fluid/lib/spatial/Transform";
 
-type SpriteSystemNode = {
-    position: PositionComponent;
-    spriteTexture: SpriteComponent;
+const schema = {
+    position: Position,
+    spriteTexture: Sprite
 }
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Sprite Render");
 
-export class SpriteRenderSystem extends System<SpriteSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof SpriteSystemNode> = new Set([
-        "position",
-        "spriteTexture"
-    ]);
+export class SpriteRenderSystem extends FluidSystem<Schema> {
 
-    private sortedNodeList: OrderedList<[EntityID, SpriteSystemNode]> = new OrderedList();
     constructor(private renderContext: CanvasRenderingContext2D) {
-        super();
+        super("Sprite Render System", nodeMeta);
     }
 
-    public addNode(entityID: EntityID, node: SpriteSystemNode): void {
-        super.addNode(entityID, node);
-        this.sortedNodeList.add([entityID, node], node.spriteTexture.zIndex);
-    }
-
-    public removeNode(entityID: EntityID): boolean {
-        if (this.hasNode(entityID)) {
-            let itemList = this.sortedNodeList.getItemList();
-            const index = itemList.findIndex(o => o.item[0] === entityID);
-            if (index !== -1)
-                itemList.splice(index, 1);
-        }
-        return super.removeNode(entityID);
-    }
-
-    public updateNode(node: SpriteSystemNode, entityID: EntityID) {
-        const { position, spriteTexture: texture } = node;
-        const { x, y } = position.position;
-        const transform = texture.transform;
-        const img = texture.image;
+    public updateNodes(nodes: Iterable<ECSNode<Schema>>): void {
         const ctx = this.renderContext;
+        for (const node of Array.from(nodes).sort((a, b) => a.spriteTexture.zIndex - b.spriteTexture.zIndex)) {
+            const { position, spriteTexture: sprite } = node;
+            const { x, y } = position.position;
 
+            this.renderSprite(
+                ctx,
+                sprite.image,
+                x,
+                y,
+                position.rotation,
+                sprite.transform
+            );
+        }
+
+
+    }
+
+    private renderSprite(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, rotation: number, transform: Transform | undefined) {
         ctx.save();
         ctx.translate(x, y);
-        ctx.rotate(position.rotation);
+        ctx.rotate(rotation);
 
         if (transform) {
             const { translate: trans, rotate: rot, scale } = transform;
@@ -54,9 +51,5 @@ export class SpriteRenderSystem extends System<SpriteSystemNode> {
 
         ctx.drawImage(img, -img.width / 2, -img.height / 2);
         ctx.restore();
-    }
-
-    public update(): void {
-        this.sortedNodeList.getAll().forEach(([entityID, node]) => this.updateNode(node, entityID));
     }
 }

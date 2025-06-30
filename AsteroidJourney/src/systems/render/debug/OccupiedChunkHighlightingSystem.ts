@@ -1,33 +1,37 @@
-import {ClientContext} from "@asteroid/client/Client";
-import {ChunkOccupancyComponent} from "@asteroid/components";
-import {EntityID, System} from "@fluidengine/core";
-import {getChunkCornerFromIndex, parseChunkKey} from "@fluidengine/lib/world";
+import { ClientContext } from "@asteroid/client/Client";
+import { ChunkOccupancy } from "@asteroid/components/ChunkOccupancyComponent";
+import { RenderCenter } from "@asteroid/components/RenderCenterComponent";
+import { ECSNode } from "@fluid/core/node/Node";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { parseChunkKey, getChunkCornerFromIndex } from "@fluid/lib/world/chunk/Chunk";
 
-type ChunkLoadingSystemNode = {
-    chunks: ChunkOccupancyComponent;
+const schema = {
+    chunks: ChunkOccupancy
 }
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Occupied Chunk Highlighting");
 
 const generalHighlightColor = "blue";
 const renderCenterHighlightColor = "red"
 const generalHighlightAlpha = 0.05;
 const renderCenterHighlightAlpha = 0.35;
 
-export class OccupiedChunkHighlightingSystem extends System<ChunkLoadingSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ChunkLoadingSystemNode> = new Set(["chunks"]);
+export class OccupiedChunkHighlightingSystem extends FluidSystem<Schema> {
     constructor(private clientContext: ClientContext) {
-        super();
+        super("Occupied Chunk Highlighting System", nodeMeta);
     }
 
-    public updateNode(node: ChunkLoadingSystemNode, entityID: EntityID): void {
+    public updateNode(node: ECSNode<Schema>): void {
         const clientContext = this.clientContext;
         if (!clientContext.displayChunks)
             return;
 
-        const engine = clientContext.engineInstance,
-            worldContext = clientContext.worldContext,
+        const worldContext = clientContext.worldContext,
             ctx = clientContext.renderer.renderContext;
         const chunkSize = worldContext.chunkSize;
-        const isRenderCenter = engine.getEntityByID(entityID).hasComponent("renderCenter");
+        const proxy = Fluid.getEntityProxy(node.entityId);
+        const isRenderCenter = proxy.hasComponent(RenderCenter);
 
         ctx.save();
 

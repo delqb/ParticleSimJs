@@ -1,9 +1,11 @@
-import { MovementControlComponent } from "@asteroid/components/MovementControlComponent";
-import { AccelerationComponent } from "@asteroid/components/AccelerationComponent";
-import { VelocityComponent } from "@asteroid/components/VelocityComponent";
-import { PositionComponent } from "@asteroid/components/PositionComponent";
-import { EntityID, System } from "@fluidengine/core";
-import { Vector2 } from "@fluidengine/lib/spatial";
+import { MovementControl } from "@asteroid/components/MovementControlComponent";
+import { Acceleration } from "@asteroid/components/AccelerationComponent";
+import { Velocity } from "@asteroid/components/VelocityComponent";
+import { Position } from "@asteroid/components/PositionComponent";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { ECSNode } from "@fluid/core/node/Node";
+import { Vector2 } from "@fluid/lib/spatial/Vector2";
 
 const hPI = Math.PI / 2;
 const THRUST_FORCE = 1.5
@@ -12,16 +14,19 @@ const THRUST_ACCELERATION = THRUST_FORCE;
 const ANGULAR_ACCELERATION = THRUST_FORCE * 18 / 10;
 const ROLL_ACCELERATION = THRUST_FORCE * 3 / 4;
 
-export type MovementControlSystemNode = {
-    position: PositionComponent;
-    velocity: VelocityComponent;
-    acceleration: AccelerationComponent;
-    movementControl: MovementControlComponent;
+const schema = {
+    position: Position,
+    velocity: Velocity,
+    acceleration: Acceleration,
+    movementControl: MovementControl
 }
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Movement Control");
 
-export class MovementControlSystem extends System<MovementControlSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof MovementControlSystemNode> = new Set(['position', 'velocity', 'acceleration', 'movementControl']);
-    public updateNode(node: MovementControlSystemNode, entityID: EntityID) {
+export class MovementControlSystem extends FluidSystem<Schema> {
+    constructor() { super("Movement Control System", nodeMeta); }
+
+    public updateNode(node: ECSNode<Schema>): void {
         const { acceleration: accelComp, movementControl: input } = node;
         const { x: iX, y: iY } = input.accelerationInput;
         const rot = node.position.rotation;

@@ -1,24 +1,32 @@
-import { RenderCenterComponent } from "@asteroid/components/RenderCenterComponent";
-import { PositionComponent } from "@asteroid/components/PositionComponent";
+import { RenderCenter } from "@asteroid/components/RenderCenterComponent";
+import { Position } from "@asteroid/components/PositionComponent";
 import { WorldContext } from "@asteroid/world/World";
-import { EntityID, System } from "@fluidengine/core";
-import { FluidEngine } from "@fluidengine/FluidEngine";
-import { ChunkState, getChunkIndexFromPosition, getChunkKeyFromIndex } from "@fluidengine/lib/world";
+import { FluidEngine } from "@fluid/FluidEngine";
+import { getChunkIndexFromPosition, getChunkKeyFromIndex, ChunkState } from "@fluid/lib/world/chunk/Chunk";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { ECSNode } from "@fluid/core/node/Node";
+import { ECSNodeSchema } from "@fluid/core/node/schema/NodeSchema";
 
 const floor = Math.floor;
 
-type ChunkLoadingSystemNode = {
-    renderCenter: RenderCenterComponent;
-    position: PositionComponent;
+const schema = {
+    renderCenter: RenderCenter,
+    position: Position
 }
 
-export class ChunkLoadingSystem extends System<ChunkLoadingSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ChunkLoadingSystemNode> = new Set(["renderCenter", "position"]);
-    constructor(private engineInstance: FluidEngine, private worldContext: WorldContext) {
-        super();
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Chunk Loading");
+
+export class ChunkLoadingSystem extends FluidSystem<Schema> {
+    constructor(
+        private engineInstance: FluidEngine,
+        private worldContext: WorldContext
+    ) {
+        super("Chunk Loading System", nodeMeta);
     }
 
-    public updateNode(node: ChunkLoadingSystemNode, entityID: EntityID): void {
+    public updateNode(node: ECSNode<Schema>): void {
         const worldContext = this.worldContext;
         const chunkSize = worldContext.chunkSize;
         const gameTime = this.engineInstance.getGameTime();

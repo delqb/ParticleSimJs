@@ -1,6 +1,9 @@
+import { Fluid } from "@fluid/Fluid";
 
-export type BackgroundGridComponent = Component & {
+export interface BackgroundGridComponent {
     gridSize: number;
     gridLineWidth: number;
     gridLineColor: string;
 };
+
+export const BackgroundGrid = Fluid.defineComponentType<BackgroundGridComponent>("Background Grid");

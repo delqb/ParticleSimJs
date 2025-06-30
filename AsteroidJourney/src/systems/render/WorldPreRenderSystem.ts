@@ -1,23 +1,27 @@
 import { ClientContext } from "@asteroid/client/Client";
-import { ViewportComponent } from "@asteroid/components/ViewportComponent";
-import { PositionComponent } from "@asteroid/components/PositionComponent";
-import { ResolutionComponent } from "@asteroid/components/ResolutionComponent";
-import { EntityID, System } from "@fluidengine/core";
+import { Viewport } from "@asteroid/components/ViewportComponent";
+import { Position } from "@asteroid/components/PositionComponent";
+import { Resolution } from "@asteroid/components/ResolutionComponent";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { ECSNode } from "@fluid/core/node/Node";
 
 const hPI = Math.PI / 2;
 
-type WorldPreRenderSystemNode = {
-    position: PositionComponent;
-    resolution: ResolutionComponent;
-    viewport: ViewportComponent;
+const schema = {
+    position: Position,
+    resolution: Resolution,
+    viewport: Viewport
 }
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "World Pre Render");
 
-export class WorldPreRenderSystem extends System<WorldPreRenderSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof WorldPreRenderSystemNode> = new Set(['position', 'resolution', 'viewport']);
+export class WorldPreRenderSystem extends FluidSystem<Schema> {
     constructor(private clientContext: ClientContext) {
-        super();
+        super("World Pre Render System", nodeMeta);
     }
-    public updateNode(node: WorldPreRenderSystemNode, entityID: EntityID): void {
+
+    public updateNode(node: ECSNode<Schema>): void {
         const renderer = this.clientContext.renderer;
         const ctx = renderer.renderContext;
         const PPM = this.clientContext.engineInstance.PIXELS_PER_METER;
@@ -43,5 +47,4 @@ export class WorldPreRenderSystem extends System<WorldPreRenderSystemNode> {
         // Translate everything that follows (world) so that viewport target is at the center of the screen
         ctx.translate(-hW - vpPos.x, -hH - vpPos.y);
     }
-
 }

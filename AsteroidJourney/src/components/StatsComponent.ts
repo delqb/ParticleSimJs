@@ -1,2 +1,6 @@
+import { Fluid } from "@fluid/Fluid";
 
-export type StatsComponent = Component & {};
+export interface StatsComponent {
+};
+
+export const Stats = Fluid.defineComponentType<StatsComponent>("Stats");

@@ -1,20 +1,26 @@
-import {ChunkComponent} from "@asteroid/components/ChunkComponent";
-import {WorldContext} from "@asteroid/world/World";
-import {EntityID, System} from "@fluidengine/core";
-import {FluidEngine} from "@fluidengine/FluidEngine";
-import {ChunkState} from "@fluidengine/lib/world";
+import { Chunk } from "@asteroid/components/ChunkComponent";
+import { WorldContext } from "@asteroid/world/World";
+import { ECSNode } from "@fluid/core/node/Node";
+import { Fluid } from "@fluid/Fluid";
+import { FluidEngine } from "@fluid/FluidEngine";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { ChunkState } from "@fluid/lib/world/chunk/Chunk";
 
-type ChunkNode = {
-    chunk: ChunkComponent;
+const schema = {
+    chunk: Chunk
 }
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Chunk Unloading");
 
-export class ChunkUnloadingSystem extends System<ChunkNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ChunkNode> = new Set(["chunk"]);
-    constructor(private engineInstance: FluidEngine, private worldContext: WorldContext) {
-        super();
+export class ChunkUnloadingSystem extends FluidSystem<Schema> {
+    constructor(
+        private engineInstance: FluidEngine,
+        private worldContext: WorldContext
+    ) {
+        super("Chunk Unloading System", nodeMeta);
     }
 
-    public updateNode(node: ChunkNode, entityID: EntityID): void {
+    public updateNode(node: ECSNode<Schema>): void {
         const worldContext = this.worldContext;
         const { chunkTimeout } = this.worldContext;
         const gameTime = this.engineInstance.getGameTime();

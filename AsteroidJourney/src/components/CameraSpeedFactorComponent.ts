@@ -1,4 +1,7 @@
+import { Fluid } from "@fluid/Fluid";
 
-export type CameraSpeedFactorComponent = Component & {
+export interface CameraSpeedFactorComponent {
     speedFactor: number;
 };
+
+export const CameraSpeedFactor = Fluid.defineComponentType<CameraSpeedFactorComponent>("Camera Speed Factor");

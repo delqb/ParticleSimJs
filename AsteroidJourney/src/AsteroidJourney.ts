@@ -1,32 +1,18 @@
-import { Entity, SystemPhase } from "@fluidengine/core";
-import { FluidEngine } from "@fluidengine/FluidEngine";
-import { Vec2, Vector2 } from "@fluidengine/lib/spatial";
-import { ImageUtils } from "@fluidengine/lib/utils";
-import { canvasToImage } from "@fluidengine/lib/utils/ImageUtils";
-import { boundedRandom } from "@fluidengine/lib/utils/MathUtils";
-import { Chunk, ChunkIndex, ChunkState, createChunk, getChunkCenterFromIndex } from "@fluidengine/lib/world";
 import { ClientContext } from "./client/Client";
 import { CanvasRenderer } from "./client/renderer/Renderer";
-import {
-    createBoundingBox,
-    createChunkOccupancyComponent,
-    createProjectileSourceComponent,
-    ProjectileComponent
-} from "./components";
-import { SpriteComponent } from "./components/SpriteComponent";
-import { RenderCenterComponent } from "./components/RenderCenterComponent";
-import { StatsComponent } from "./components/StatsComponent";
-import { FireControlComponent } from "./components/FireControlComponent";
-import { MovementControlComponent } from "./components/MovementControlComponent";
-import { ViewportBorderWidthComponent } from "./components/ViewportBorderWidthComponent";
-import { CameraSpeedFactorComponent } from "./components/CameraSpeedFactorComponent";
-import { ScreenPointComponent } from "./components/ScreenPointComponent";
-import { AccelerationComponent } from "./components/AccelerationComponent";
-import { VelocityComponent } from "./components/VelocityComponent";
-import { TargetPositionComponent } from "./components/TargetPositionComponent";
-import { PositionComponent } from "./components/PositionComponent";
-import { ResolutionComponent } from "./components/ResolutionComponent";
-import { createChunkComponent } from "./components/ChunkComponent";
+import { Sprite, SpriteComponent } from "./components/SpriteComponent";
+import { RenderCenter, RenderCenterComponent } from "./components/RenderCenterComponent";
+import { Stats, StatsComponent } from "./components/StatsComponent";
+import { FireControl, FireControlComponent } from "./components/FireControlComponent";
+import { MovementControl, MovementControlComponent } from "./components/MovementControlComponent";
+import { ViewportBorderWidth, ViewportBorderWidthComponent } from "./components/ViewportBorderWidthComponent";
+import { CameraSpeedFactor, CameraSpeedFactorComponent } from "./components/CameraSpeedFactorComponent";
+import { ScreenPoint, ScreenPointComponent } from "./components/ScreenPointComponent";
+import { Acceleration, AccelerationComponent } from "./components/AccelerationComponent";
+import { Velocity, VelocityComponent } from "./components/VelocityComponent";
+import { TargetPosition, TargetPositionComponent } from "./components/TargetPositionComponent";
+import { Position, PositionComponent } from "./components/PositionComponent";
+import { Resolution, ResolutionComponent } from "./components/ResolutionComponent";
 import {
     AxisRenderSystem,
     BoundingBoxRenderSystem,
@@ -50,6 +36,20 @@ import {
 } from "./systems";
 import { OccupiedChunkHighlightingSystem } from "./systems/render/debug/OccupiedChunkHighlightingSystem";
 import { WorldContext } from "./world/World";
+import { canvasToImage, loadImage } from "@fluid/lib/utils/ImageUtils";
+import { FluidEngine } from "@fluid/FluidEngine";
+import { Vector2, Vec2 } from "@fluid/lib/spatial/Vector2";
+import { boundedRandom } from "@fluid/lib/utils/MathUtils";
+import { ChunkIndex, ChunkMeta, getChunkCenterFromIndex, createChunk, ChunkState } from "@fluid/lib/world/chunk/Chunk";
+import { BoundingBox, createBoundingBox } from "./components/BoundingBoxComponent";
+import { Projectile, ProjectileComponent } from "./components/ProjectileComponent";
+import { Chunk } from "./components/ChunkComponent";
+import { Fluid } from "@fluid/Fluid";
+import { ECSEntityId } from "@fluid/core/entity/EntityId";
+import { ChunkOccupancy } from "./components/ChunkOccupancyComponent";
+import { ProjectileSource } from "./components/ProjectileSourceComponent";
+import { Viewport } from "./components/ViewportComponent";
+import { FluidSystemPhase } from "@fluid/impl/core/system/FluidSystemPhase";
 
 function createGlowingStar(spikes, outerRadius, innerRadius, glowRadius) {
     const size = glowRadius * 2;
@@ -137,20 +137,20 @@ function renderSingleNeonLaserSprite({
     return canvas;
 }
 
-function loadImage(assetPath: string) {
-    return ImageUtils.loadImage(`${assetRoot}/${assetPath}`);
+function loadImg(assetPath: string) {
+    return loadImage(`${assetRoot}/${assetPath}`);
 }
 
 const laserShotCanvas = renderSingleNeonLaserSprite();
 const laserShotTexture = canvasToImage(laserShotCanvas);
 
 export const assetRoot = "/AsteroidJourney/assets";
-export const backgroundTileImage = await loadImage("background/space_background_tile.png");
-export const asteroidImage = await loadImage("asteroid/asteroid1.png");
-export const shipImage = await loadImage("ship/ship1.png");
+export const backgroundTileImage = await loadImg("background/space_background_tile.png");
+export const asteroidImage = await loadImg("asteroid/asteroid1.png");
+export const shipImage = await loadImg("ship/ship1.png");
 const starImage = canvasToImage(createGlowingStar(3, 3, 5, 40));
 
-function generateChunk(worldContext: WorldContext, chunkIndex: ChunkIndex, chunkSize: number): Chunk {
+function generateChunk(worldContext: WorldContext, chunkIndex: ChunkIndex, chunkSize: number): ChunkMeta {
     const chunkCenter = getChunkCenterFromIndex(chunkIndex[0], chunkIndex[1], chunkSize);
     // Creates background
     let chunkEntity = createSpriteEntity(
@@ -196,28 +196,28 @@ function generateChunk(worldContext: WorldContext, chunkIndex: ChunkIndex, chunk
             createAsteroid(asteroidPosition, asteroidRotation, asteroidVelocity, angularVelocity, scale);
         }
 
-    const chunk = createChunk(
+    const chunkMeta = createChunk(
         chunkIndex,
         chunkSize,
         ChunkState.Loaded,
         {
-            entityIDSet: new Set([chunkEntity.getID()]),
+            entitySymbolSet: new Set([chunkEntity.getSymbol()]),
             lastAccessed: engine.getGameTime(),
         }
     );
 
-    engine.addEntityComponents(chunkEntity, createChunkComponent(chunk));
-    return chunk;
+    const chunkComponent = Chunk.createComponent({ chunk: chunkMeta }, false);
+    Fluid.addEntityComponent(chunkEntity, chunkComponent);
+    return chunkMeta;
 }
 
 const canvasElement = document.getElementById("canvas")! as HTMLCanvasElement;
 canvasElement.addEventListener("contextmenu", function (e) {
     e.preventDefault();
 });
-const VIEWPORT_RESOLUTION_COMPONENT = {
-    key: "resolution",
+const VIEWPORT_RESOLUTION_COMPONENT = Resolution.createComponent({
     resolution: Vector2.zero()
-} as ResolutionComponent;
+});
 
 const renderContext = canvasElement.getContext("2d")!;
 const renderer = new CanvasRenderer(
@@ -227,13 +227,13 @@ const renderer = new CanvasRenderer(
         renderBaseColor: "black",
         onresize:
             (pw, ph, nw, nh) => {
-                VIEWPORT_RESOLUTION_COMPONENT.resolution.x = nw;
-                VIEWPORT_RESOLUTION_COMPONENT.resolution.y = nh;
+                VIEWPORT_RESOLUTION_COMPONENT.data.resolution.x = nw;
+                VIEWPORT_RESOLUTION_COMPONENT.data.resolution.y = nh;
             }
     });
 
 let renderDistance: number = 5;
-const engine = new FluidEngine(1024);
+const engine = new FluidEngine(Fluid.core(), 1024);
 const worldContext: WorldContext = new WorldContext(engine, 1.024, 0.1, generateChunk);
 const clientContext: ClientContext = new ClientContext(engine, worldContext, renderer);
 
@@ -242,51 +242,50 @@ clientContext.setZoomLevel(20);
 const KEY_STATES = {
 };
 
-const MOVEMENT_CONTROL_COMPONENT: MovementControlComponent = {
-    key: "movementControl",
+const MOVEMENT_CONTROL_COMPONENT = MovementControl.createComponent({
     accelerationInput: {
         x: 0,
         y: 0
     },
     yawInput: 0
-}
+});
 
 const KEYBOARD_CONTROLS = {
     up: {
         type: "movement",
         keys: ["w"],
         action: () => {
-            MOVEMENT_CONTROL_COMPONENT.accelerationInput.y += 1;
+            MOVEMENT_CONTROL_COMPONENT.data.accelerationInput.y += 1;
         }
     },
     down: {
         keys: ["s"],
         action: () => {
-            MOVEMENT_CONTROL_COMPONENT.accelerationInput.y += -1;
+            MOVEMENT_CONTROL_COMPONENT.data.accelerationInput.y += -1;
         }
     },
     left: {
         keys: ["a"],
         action: () => {
-            MOVEMENT_CONTROL_COMPONENT.accelerationInput.x += -1;
+            MOVEMENT_CONTROL_COMPONENT.data.accelerationInput.x += -1;
         }
     },
     right: {
         keys: ["d"],
         action: () => {
-            MOVEMENT_CONTROL_COMPONENT.accelerationInput.x += 1;
+            MOVEMENT_CONTROL_COMPONENT.data.accelerationInput.x += 1;
         }
     },
     yawLeft: {
         keys: ["q"],
         action: () => {
-            MOVEMENT_CONTROL_COMPONENT.yawInput -= 1;
+            MOVEMENT_CONTROL_COMPONENT.data.yawInput -= 1;
         }
     },
     yawRight: {
         keys: ["e"],
         action: () => {
-            MOVEMENT_CONTROL_COMPONENT.yawInput += 1;
+            MOVEMENT_CONTROL_COMPONENT.data.yawInput += 1;
         }
     }
 };
@@ -404,46 +403,45 @@ function drawPauseScreen() {
     renderContext.restore();
 }
 
-let simulationPhase = {
-    key: "simulation",
-    order: 0,
-    preUpdate() {
+const simulationPhase = new FluidSystemPhase(
+    "Simulation Phase",
+    () => {
         activateControlBindings();
     },
-    postUpdate() {
-        MOVEMENT_CONTROL_COMPONENT.yawInput = 0;
-        MOVEMENT_CONTROL_COMPONENT.accelerationInput.x = 0;
-        MOVEMENT_CONTROL_COMPONENT.accelerationInput.y = 0;
-        FIRE_CONTROL.fireIntent = false;
+    () => {
+        MOVEMENT_CONTROL_COMPONENT.data.yawInput = 0;
+        MOVEMENT_CONTROL_COMPONENT.data.accelerationInput.x = 0;
+        MOVEMENT_CONTROL_COMPONENT.data.accelerationInput.y = 0;
+        FIRE_CONTROL_COMPONENT.data.fireIntent = false;
     }
-} as SystemPhase
+);
 
-
-let worldRender = {
-    key: "worldrender",
-    order: 1,
-    postUpdate() {
+const worldRenderPhase = new FluidSystemPhase(
+    "World Render Phase",
+    () => { },
+    () => {
         renderContext.restore();
     }
-} as SystemPhase
+);
 
-let hudRender = {
-    key: "hudrender",
-    order: 2,
-    postUpdate() {
+const hudRenderPhase = new FluidSystemPhase(
+    "Hud Render Phase",
+    () => { },
+    () => {
         if (!engine.getAnimationState())
             drawPauseScreen();
     }
-} as SystemPhase
+);
 
-engine.addPhase(simulationPhase, worldRender, hudRender);
+const sysman = Fluid.core().getSystemOrchestrator();
+sysman.pushPhases(simulationPhase, worldRenderPhase, hudRenderPhase);
 
 let kinematicSystem = new KinematicSystem(clientContext),
     positionSystem = new PositionSystem(engine),
     movementControlSystem = new MovementControlSystem(),
     viewportSystem = new ViewportSystem(clientContext),
     projectileSystem = new ProjectileSystem(engine),
-    firingSystem = new FiringSystem(engine, p => spawnProjectile(p.position, p.velocity, p.rotation, p.angularVelocity, p.deathTime, p.generation, p.size).getID()),
+    firingSystem = new FiringSystem(engine, p => spawnProjectile(p.position, p.velocity, p.rotation, p.angularVelocity, p.deathTime, p.generation, p.size)),
     cursorSystem = new CursorSystem(engine),
     chunkLoadingSystem = new ChunkLoadingSystem(engine, worldContext),
     chunkUnloadingSystem = new ChunkUnloadingSystem(engine, worldContext),
@@ -460,9 +458,8 @@ let kinematicSystem = new KinematicSystem(clientContext),
     chunkBorderRenderSystem = new ChunkBorderRenderSystem(clientContext),
     occupiedChunkHighlightingSystem = new OccupiedChunkHighlightingSystem(clientContext)
     ;
-;
 
-engine.appendSystems(simulationPhase,
+simulationPhase.pushSystems(
     chunkLoadingSystem,
     chunkOccupancyUpdateSystem,
     chunkUnloadingSystem,
@@ -477,7 +474,7 @@ engine.appendSystems(simulationPhase,
     collisionDetectionSystem
 );
 
-engine.appendSystems(worldRender,
+worldRenderPhase.pushSystems(
     worldPreRenderSystem,
     spriteRenderSystem,
     occupiedChunkHighlightingSystem,
@@ -486,118 +483,115 @@ engine.appendSystems(worldRender,
     axisRenderSystem
 );
 
-engine.appendSystems(hudRender,
+hudRenderPhase.pushSystems(
     viewportRenderSystem,
     debugInfoDisplaySystem
 );
 
-const FIRE_CONTROL = {
-    key: "fireControl",
-    fireIntent: false
-} as FireControlComponent;
+const FIRE_CONTROL_COMPONENT = FireControl.createComponent({ fireIntent: false });
 
-export const MC_POS: PositionComponent = {
-    key: "position",
+const MC_POS = Position.createComponent({
     position: { x: 0, y: 0 },
     rotation: -Math.PI / 2
-} as PositionComponent;
+});
 
 const MC_SCALE = 0.2 / shipImage.height;
-const MAIN_CHARACTER = engine.createNewEntityFromComponents(
-    MC_POS,
-    {
-        key: "velocity",
-        velocity: { x: 0, y: 0 },
-        angular: 0
-    } as VelocityComponent,
-    {
-        key: "acceleration",
-        acceleration: { x: 0, y: 0 },
-        angular: 0
-    } as AccelerationComponent,
-    {
-        key: "stats",
-        computedAcceleration: 0,
-        computedSpeed: 0
-    } as StatsComponent,
-    createProjectileSourceComponent(1.2 * 2.99792458, 14, 0.180, 1.5, { transform: { scale: shipImage.width * MC_SCALE * 1.5 / 2 } }),
-    {
-        key: "renderCenter",
-        renderDistance: renderDistance
-    } as RenderCenterComponent,
-    {
-        key: "spriteTexture",
-        image: shipImage,
-        zIndex: 5,
-        transform: {
-            scale: MC_SCALE,
-            rotate: Math.PI / 2
-        }
-    } as SpriteComponent,
-    createBoundingBox(
-        {
-            width: MC_SCALE * shipImage.width,
-            height: MC_SCALE * shipImage.height
-        },
-        {
-            transform: {
-                rotate: Math.PI / 2
-            }
-        }
-    ),
-    MOVEMENT_CONTROL_COMPONENT,
-    FIRE_CONTROL,
-    createChunkOccupancyComponent(),
-);
+
+function initMainCharacter(): ECSEntityId {
+    return Fluid.createEntityWithComponents(
+        MC_POS,
+        Velocity.createComponent(
+            {
+                velocity: { x: 0, y: 0 },
+                angular: 0
+            }),
+        Acceleration.createComponent(
+            {
+                acceleration: { x: 0, y: 0 },
+                angular: 0
+            }),
+        Stats.createComponent({}),
+        ProjectileSource.createComponent({
+            muzzleSpeed: 1.2 * 2.99792458,
+            fireRate: 14,
+            projectileLifeTime: 1.5,
+            projectileSize: 0.180,
+            lastFireTime: 0,
+            transform: { scale: shipImage.width * MC_SCALE * 1.5 / 2 }
+        }),
+        RenderCenter.createComponent({ renderDistance: renderDistance }),
+        Sprite.createComponent(
+            {
+                image: shipImage,
+                zIndex: 5,
+                transform: {
+                    scale: MC_SCALE,
+                    rotate: Math.PI / 2
+                }
+            }),
+        BoundingBox.createComponent(
+            createBoundingBox(
+                {
+                    width: MC_SCALE * shipImage.width,
+                    height: MC_SCALE * shipImage.height
+                },
+                {
+                    transform: {
+                        rotate: Math.PI / 2
+                    }
+                }
+            )),
+        ChunkOccupancy.createComponent({ chunkKeys: new Set() }),
+        MOVEMENT_CONTROL_COMPONENT,
+        FIRE_CONTROL_COMPONENT,
+    );
+}
+
+const MAIN_CHARACTER = initMainCharacter();
+
 
 MOUSE_CONTROLS["fire"] = {
     keys: [0],
     action: () => {
-        FIRE_CONTROL.fireIntent = true;
+        FIRE_CONTROL_COMPONENT.data.fireIntent = true;
     },
 };
 
 KEYBOARD_CONTROLS["fire"] = {
     keys: [" "],
     action: () => {
-        FIRE_CONTROL.fireIntent = true;
+        FIRE_CONTROL_COMPONENT.data.fireIntent = true;
     }
 };
 
-let viewport = engine.createNewEntityFromComponents(
-    {
-        key: "position",
+let viewport = Fluid.createEntityWithComponents(
+    Position.createComponent({
         position: {
             x: 0,
             y: 0,
         },
         rotation: 0
-    } as PositionComponent,
-    {
-        key: "targetPosition",
-        position: MC_POS
-    } as TargetPositionComponent,
-    {
-        key: "borderWidth",
+    }),
+    TargetPosition.createComponent({
+        position: MC_POS.data
+    }),
+    ViewportBorderWidth.createComponent({
         borderWidth: 0.05 * Math.min(renderer.getWidth(), renderer.getHeight())
-    } as ViewportBorderWidthComponent,
-    {
-        key: "speedFactor",
+    }),
+    CameraSpeedFactor.createComponent({
         speedFactor: 22
-    } as CameraSpeedFactorComponent,
-    {
-        key: "viewport"
-    },
+    }),
+    Viewport.createComponent({
+    }),
     VIEWPORT_RESOLUTION_COMPONENT
 );
 
-const cursorScreenPointComponent: ScreenPointComponent = {
-    key: "screenPoint",
+const CURSOR_SCREEN_COMPONENT = ScreenPoint.createComponent({
     point: { x: 0, y: 0 }
-};
+});
 
 canvasElement.addEventListener("mousemove", (event) => {
-    cursorScreenPointComponent.point = { x: event.offsetX, y: event.offsetY };
+    CURSOR_SCREEN_COMPONENT.data.point = { x: event.offsetX, y: event.offsetY };
 });
 
 window.addEventListener("keydown", (event) => {
@@ -618,72 +612,69 @@ canvasElement.addEventListener("mouseup", (event: MouseEvent) => {
     MOUSE_KEY_STATES[event.button] = false;
 });
 
-export function createSpriteEntity(position: Vec2, rotation: number, spriteTexture: HTMLImageElement, zIndex: number, scale = 1): Entity {
-    return engine.createNewEntityFromComponents(
-        {
-            key: "position",
-            position: position,
-            rotation: rotation
-        } as PositionComponent,
-        {
-            key: "spriteTexture",
+export function createSpriteEntity(position: Vec2, rotation: number, spriteTexture: HTMLImageElement, zIndex: number, scale = 1): ECSEntityId {
+    return Fluid.createEntityWithComponents(
+        Position.createComponent({
+            position,
+            rotation
+        }),
+        Sprite.createComponent({
             image: spriteTexture,
-            zIndex: zIndex,
+            zIndex,
             transform: {
-                scale: scale,
+                scale
             }
-        } as SpriteComponent
-    );
+        })
+    )
 }
 
-export function createAsteroid(position: Vec2, rotation: number, velocity: Vec2, angularVelocity: number, size: number): Entity {
-    let entity = createSpriteEntity(Vector2.copy(position), rotation, asteroidImage, 3, size / asteroidImage.width);
-    engine.addEntityComponents(entity,
-        {
-            key: "velocity",
-            velocity: velocity,
+export function createAsteroid(position: Vec2, rotation: number, velocity: Vec2, angularVelocity: number, size: number): ECSEntityId {
+    const entity = createSpriteEntity(Vector2.copy(position), rotation, asteroidImage, 3, size / asteroidImage.width);
+    Fluid.addEntityComponents(entity,
+        Velocity.createComponent({
+            velocity,
             angular: angularVelocity
-        } as VelocityComponent,
-        createBoundingBox({ width: size, height: size }),
-        createChunkOccupancyComponent()
+        }),
+        ChunkOccupancy.createComponent({ chunkKeys: new Set() }),
+        BoundingBox.createComponent(createBoundingBox({ width: size, height: size })),
     );
     return entity;
 }
 
-export function spawnProjectile(position: Vec2, velocity: Vec2, rotation: number, angularVelocity: number, deathTime: number, generation: number, size: number = 0.001): Entity {
-    let e = createSpriteEntity(
+export function spawnProjectile(position: Vec2, velocity: Vec2, rotation: number, angularVelocity: number, deathTime: number, generation: number, size: number = 0.001): ECSEntityId {
+    const entity = createSpriteEntity(
         position,
         rotation,
         laserShotTexture,
         0,
         size / laserShotTexture.width
     );
-    engine.addEntityComponents(e,
-        {
-            key: "velocity",
+    Fluid.addEntityComponents(entity,
+        Velocity.createComponent({
             velocity: velocity,
             angular: angularVelocity
-        } as VelocityComponent,
-        {
-            key: "projectile",
+        }),
+        Projectile.createComponent({
             deathTime: deathTime,
             generation: generation
-        } as ProjectileComponent,
-        {
-            key: "acceleration",
+        }),
+        Acceleration.createComponent({
             acceleration: { x: 0, y: 0 },
             angular: 0
-        } as AccelerationComponent,
-        createBoundingBox(
-            {
-                width: size,
-                height: size
-            },
-            { transform: { scale: 0.10 } }
+        }),
+        BoundingBox.createComponent(
+            createBoundingBox(
+                {
+                    width: size,
+                    height: size
+                },
+                { transform: { scale: 0.10 } }
+            )
         ),
-        createChunkOccupancyComponent()
+        ChunkOccupancy.createComponent({ chunkKeys: new Set() })
     );
-    return e;
+    return entity;
 }
 
 engine.animate();
+console.log("Asteroid Journey Started!");

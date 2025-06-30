@@ -1,14 +1,11 @@
 import { ClientContext } from "@asteroid/client/Client";
-import { BoundingBoxComponent } from "@asteroid/components";
-import { PositionComponent } from "@asteroid/components/PositionComponent";
-import { EntityID, System } from "@fluidengine/core";
+import { Position } from "@asteroid/components/PositionComponent";
+import { BoundingBox } from "@asteroid/components/BoundingBoxComponent";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { ECSNode } from "@fluid/core/node/Node";
 
 const PI = Math.PI, PI2 = 2 * PI;
-
-type AxisRenderSystemNode = {
-    position: PositionComponent;
-    boundingBox: BoundingBoxComponent;
-}
 
 const backgroundOverlayRenderColor = "black";
 const backgroundOverlayAlpha = 0.7;
@@ -24,12 +21,23 @@ const orientedAxisRenderColor = "red";
 const rotationAngleArcRadiusFactor = 0.25;
 const rotationAngleArcColor = "yellow";
 
-export class AxisRenderSystem extends System<AxisRenderSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof AxisRenderSystemNode> = new Set(['position', 'boundingBox']);
-    constructor(public clientContext: ClientContext) {
-        super();
+const nodeMeta = Fluid.registerNodeSchema(
+    {
+        position: Position,
+        boundingBox: BoundingBox
+    },
+    "Axis Render"
+);
+type Schema = typeof nodeMeta.schema;
+
+export class AxisRenderSystem extends FluidSystem<Schema> {
+    constructor(
+        public clientContext: ClientContext
+    ) {
+        super("Axis Render System", nodeMeta);
     }
-    public updateNode(node: AxisRenderSystemNode, entityID: EntityID): void {
+
+    updateNode(node: ECSNode<Schema>): void {
         if (!this.clientContext.displayEntityAxes)
             return;
 
@@ -110,5 +118,4 @@ export class AxisRenderSystem extends System<AxisRenderSystemNode> {
 
         ctx.restore();
     }
-
 }

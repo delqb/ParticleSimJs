@@ -1,5 +1,7 @@
+import { Fluid } from "@fluid/Fluid";
 
-
-export type FireControlComponent = Component & {
+export interface FireControlComponent {
     fireIntent: boolean;
 };
+
+export const FireControl = Fluid.defineComponentType<FireControlComponent>("Fire Control");

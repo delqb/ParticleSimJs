@@ -1,4 +1,8 @@
+import { Fluid } from "@fluid/Fluid";
+import { Vec2 } from "@fluid/lib/spatial/Vector2";
 
-export type ResolutionComponent = Component & {
+export interface ResolutionComponent {
     resolution: Vec2;
 };
+
+export const Resolution = Fluid.defineComponentType<ResolutionComponent>("Resolution");

@@ -1,19 +1,24 @@
-import {ClientContext} from "@asteroid/client/Client";
-import {BoundingBoxComponent} from "@asteroid/components";
-import {EntityID, System} from "@fluidengine/core";
+import { ClientContext } from "@asteroid/client/Client";
+import { BoundingBox } from "@asteroid/components/BoundingBoxComponent";
+import { ECSNode } from "@fluid/core/node/Node";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
 
 const PI = Math.PI;
 
-type BoundingBoxRenderNode = {
-    boundingBox: BoundingBoxComponent;
+const nodeSchema = {
+    boundingBox: BoundingBox
 }
 
-export class BoundingBoxRenderSystem extends System<BoundingBoxRenderNode> {
-    NODE_COMPONENT_KEYS: Set<keyof BoundingBoxRenderNode> = new Set(['boundingBox']);
+const nodeMeta = Fluid.registerNodeSchema(nodeSchema, "Bounding Box Render");
+type Schema = typeof nodeSchema;
+
+export class BoundingBoxRenderSystem extends FluidSystem<Schema> {
     constructor(public clientContext: ClientContext) {
-        super();
+        super("Bounding Box Render System", nodeMeta);
     }
-    public updateNode(node: BoundingBoxRenderNode, entityID: EntityID): void {
+
+    public updateNode(node: ECSNode<Schema>): void {
         const client = this.clientContext;
         const PPM = client.engineInstance.PIXELS_PER_METER;
 

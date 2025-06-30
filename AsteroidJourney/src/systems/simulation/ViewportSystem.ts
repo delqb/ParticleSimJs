@@ -1,30 +1,30 @@
 import { ClientContext } from "@asteroid/client/Client";
-import { ViewportComponent } from "@asteroid/components/ViewportComponent";
-import { CameraSpeedFactorComponent } from "@asteroid/components/CameraSpeedFactorComponent";
-import { TargetPositionComponent } from "@asteroid/components/TargetPositionComponent";
-import { PositionComponent } from "@asteroid/components/PositionComponent";
-import { ResolutionComponent } from "@asteroid/components/ResolutionComponent";
-import { EntityID, System } from "@fluidengine/core";
-import { Vector2 } from "@fluidengine/lib/spatial";
-import { MathUtils } from "@fluidengine/lib/utils";
+import { Viewport } from "@asteroid/components/ViewportComponent";
+import { CameraSpeedFactor } from "@asteroid/components/CameraSpeedFactorComponent";
+import { TargetPosition } from "@asteroid/components/TargetPositionComponent";
+import { Position } from "@asteroid/components/PositionComponent";
+import { Resolution } from "@asteroid/components/ResolutionComponent";
+import { Vector2 } from "@fluid/lib/spatial/Vector2";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { Fluid } from "@fluid/Fluid";
+import { ECSNode } from "@fluid/core/node/Node";
+import { shortestAngleDiff } from "@fluid/lib/utils/MathUtils";
 
-const { shortestAngleDiff } = MathUtils;
-
-
-export type ViewportSystemNode = {
-    position: PositionComponent;
-    resolution: ResolutionComponent;
-    targetPosition: TargetPositionComponent;
-    speedFactor: CameraSpeedFactorComponent;
-    viewport: ViewportComponent;
+const schema = {
+    position: Position,
+    resolution: Resolution,
+    targetPosition: TargetPosition,
+    speedFactor: CameraSpeedFactor,
+    viewport: Viewport
 }
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Viewport");
 
-export class ViewportSystem extends System<ViewportSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ViewportSystemNode> = new Set(['position', 'resolution', 'targetPosition', 'speedFactor', 'viewport']);
+export class ViewportSystem extends FluidSystem<Schema> {
     constructor(public clientContext: ClientContext) {
-        super();
+        super("Viewport System", nodeMeta);
     }
-    public updateNode(node: ViewportSystemNode, entityID: EntityID) {
+    public updateNode(node: ECSNode<Schema>): void {
         const eng = this.clientContext.engineInstance;
         const DELTA_TIME = eng.getDeltaTime();
         const PPM = eng.PIXELS_PER_METER;

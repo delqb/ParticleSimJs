@@ -1,23 +1,26 @@
 import { ClientContext } from "@asteroid/client/Client";
-import { AccelerationComponent } from "@asteroid/components/AccelerationComponent";
-import { VelocityComponent } from "@asteroid/components/VelocityComponent";
-import { PositionComponent } from "@asteroid/components/PositionComponent";
-import { EntityID, System } from "@fluidengine/core";
+import { Acceleration } from "@asteroid/components/AccelerationComponent";
+import { Velocity } from "@asteroid/components/VelocityComponent";
+import { Position } from "@asteroid/components/PositionComponent";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { ECSNode } from "@fluid/core/node/Node";
 
-export type KinematicSystemNode = {
-    position: PositionComponent;
-    velocity: VelocityComponent;
-    acceleration: AccelerationComponent;
+const schema = {
+    position: Position,
+    velocity: Velocity,
+    acceleration: Acceleration
 }
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Kinematic");
 
-export class KinematicSystem extends System<KinematicSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof KinematicSystemNode> = new Set(['position', 'acceleration', 'velocity']);
+export class KinematicSystem extends FluidSystem<Schema> {
     constructor(public clientContext: ClientContext) {
-        super();
+        super("Kinematic System", nodeMeta);
     }
-    public updateNode(node: KinematicSystemNode, entityID: EntityID) {
+    public updateNode(node: ECSNode<Schema>): void {
         const DELTA_TIME = this.clientContext.engineInstance.getDeltaTime();
-        const { velocity: velocityComp, acceleration: accelerationComp, position } = node;
+        const { velocity: velocityComp, acceleration: accelerationComp } = node;
         const a = accelerationComp.acceleration,
             v = velocityComp.velocity;
 

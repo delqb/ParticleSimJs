@@ -1,22 +1,25 @@
-import { CursorTranslateComponent } from "@asteroid/components/CursorTranslateComponent";
-import { ScreenPointComponent } from "@asteroid/components/ScreenPointComponent";
-import { PositionComponent } from "@asteroid/components/PositionComponent";
-import { EntityID, System } from "@fluidengine/core";
-import { FluidEngine } from "@fluidengine/FluidEngine";
-import { Vector2 } from "@fluidengine/lib/spatial";
+import { CursorTranslate } from "@asteroid/components/CursorTranslateComponent";
+import { ScreenPoint } from "@asteroid/components/ScreenPointComponent";
+import { Position } from "@asteroid/components/PositionComponent";
+import { FluidEngine } from "@fluid/FluidEngine";
+import { ECSNode } from "@fluid/core/node/Node";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { Vector2 } from "@fluid/lib/spatial/Vector2";
 
-export type CursorSystemNode = {
-    position: PositionComponent;
-    screenPoint: ScreenPointComponent;
-    cursorTranslate: CursorTranslateComponent;
+const schema = {
+    position: Position,
+    screenPoint: ScreenPoint,
+    cursorTranslate: CursorTranslate
 }
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Cursor Update");
 
-export class CursorSystem extends System<CursorSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof CursorSystemNode> = new Set(['position', 'screenPoint', 'cursorTranslate']);
+export class CursorSystem extends FluidSystem<Schema> {
     constructor(public engineInstance: FluidEngine) {
-        super();
+        super("Cursor System", nodeMeta);
     }
-    public updateNode(node: CursorSystemNode, entityID: EntityID) {
+    public updateNode(node: ECSNode<Schema>): void {
         node.position.position =
             Vector2.add(
                 node.cursorTranslate.cursorTranslate,

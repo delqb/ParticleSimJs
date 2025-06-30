@@ -1,21 +1,24 @@
-import { VelocityComponent } from "@asteroid/components/VelocityComponent";
-import { PositionComponent } from "@asteroid/components/PositionComponent";
-import { EntityID, System } from "@fluidengine/core";
-import { FluidEngine } from "@fluidengine/FluidEngine";
+import { Velocity } from "@asteroid/components/VelocityComponent";
+import { Position } from "@asteroid/components/PositionComponent";
+import { Fluid } from "@fluid/Fluid";
+import { FluidEngine } from "@fluid/FluidEngine";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { ECSNode } from "@fluid/core/node/Node";
 
 const PI = Math.PI, PI2 = 2 * PI;
 
-export type PositionSystemNode = {
-    position: PositionComponent;
-    velocity: VelocityComponent;
+const schema = {
+    position: Position,
+    velocity: Velocity
 }
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Position");
 
-export class PositionSystem extends System<PositionSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof PositionSystemNode> = new Set(['position', 'velocity']);
+export class PositionSystem extends FluidSystem<Schema> {
     constructor(public engineInstance: FluidEngine) {
-        super();
+        super("Position System", nodeMeta);
     }
-    public updateNode(node: PositionSystemNode, entityID: EntityID) {
+    public updateNode(node: ECSNode<Schema>): void {
         const DELTA_TIME = this.engineInstance.deltaTime;
         const { position: posComp, velocity: velComp } = node;
         const { position: pos } = posComp;

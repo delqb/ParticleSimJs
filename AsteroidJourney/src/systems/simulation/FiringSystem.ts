@@ -1,19 +1,22 @@
-import {
-    ProjectileSourceComponent
-} from "@asteroid/components";
-import { FireControlComponent } from "@asteroid/components/FireControlComponent";
-import { VelocityComponent } from "@asteroid/components/VelocityComponent";
-import { PositionComponent } from "@asteroid/components/PositionComponent";
-import { EntityID, System } from "@fluidengine/core";
-import { FluidEngine } from "@fluidengine/FluidEngine";
-import { Vec2 } from "@fluidengine/lib/spatial";
+import { FireControl } from "@asteroid/components/FireControlComponent";
+import { Velocity } from "@asteroid/components/VelocityComponent";
+import { Position } from "@asteroid/components/PositionComponent";
+import { FluidEngine } from "@fluid/FluidEngine";
+import { ECSNode } from "@fluid/core/node/Node";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { Vec2 } from "@fluid/lib/spatial/Vector2";
+import { ProjectileSource } from "@asteroid/components/ProjectileSourceComponent";
+import { ECSEntityId } from "@fluid/core/entity/EntityId";
 
-type FiringSystemNode = {
-    projectileSource: ProjectileSourceComponent;
-    fireControl: FireControlComponent;
-    velocity: VelocityComponent;
-    position: PositionComponent;
+const schema = {
+    projectileSource: ProjectileSource,
+    fireControl: FireControl,
+    velocity: Velocity,
+    position: Position
 }
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Firing");
 
 export interface ProjectileSpawnParams {
     position: Vec2;
@@ -25,16 +28,15 @@ export interface ProjectileSpawnParams {
     size: number;
 }
 
-export type ProjectileSpawnFunction = (params: ProjectileSpawnParams) => EntityID | undefined;
+export type ProjectileSpawnFunction = (params: ProjectileSpawnParams) => ECSEntityId | undefined;
 
 
-export class FiringSystem extends System<FiringSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof FiringSystemNode> = new Set(['projectileSource', 'fireControl', 'velocity', 'position']);
+export class FiringSystem extends FluidSystem<Schema> {
     constructor(public engineInstance: FluidEngine, public spawnProjectile: ProjectileSpawnFunction) {
-        super()
+        super("Firing System", nodeMeta);
     }
 
-    public updateNode(node: FiringSystemNode, entityID: EntityID) {
+    public updateNode(node: ECSNode<Schema>): void {
         const GAME_TIME = this.engineInstance.getGameTime();
         const { fireControl, projectileSource, position: positionComponent, velocity: velocityComponent } = node;
         let { position: pos, rotation: rot } = positionComponent;

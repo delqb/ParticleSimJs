@@ -1,21 +1,24 @@
-import {ClientContext} from "@asteroid/client/Client";
-import {ChunkComponent} from "@asteroid/components/ChunkComponent";
-import {EntityID, System} from "@fluidengine/core";
-import {ChunkState, getChunkCornerFromIndex} from "@fluidengine/lib/world/chunk/Chunk";
+import { ClientContext } from "@asteroid/client/Client";
+import { Chunk } from "@asteroid/components/ChunkComponent";
+import { ECSNode } from "@fluid/core/node/Node";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { ChunkState, getChunkCornerFromIndex } from "@fluid/lib/world/chunk/Chunk";
 
-type ChunkNode = {
-    chunk: ChunkComponent;
+const schema = {
+    chunk: Chunk
 }
+type Schema = typeof schema;
+const meta = Fluid.registerNodeSchema(schema, "Chunk");
 
 const lineWidth = 1 / 1000;
 const color = "red";
 
-export class ChunkBorderRenderSystem extends System<ChunkNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ChunkNode> = new Set(["chunk"]);
+export class ChunkBorderRenderSystem extends FluidSystem<Schema> {
     constructor(public clientContext: ClientContext) {
-        super();
+        super("Chunk Border Render System", meta);
     }
-    public updateNode(node: ChunkNode, entityID: EntityID): void {
+    public updateNode(node: ECSNode<Schema>): void {
         const clientContext = this.clientContext;
         if (!clientContext.displayChunks)
             return;

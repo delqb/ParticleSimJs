@@ -1,20 +1,24 @@
-import { ViewportComponent } from "@asteroid/components/ViewportComponent";
-import { ViewportBorderWidthComponent } from "@asteroid/components/ViewportBorderWidthComponent";
-import { ResolutionComponent } from "@asteroid/components/ResolutionComponent";
-import { EntityID, System } from "@fluidengine/core";
+import { Viewport } from "@asteroid/components/ViewportComponent";
+import { ViewportBorderWidth } from "@asteroid/components/ViewportBorderWidthComponent";
+import { Resolution } from "@asteroid/components/ResolutionComponent";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { ECSNode } from "@fluid/core/node/Node";
 
-type ViewportRenderNode = {
-    resolution: ResolutionComponent;
-    borderWidth: ViewportBorderWidthComponent;
-    viewport: ViewportComponent;
+const schema = {
+    resolution: Resolution,
+    borderWidth: ViewportBorderWidth,
+    viewport: Viewport
 }
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Viewport Render");
 
-export class ViewportRenderSystem extends System<ViewportRenderNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ViewportRenderNode> = new Set(['resolution', 'borderWidth', 'viewport']);
+export class ViewportRenderSystem extends FluidSystem<Schema> {
     constructor(public renderContext: CanvasRenderingContext2D) {
-        super();
+        super("Viewport Render System", nodeMeta);
     }
-    public updateNode(node: ViewportRenderNode, entityID: EntityID) {
+
+    public updateNode(node: ECSNode<Schema>) {
         const ctx = this.renderContext;
         const isActive = true;
         if (!isActive)

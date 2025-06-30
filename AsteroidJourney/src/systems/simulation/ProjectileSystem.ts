@@ -1,24 +1,27 @@
-import { ProjectileComponent } from "@asteroid/components";
-import { PositionComponent } from "@asteroid/components/PositionComponent";
-import { EntityID, System } from "@fluidengine/core";
-import { FluidEngine } from "@fluidengine/FluidEngine";
+import { Position } from "@asteroid/components/PositionComponent";
+import { Projectile } from "@asteroid/components/ProjectileComponent";
+import { Fluid } from "@fluid/Fluid";
+import { FluidEngine } from "@fluid/FluidEngine";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { ECSNode } from "@fluid/core/node/Node";
 
-type ProjectileSystemNode = {
-    projectile: ProjectileComponent;
-    position: PositionComponent;
+const schema = {
+    projectile: Projectile,
+    position: Position
 }
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Projectile");
 
-export class ProjectileSystem extends System<ProjectileSystemNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ProjectileSystemNode> = new Set(['projectile', 'position']);
+export class ProjectileSystem extends FluidSystem<Schema> {
     constructor(public engineInstance: FluidEngine) {
-        super();
+        super("Projectile System", nodeMeta);
     }
-    public updateNode(node: ProjectileSystemNode, entityID: EntityID) {
+    public updateNode(node: ECSNode<Schema>): void {
         const eng = this.engineInstance;
         const GAME_TIME = eng.getGameTime();
 
         if (GAME_TIME >= node.projectile.deathTime) {
-            eng.removeEntity(entityID);
+            Fluid.removeEntity(node.entityId);
         }
     }
 }

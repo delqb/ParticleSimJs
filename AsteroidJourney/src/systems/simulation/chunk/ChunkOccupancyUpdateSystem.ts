@@ -1,15 +1,19 @@
-import {BoundingBoxComponent} from "@asteroid/components";
-import {ChunkOccupancyComponent} from "@asteroid/components/ChunkOccupancyComponent";
-import {WorldContext} from "@asteroid/world/World";
-import {EntityID, System} from "@fluidengine/core";
-import {FluidEngine} from "@fluidengine/FluidEngine";
-import {conservativeOBBRasterization} from "@fluidengine/lib/utils/GridUtils";
-import {ChunkKey, ChunkState, getChunkIndexFromPosition, getChunkKeyFromIndex} from "@fluidengine/lib/world";
+import { BoundingBox } from "@asteroid/components/BoundingBoxComponent";
+import { ChunkOccupancy } from "@asteroid/components/ChunkOccupancyComponent";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { ECSNode } from "@fluid/core/node/Node";
+import { WorldContext } from "@asteroid/world/World";
+import { FluidEngine } from "@fluid/FluidEngine";
+import { conservativeOBBRasterization } from "@fluid/lib/utils/GridUtils";
+import { ChunkKey, getChunkKeyFromIndex, getChunkIndexFromPosition, ChunkState } from "@fluid/lib/world/chunk/Chunk";
 
-type ChunkOccupancyUpdateNode = {
-    boundingBox: BoundingBoxComponent;
-    chunks: ChunkOccupancyComponent;
+const schema = {
+    boundingBox: BoundingBox,
+    chunks: ChunkOccupancy
 }
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Chunk Occupancy Update");
 
 /**
  * System responsible for maintaining accurate chunk occupancy information for entities.
@@ -25,13 +29,16 @@ type ChunkOccupancyUpdateNode = {
  * - Initiate unloading of the entity if all its occupied chunks are in an unloaded state.
  * partitions.
  */
-export class ChunkOccupancyUpdateSystem extends System<ChunkOccupancyUpdateNode> {
-    NODE_COMPONENT_KEYS: Set<keyof ChunkOccupancyUpdateNode> = new Set(["boundingBox", "chunks"]);
-    constructor(public engineInstance: FluidEngine, public worldContext: WorldContext) {
-        super();
+export class ChunkOccupancyUpdateSystem extends FluidSystem<Schema> {
+    constructor(
+        private engineInstance: FluidEngine,
+        private worldContext: WorldContext
+    ) {
+        super("Chunk Occupancy Update System", nodeMeta);
     }
-    public updateNode(node: ChunkOccupancyUpdateNode, entityID: EntityID): void {
-        const { boundingBox: bb, chunks: entityChunksComp } = node;
+
+    public updateNode(node: ECSNode<Schema>): void {
+        const { boundingBox: bb, chunks: entityChunksComp, entityId } = node;
         const entityChunkKeys = entityChunksComp.chunkKeys;
         const { aabb, obb, size, center } = bb;
         const { width, height } = size;
@@ -96,16 +103,16 @@ export class ChunkOccupancyUpdateSystem extends System<ChunkOccupancyUpdateNode>
         entityChunksComp.chunkKeys = currentChunkKeys;
 
         for (const chunkKey of toAdd) {
-            wc.getChunk(chunkKey)?.entityIDSet.add(entityID);
+            wc.getChunk(chunkKey)?.entitySymbolSet.add(entityId.getSymbol());
         }
 
         for (const chunkKey of toRemove) {
-            wc.getChunk(chunkKey)?.entityIDSet.delete(entityID);
+            wc.getChunk(chunkKey)?.entitySymbolSet.delete(entityId.getSymbol());
         }
 
         if (unloadEntity) {
             for (const chunkKey of currentChunkKeys)
-                wc.unloadEntity(entityID, chunkKey);
+                wc.unloadEntity(entityId, chunkKey);
         }
     }
 }

@@ -1,20 +1,24 @@
-import { BoundingBoxComponent } from "@asteroid/components";
-import { PositionComponent } from "@asteroid/components/PositionComponent";
-import { EntityID, System } from "@fluidengine/core";
-import { AABB, createOBB } from "@fluidengine/lib/spatial";
+import { BoundingBox } from "@asteroid/components/BoundingBoxComponent";
+import { Position } from "@asteroid/components/PositionComponent";
+import { ECSNode } from "@fluid/core/node/Node";
+import { Fluid } from "@fluid/Fluid";
+import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
+import { AABB } from "@fluid/lib/spatial/AABB";
+import { createOBB } from "@fluid/lib/spatial/OBB";
 
 const fcos = Math.cos, fsin = Math.sin, abs = Math.abs;
 
-type BoundingBoxUpdateNode = {
-    position: PositionComponent;
-    boundingBox: BoundingBoxComponent;
-};
+const schema = {
+    position: Position,
+    boundingBox: BoundingBox
+}
+type Schema = typeof schema;
+const nodeMeta = Fluid.registerNodeSchema(schema, "Bounding Box Update");
 
-export class BoundingBoxUpdateSystem extends System<BoundingBoxUpdateNode> {
-    NODE_COMPONENT_KEYS: Set<keyof BoundingBoxUpdateNode> = new Set(['position', 'boundingBox']);
-    constructor() { super(); }
+export class BoundingBoxUpdateSystem extends FluidSystem<Schema> {
+    constructor() { super("Bounding Box Update System", nodeMeta); }
 
-    public updateNode(node: BoundingBoxUpdateNode, entityID: EntityID): void {
+    public updateNode(node: ECSNode<Schema>): void {
         // Handle all bounding box calculations here and store results in boundingbox component once.
         // In bounding box rendering system, only use the stored values and do not do any transformations.
         // All transformations should already be applied on all the bounding box data this data is to be used in other systems.

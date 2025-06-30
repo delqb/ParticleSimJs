@@ -1,21 +1,8 @@
-export type ProjectileComponent = Component & {
+import { Fluid } from "@fluid/Fluid";
+
+export interface ProjectileComponent {
     generation: number;
     deathTime: number;
 }
 
-export type ProjectileSourceComponent = Component & {
-    transform?: Transform;
-    muzzleSpeed: number;
-    fireRate: number;
-    lastFireTime: number;
-    projectileSize: number;
-    projectileLifeTime: number;
-}
-
-export function createProjectileComponent(deathTime: number, { key = "projectile", generation = 1 } = {}): ProjectileComponent {
-    return { key, generation, deathTime };
-}
-
-export function createProjectileSourceComponent(muzzleSpeed: number, fireRate: number, projectileSize: number, projectileLifeTime: number, { key = "projectileSource", lastFireTime = 0, transform = undefined } = {}): ProjectileSourceComponent {
-    return { key, muzzleSpeed, fireRate, lastFireTime, projectileSize, projectileLifeTime, transform };
-}
+export const Projectile = Fluid.defineComponentType<ProjectileComponent>("Projectile");

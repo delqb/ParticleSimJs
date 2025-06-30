@@ -1,3 +1,5 @@
+import { Fluid } from "@fluid/Fluid";
+import { ChunkMeta } from "@fluid/lib/world/chunk/Chunk";
 
 /**
  * Component used to associate an entity with a 'Chunk' instance. 
@@ -6,10 +8,8 @@
  * 
  * @property chunk: The underlying 'Chunk' instance this entity represents.
  */
-export type ChunkComponent = Component & {
-    chunk: Chunk;
+export interface ChunkComponent {
+    chunk: ChunkMeta;
 }
 
-export function createChunkComponent(chunk: Chunk, key = "chunk"): ChunkComponent {
-    return { key, chunk };
-}
+export const Chunk = Fluid.defineComponentType<ChunkComponent>("Chunk");
