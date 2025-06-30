@@ -1,5 +1,5 @@
-import {ECSComponent} from "../Component";
-import {ECSComponentTypeId} from "./ComponentTypeId";
+import { ECSComponent } from "../Component";
+import { ECSComponentTypeId } from "./ComponentTypeId";
 
 /**
  * Represents a type descriptor for a specific component kind. Serves as a factory and identifier for components of type `T`.
@@ -27,5 +27,5 @@ export interface ECSComponentType<T> {
      * @param copyData When set to true, a shallow copy of `data` is used in the returned component.
      * @returns A component with the given data.
      */
-    createComponent(data: T, copyData: boolean): ECSComponent<T>;
+    createComponent(data: T, copyData?: boolean): ECSComponent<T>;
 }

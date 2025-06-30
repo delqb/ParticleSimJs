@@ -19,7 +19,7 @@ export class FluidComponentType<T> implements ECSComponentType<T> {
         return this.id.equals(component.componentTypeId);
     }
 
-    createComponent(data: T, copyData: boolean = true): ECSComponent<T> {
+    createComponent(data: T, copyData: boolean = false): ECSComponent<T> {
         return this.factory.createComponent(this, data, copyData);
     }
 }
