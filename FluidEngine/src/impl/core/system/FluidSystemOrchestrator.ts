@@ -5,6 +5,7 @@ import { OrderedList } from "@fluid/core/util/OrderedList";
 import { OrderedArrayList } from "@fluid/lib/structures/OrderedArrayList";
 
 export class FluidSystemOrchestrator implements ECSSystemOrchestrator {
+
     private readonly phaseList: OrderedList<ECSSystemPhase> = new OrderedArrayList(); //Store phases in proper order
 
     hasPhase(phase: ECSSystemPhase): boolean {
@@ -20,6 +21,10 @@ export class FluidSystemOrchestrator implements ECSSystemOrchestrator {
 
     pushPhase(phase: ECSSystemPhase): void {
         this.addPhase(phase, this.phaseList.getSize());
+    }
+
+    pushPhases(...phases: ECSSystemPhase[]): void {
+        phases.forEach(phase => this.pushPhase(phase));
     }
 
     removePhase(phase: ECSSystemPhase): void {

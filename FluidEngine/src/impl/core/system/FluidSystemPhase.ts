@@ -28,8 +28,12 @@ export class FluidSystemPhase implements ECSSystemPhase {
         this.systemList.insert(system, inPhaseOrder);
     }
 
-    pushSystem<S extends ECSNodeSchema>(system: ECSSystem<S>): void {
+    pushSystem(system: ECSSystem<ECSNodeSchema>): void {
         this.addSystem(system, this.systemList.getSize());
+    }
+
+    pushSystems(...systems: ECSSystem<ECSNodeSchema>[]): void {
+        systems.forEach(system => this.pushSystem(system));
     }
 
     removeSystem<S extends ECSNodeSchema>(system: ECSSystem<S>): void {
