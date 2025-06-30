@@ -6,30 +6,16 @@
     "module": "ESNext",
     "outDir": "js",
     "baseUrl": "./",
+    "rootDir": ".",
     "paths": {
-      /* 
-      Fluid
-      */
       "@fluid/*": [
-        "FluidEngine/src/*"
+        "./FluidEngine/src/*"
       ],
-      /*  
-      Fluid core
-      */
-      "@fluidcore/*": [
-        "FluidEngine/src/core/*"
-      ],
-      /* 
-      Fluid lib
-      */
       "@fluidlib/*": [
-        "FluidEngine/src/lib/*"
+        "./FluidEngine/src/lib/*"
       ],
-      /* 
-      AsteroidJourney
-      */
       "@asteroid/*": [
-        "AsteroidJourney/src/*"
+        "./AsteroidJourney/src/*"
       ]
     }
   },
