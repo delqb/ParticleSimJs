@@ -1,4 +1,3 @@
-import { Core } from "@fluid/index";
 import { ECSComponentManager } from "@fluid/core/component/ComponentManager";
 import { ECSComponentRepositoryHook } from "@fluid/core/component/ComponentRepositoryHook";
 import { ECSComponentTypeRegistryHook } from "@fluid/core/component/type/ComponentTypeRegistryHook";
@@ -29,22 +28,27 @@ import { FluidNodeSchemaIndex } from "./node/schema/FluidNodeSchemaIndex";
 import { FluidNodeSchemaRegistry } from "./node/schema/FluidNodeSchemaRegistry";
 import { FluidSystemOrchestrator } from "./system/FluidSystemOrchestrator";
 import { FluidHookDispatcher } from "./util/FluidHookDispatcher";
+import { Core } from "@fluid/core/Core";
+
+
 
 const FLUID_CORE_SYMBOL = Symbol.for("FluidCore");
 
 export class FluidCore implements Core {
     static bootstrap(): FluidCore {
         // Prepare Component Manager
+        const componentTypeRegistryHookDispatcher = new FluidHookDispatcher<ECSComponentTypeRegistryHook>();
+        const componentTypeRegistry = new FluidComponentTypeRegistry(componentTypeRegistryHookDispatcher);
+
         const componentRepositoryHookDispatcher = new FluidHookDispatcher<ECSComponentRepositoryHook>();
-        const componentRepository = new FluidComponentRepository(componentRepositoryHookDispatcher);
+        const componentRepository = new FluidComponentRepository(
+            componentTypeRegistry.getComponentType.bind(componentTypeRegistry),
+            componentRepositoryHookDispatcher
+        );
 
         const componentFactory = new FluidComponentFactory();
         const componentTypeResolver = new FluidComponentTypeResolver();
         const componentTypeFactory = new FluidComponentTypeFactory(componentFactory);
-
-        // No hooks implemented for type registry
-        const componentTypeRegistryHookDispatcher = new FluidHookDispatcher<ECSComponentTypeRegistryHook>();
-        const componentTypeRegistry = new FluidComponentTypeRegistry(componentTypeRegistryHookDispatcher);
 
         const componentManager = new FluidComponentManager(
             componentTypeFactory,

@@ -20,8 +20,8 @@ export class FluidEntityProxy implements ECSEntityProxy {
         return this.componentRepository.getComponent(componentType, this.entityId);
     }
 
-    addComponent<T>(componentType: ECSComponentType<T>, component: ECSComponent<T>): void {
-        this.componentRepository.addComponent(componentType, component, this.entityId);
+    addComponent<T>(component: ECSComponent<T>): void {
+        this.componentRepository.addComponent(component, this.entityId);
     }
 
     removeComponent<T>(componentType: ECSComponentType<T>): void {

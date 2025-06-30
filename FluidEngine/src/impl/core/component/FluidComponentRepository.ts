@@ -2,6 +2,7 @@ import { ECSComponent } from "@fluid/core/component/Component";
 import { ECSComponentRepository } from "@fluid/core/component/ComponentRepository";
 import { ECSComponentRepositoryHook } from "@fluid/core/component/ComponentRepositoryHook";
 import { ECSComponentType } from "@fluid/core/component/type/ComponentType";
+import { ECSComponentTypeId } from "@fluid/core/component/type/ComponentTypeId";
 import { ECSEntityId } from "@fluid/core/entity/EntityId";
 import { HookDispatcher } from "@fluid/core/util/hook/HookDispatcher";
 
@@ -14,6 +15,7 @@ export class FluidComponentRepository implements ECSComponentRepository {
     private readonly entityToComponentTypesMap: Map<symbol, Map<symbol, ECSComponentType<any>>> = new Map();
 
     constructor(
+        private readonly getComponentType: (componentTypeId: ECSComponentTypeId) => ECSComponentType<any>,
         private readonly hooks: HookDispatcher<ECSComponentRepositoryHook>
     ) {
     }
@@ -33,7 +35,7 @@ export class FluidComponentRepository implements ECSComponentRepository {
         return componentMap;
     }
 
-    private operateOnComponent<T, R>(
+    private withComponentEntry<T, R>(
         componentType: ECSComponentType<T>,
         entityId: ECSEntityId,
         operation:
@@ -93,15 +95,15 @@ export class FluidComponentRepository implements ECSComponentRepository {
         componentType: ECSComponentType<T>,
         entityId: ECSEntityId
     ): ECSComponent<T> {
-        return this.operateOnComponent(componentType, entityId, (map, key) => map.get(key)!);
+        return this.withComponentEntry(componentType, entityId, (map, key) => map.get(key)!);
     }
 
     addComponent<T>(
-        componentType: ECSComponentType<T>,
         component: ECSComponent<T>,
         entityId: ECSEntityId
     ): void {
-        const typeId = componentType.getId();
+        const typeId = component.componentTypeId;
+        const componentType = this.getComponentType(typeId);
         const typeSymbol = typeId.getSymbol();
         const typeName = typeId.getName();
         const entitySymbol = entityId.getSymbol();
@@ -130,9 +132,12 @@ export class FluidComponentRepository implements ECSComponentRepository {
         const typeId = componentType.getId();
         const typeSymbol = typeId.getSymbol();
         const entitySymbol = entityId.getSymbol();
-        const component = this.operateOnComponent(componentType, entityId, (map, key) => {
+        const component = this.withComponentEntry(componentType, entityId, (map, key) => {
             const c = map.get(key);
             map.delete(key);
+            if (map.size === 0) {
+                this.componentTypeToComponentMap.delete(typeSymbol);
+            }
             return c;
         });
         this.removeComponentType(typeSymbol, entitySymbol);

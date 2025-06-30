@@ -1,3 +1,4 @@
+import { ECSComponent } from "@fluid/core/component/Component";
 import { ECSComponentFactory } from "@fluid/core/component/ComponentFactory";
 import { ECSComponentManager } from "@fluid/core/component/ComponentManager";
 import { ECSComponentRepository } from "@fluid/core/component/ComponentRepository";

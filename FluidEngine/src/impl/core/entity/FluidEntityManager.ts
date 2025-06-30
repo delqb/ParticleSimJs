@@ -3,9 +3,10 @@ import { ECSEntityId } from "@fluid/core/entity/EntityId";
 import { ECSEntityManager } from "@fluid/core/entity/EntityManager";
 import { ECSEntityProxy } from "@fluid/core/entity/EntityProxy";
 import { ECSEntityProxyFactory } from "@fluid/core/entity/EntityProxyFactory";
+import { ECSEntityResolver } from "@fluid/core/entity/EntityResolver";
 
 
-export class FluidEntityManager implements ECSEntityManager {
+export class FluidEntityManager implements ECSEntityManager, ECSEntityResolver {
     private readonly idMap: Map<symbol, ECSEntityId> = new Map();
     private readonly proxyMap: Map<symbol, ECSEntityProxy> = new Map();
 
@@ -14,6 +15,22 @@ export class FluidEntityManager implements ECSEntityManager {
         private readonly proxyFactory: ECSEntityProxyFactory
     ) {
 
+    }
+
+    getEntityBySymbol(entitySymbol: symbol): ECSEntityId {
+        return this.idMap.get(entitySymbol);
+    }
+
+    getEntityResolver(): ECSEntityResolver {
+        return this;
+    }
+
+    getEntityFactory(): ECSEntityFactory {
+        return this.entityFactory;
+    }
+
+    getEntityProxyFactory(): ECSEntityProxyFactory {
+        return this.proxyFactory;
     }
 
     getEntities(): Iterable<ECSEntityId> {
