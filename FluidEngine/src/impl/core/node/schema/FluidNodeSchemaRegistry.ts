@@ -12,7 +12,6 @@ export class FluidNodeSchemaRegistry implements ECSNodeSchemaRegistry {
     constructor(
         private hooks: HookDispatcher<ECSNodeSchemaRegistryHook>
     ) {
-        throw new Error("FluidNodeSchemaRegistry not fully implemented.");
     }
 
     hasSchema(schemaId: ECSNodeSchemaId): boolean {
