@@ -7,6 +7,7 @@ import { FluidSystem } from "@fluid/impl/core/system/FluidSystem";
 import { aabbsIntersect } from "@fluid/lib/spatial/AABB";
 import { isSeparatingAxisExistent } from "@fluid/lib/spatial/ConvexPolygon";
 import { ChunkKey } from "@fluid/lib/world/chunk/Chunk";
+import { Collision } from "@asteroid/components/CollisionComponent";
 
 const schema = {
     boundingBox: BoundingBox,
@@ -104,9 +105,14 @@ export class CollisionDetectionSystem extends FluidSystem<Schema> {
     }
 
     private onCollide(nodeA: ECSNode<Schema>, nodeB: ECSNode<Schema>) {
-        // Temporary code for testing purposes.
-        Fluid.removeEntity(nodeA.entityId);
-        Fluid.removeEntity(nodeB.entityId);
+        const eA = nodeA.entityId,
+            eB = nodeB.entityId;
+        const proxyA = Fluid.getEntityProxy(eA);
+        const proxyB = Fluid.getEntityProxy(eB);
+        if (!proxyA.hasComponent(Collision))
+            proxyA.addComponent(Collision.createComponent({ collidedEntity: eB }));
+        if (!proxyB.hasComponent(Collision))
+            proxyB.addComponent(Collision.createComponent({ collidedEntity: eA }));
     }
 
     public updateNodes(nodes: Iterable<ECSNode<Schema>>): void {
